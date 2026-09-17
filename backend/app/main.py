@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import get_db
 from app.core.config import settings
-from app.api.v1 import auth, transactions, accounts, goals
+from app.api.v1 import auth, transactions, accounts, goals, goal_categories
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -34,6 +34,7 @@ app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(transactions.router, prefix=settings.API_V1_STR)
 app.include_router(accounts.router, prefix=settings.API_V1_STR)
 app.include_router(goals.router, prefix=settings.API_V1_STR)
+app.include_router(goal_categories.router, prefix=settings.API_V1_STR)
 
 @app.get("/health")
 def health_check():

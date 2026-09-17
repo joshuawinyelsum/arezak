@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Laptop, Home, Shield, Plane, Wallet, Loader2, AlertCircle, Target, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
@@ -19,12 +20,43 @@ type Goal = {
   locked_amount: number;
   currency: string;
   status: string; // ACTIVE, ACHIEVED, RELEASED
+  category?: {
+    id: string;
+    name: string;
+    icon: string;
+    is_system: boolean;
+  };
 };
 
 type Account = {
   id: string;
   name: string;
   available_balance: Money;
+};
+
+const ICON_MAP: Record<string, any> = {
+  "Shield": LucideIcons.Shield,
+  "Home": LucideIcons.Home,
+  "GraduationCap": LucideIcons.GraduationCap,
+  "Heart": LucideIcons.Heart,
+  "Laptop": LucideIcons.Laptop,
+  "Plane": LucideIcons.Plane,
+  "Users": LucideIcons.Users,
+  "Music": LucideIcons.Music,
+  "Briefcase": LucideIcons.Briefcase,
+  "Car": LucideIcons.Car,
+  "Wheat": LucideIcons.Wheat,
+  "Cross": LucideIcons.Cross,
+  "Smartphone": LucideIcons.Smartphone,
+  "TrendingUp": LucideIcons.TrendingUp,
+  "Wallet": LucideIcons.Wallet,
+  "Settings": LucideIcons.Settings,
+  "ShoppingCart": LucideIcons.ShoppingCart,
+  "Banknote": LucideIcons.Banknote,
+  "Building": LucideIcons.Building,
+  "Gift": LucideIcons.Gift,
+  "Key": LucideIcons.Key,
+  "Camera": LucideIcons.Camera
 };
 
 const getIconForName = (name: string) => {
@@ -240,7 +272,26 @@ export default function GoalsPage() {
       {!isLoading && !error && filteredGoals.length > 0 && (
         <div className="space-y-4">
            {filteredGoals.map(goal => {
-              const { icon: Icon, color, bg } = getIconForName(goal.name);
+              let Icon = Target;
+              let color = "text-slate-600";
+              let bg = "bg-slate-100";
+              
+              if (goal.category) {
+                Icon = ICON_MAP[goal.category.icon] || Target;
+                if (goal.category.is_system) {
+                  color = "text-slate-600";
+                  bg = "bg-slate-100";
+                } else {
+                  color = "text-brand";
+                  bg = "bg-brand/10";
+                }
+              } else {
+                const legacy = getIconForName(goal.name);
+                Icon = legacy.icon;
+                color = legacy.color;
+                bg = legacy.bg;
+              }
+
               const percentage = goal.target_amount > 0 ? Math.floor((goal.current_amount / goal.target_amount) * 100) : 0;
               
               return (
@@ -256,6 +307,11 @@ export default function GoalsPage() {
                                {goal.status === "ACHIEVED" && <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Achieved</span>}
                                {goal.status === "RELEASED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Released</span>}
                             </h3>
+                              {goal.category && (
+                                <div className="text-[11px] text-slate-500 font-medium">
+                                  {goal.category.name}
+                                </div>
+                              )}
                             <div className="text-xs text-brand font-medium mt-0.5 mb-1.5">
                                GH₵ {formatPesewas(goal.current_amount)} / {formatPesewas(goal.target_amount)}
                             </div>

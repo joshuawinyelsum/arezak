@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import uuid
 from typing import Annotated
 
@@ -16,10 +16,17 @@ class GoalCreate(BaseModel):
     target_amount: int
     currency: str = "GHS"
     description: str | None = None
+    category_id: uuid.UUID | None = None
 
 class ContributeRequest(BaseModel):
     amount: int
     account_id: uuid.UUID
+
+class GoalCategoryInfo(BaseModel):
+    id: uuid.UUID
+    name: str
+    icon: str
+    is_system: bool
 
 class GoalResponse(BaseModel):
     id: uuid.UUID
@@ -29,26 +36,31 @@ class GoalResponse(BaseModel):
     locked_amount: int
     currency: str
     status: str
+    category: GoalCategoryInfo | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 @router.post("/", response_model=GoalResponse)
 def api_create_goal(request: GoalCreate, db: SessionDep, current_user: CurrentUser):
     if request.target_amount <= 0:
         raise HTTPException(status_code=400, detail="Target amount must be > 0")
         
-    return create_goal(
-        db=db,
-        user_id=current_user.id,
-        name=request.name,
-        target_amount=request.target_amount,
-        currency=request.currency
-    )
+    try:
+        return create_goal(
+            db=db,
+            user_id=current_user.id,
+            name=request.name,
+            target_amount=request.target_amount,
+            category_id=request.category_id,
+            currency=request.currency
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/", response_model=list[GoalResponse])
 def get_goals(db: SessionDep, current_user: CurrentUser):
-    return db.query(Goal).filter(Goal.user_id == current_user.id).all()
+    from sqlalchemy.orm import joinedload
+    return db.query(Goal).options(joinedload(Goal.category)).filter(Goal.user_id == current_user.id).all()
 
 @router.get("/{goal_id}", response_model=GoalResponse)
 def get_goal(goal_id: uuid.UUID, db: SessionDep, current_user: CurrentUser):

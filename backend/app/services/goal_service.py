@@ -11,12 +11,24 @@ from app.rules.context import EvaluationContext
 from app.rules.engine import engine
 from app.rules.decision import ConstraintViolationException
 
-def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, currency: str = "GHS") -> Goal:
+from app.models.goal_category import GoalCategory
+
+def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, category_id: uuid.UUID | None = None, currency: str = "GHS") -> Goal:
+    # Validate category if provided
+    if category_id:
+        category = db.query(GoalCategory).filter(GoalCategory.id == category_id).first()
+        if not category:
+            raise ValueError("Invalid category")
+        
+        if not category.is_system and category.user_id != user_id:
+            raise ValueError("Category belongs to another user")
+
     goal = Goal(
         user_id=user_id,
         name=name,
         target_amount=target_amount,
         currency=currency,
+        category_id=category_id,
         status="ACTIVE"
     )
     db.add(goal)
