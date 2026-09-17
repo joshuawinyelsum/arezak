@@ -46,10 +46,11 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     
     // 4. TEST USER A — INCOME
     await page.goto('/transactions');
-    await page.click('button[aria-label="Add Income"]');
+    await page.locator('button[aria-label="Add Income"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'Step11 Income');
     await page.fill('input[placeholder="0.00"]', '1000.00');
     await page.locator('button:has-text("Submit Income")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     await expect(page.getByText('Step11 Income')).toBeVisible();
     
@@ -67,10 +68,11 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
 
     // 5. TEST USER A — EXPENSE
     await page.goto('/transactions');
-    await page.click('button[aria-label="Add Expense"]');
+    await page.locator('button[aria-label="Add Expense"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'Step11 Expense');
     await page.fill('input[placeholder="0.00"]', '100.00');
     await page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     await expect(page.getByText('Step11 Expense')).toBeVisible();
     await page.reload();
@@ -93,9 +95,10 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await expect(page.getByText(userA.goalName).first()).toBeVisible();
 
     // 7. TEST USER A — CONTRIBUTION
-    await page.getByRole('button', { name: 'Contribute' }).click();
+    await page.getByRole('button', { name: 'Contribute' }).evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', '200.00');
     await page.locator('button:has-text("Confirm Contribution")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     // Verify Goals page updates to 200 / 500
     await expect(page.getByText('GH₵ 200.00 / 500.00').first()).toBeVisible();
@@ -107,9 +110,10 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     
     // 8. TEST USER A — OVERFUNDING
     await page.goto('/goals');
-    await page.getByRole('button', { name: 'Contribute' }).click();
+    await page.getByRole('button', { name: 'Contribute' }).evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', '400.00'); // Goal capacity is 300
     await page.locator('button:has-text("Confirm Contribution")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     // Expect error message in modal
     await expect(page.getByText('API error: 400')).toBeVisible();
@@ -117,10 +121,11 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
 
     // 9. TEST USER A — INSUFFICIENT AVAILABLE FUNDS
     await page.goto('/transactions');
-    await page.click('button[aria-label="Add Expense"]');
+    await page.locator('button[aria-label="Add Expense"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'Too Expensive');
     await page.fill('input[placeholder="0.00"]', '800.00'); // Available is 700
     await page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     // The backend rejects it. Wait for error message (which shows in a toast or modal).
     // The UI should show insufficient funds
@@ -133,9 +138,10 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
 
     // 10. TEST USER A — ACHIEVEMENT
     await page.goto('/goals');
-    await page.getByRole('button', { name: 'Contribute' }).click();
+    await page.getByRole('button', { name: 'Contribute' }).evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', '300.00');
     await page.locator('button:has-text("Confirm Contribution")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     // Wait for Achieved badge
     await expect(page.getByText('Achieved').first()).toBeVisible();
@@ -147,7 +153,7 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
 
     // 11. TEST USER A — RELEASE
     await page.goto('/goals');
-    await page.getByRole('button', { name: 'Release Funds' }).click();
+    await page.getByRole('button', { name: 'Release Funds' }).evaluate(node => (node as HTMLButtonElement).click());
     await page.locator('button:has-text("Release Funds Now")').evaluate(node => (node as HTMLButtonElement).click());
     
     // Expect status to change to Released
@@ -186,16 +192,18 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     
     // Income GH₵400
     await page.goto('/transactions');
-    await page.click('button[aria-label="Add Income"]');
+    await page.locator('button[aria-label="Add Income"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'User B Income');
     await page.fill('input[placeholder="0.00"]', '400.00');
     await page.locator('button:has-text("Submit Income")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     // Expense GH₵50
-    await page.click('button[aria-label="Add Expense"]');
+    await page.locator('button[aria-label="Add Expense"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'User B Expense');
     await page.fill('input[placeholder="0.00"]', '50.00');
     await page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.waitForTimeout(500);
     
     // Goal "School"
     await page.goto('/goals/create');
