@@ -21,24 +21,30 @@ type Account = {
   total_balance: Money;
 };
 
+import { FundAccountModal } from "@/components/FundAccountModal";
+
 export default function AccountsPage() {
   const [showBalance, setShowBalance] = useState(true);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const [showFundModal, setShowFundModal] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+
+  const loadAccounts = async () => {
+    try {
+      const res = await apiFetch("/accounts");
+      const data = await res.json();
+      setAccounts(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load accounts.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadAccounts() {
-      try {
-        const res = await apiFetch("/accounts");
-        const data = await res.json();
-        setAccounts(data);
-      } catch (err: any) {
-        setError(err.message || "Failed to load accounts.");
-      } finally {
-        setIsLoading(false);
-      }
-    }
     loadAccounts();
   }, []);
 
@@ -63,6 +69,21 @@ export default function AccountsPage() {
            {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
       </header>
+
+      {/* Action Bar */}
+      {!isLoading && !error && accounts.length > 0 && (
+        <div className="flex justify-end mt-2 mb-4">
+          <button 
+            onClick={() => {
+              setSelectedAccountId(accounts[0].id);
+              setShowFundModal(true);
+            }}
+            className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-brand-hover shadow-sm"
+          >
+            + Fund Account
+          </button>
+        </div>
+      )}
 
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -159,6 +180,14 @@ export default function AccountsPage() {
         </div>
       )}
 
+      <FundAccountModal 
+        isOpen={showFundModal} 
+        onClose={() => setShowFundModal(false)} 
+        accountId={selectedAccountId} 
+        onSuccess={() => {
+          loadAccounts();
+        }} 
+      />
     </div>
   );
 }

@@ -148,3 +148,78 @@ def api_release_goal(
     except Exception as e:
         db.rollback()
         raise e
+
+class GoalEditRequest(BaseModel):
+    name: str | None = None
+    target_amount: int | None = None
+    category_id: uuid.UUID | None = None
+
+@router.patch('/{goal_id}', response_model=GoalResponse)
+def api_edit_goal(
+    goal_id: uuid.UUID,
+    request: GoalEditRequest,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    try:
+        from app.services.goal_service import edit_goal
+        goal = edit_goal(
+            db=db,
+            user_id=current_user.id,
+            goal_id=goal_id,
+            name=request.name,
+            target_amount=request.target_amount,
+            category_id=request.category_id
+        )
+        return goal
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete('/{goal_id}')
+def api_delete_goal(
+    goal_id: uuid.UUID,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    try:
+        from app.services.goal_service import delete_goal
+        delete_goal(db=db, user_id=current_user.id, goal_id=goal_id)
+        return {'message': 'Goal deleted successfully'}
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post('/{goal_id}/cancel')
+def api_cancel_goal(
+    goal_id: uuid.UUID,
+    db: SessionDep,
+    current_user: CurrentUser,
+    x_idempotency_key: Annotated[str | None, Header()] = None
+):
+    from app.models.goal_contribution import GoalContribution
+    contrib = db.query(GoalContribution).filter_by(goal_id=goal_id).first()
+    if not contrib:
+        # If there are no contributions, we can't determine account_id easily this way,
+        # but if there are no contributions, locked_amount is 0. 
+        # But wait, we can just delete it instead.
+        raise HTTPException(status_code=400, detail='Goal has no contributions. Delete it instead.')
+        
+    try:
+        from app.services.goal_service import cancel_goal
+        tx = cancel_goal(
+            db=db,
+            user_id=current_user.id,
+            account_id=contrib.account_id,
+            goal_id=goal_id,
+            idempotency_key=x_idempotency_key
+        )
+        db.commit()
+        return {'message': 'Cancellation successful', 'transaction_id': tx.id}
+    except ConstraintViolationException as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail={'code': e.decision.code, 'message': e.decision.message})
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+

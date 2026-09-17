@@ -72,6 +72,8 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{ accounts: Account[], txs: Transaction[], goals: Goal[] } | null>(null);
+  const [showFundModal, setShowFundModal] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
@@ -167,10 +169,24 @@ export default function Dashboard() {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12">
       
-      <div className="flex flex-col gap-1 md:mt-4">
-         <h1 className="text-[22px] md:text-2xl font-bold text-slate-900 tracking-tight">Good morning, {firstName} 👋</h1>
-         <p className="text-sm text-slate-500">Your money is working according to your rules.</p>
-      </div>
+        <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between md:mt-4">
+           <div>
+               <h1 className="text-[22px] md:text-2xl font-bold text-slate-900 tracking-tight">Good morning, {firstName} 👋</h1>
+               <p className="text-sm text-slate-500">Your money is working according to your rules.</p>
+           </div>
+           
+           {data.accounts.length > 0 && (
+             <button 
+                onClick={() => {
+                  setSelectedAccountId(data.accounts[0].id);
+                  setShowFundModal(true);
+                }}
+                className="flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-brand-hover shadow-sm transition-colors w-full md:w-auto justify-center"
+             >
+                + Fund Account
+             </button>
+           )}
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-6">
         
@@ -423,6 +439,15 @@ export default function Dashboard() {
 
         </div>
       </div>
+      
+      <FundAccountModal 
+        isOpen={showFundModal} 
+        onClose={() => setShowFundModal(false)} 
+        accountId={selectedAccountId} 
+        onSuccess={() => {
+          window.location.reload();
+        }} 
+      />
 
     </div>
   );
