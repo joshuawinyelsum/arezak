@@ -87,7 +87,7 @@ export default function GoalsPage() {
     setIsLoading(true);
     try {
       const [goalsRes, accRes] = await Promise.all([
-        apiFetch("/goals/"),
+        apiFetch("/goals"),
         apiFetch("/accounts")
       ]);
       const gData = await goalsRes.json();

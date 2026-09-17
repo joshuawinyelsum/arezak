@@ -25,7 +25,7 @@ class GoalCategoryCreate(BaseModel):
     icon: str
 
 # Endpoints
-@router.get("/", response_model=list[GoalCategoryResponse])
+@router.get("", response_model=list[GoalCategoryResponse])
 def get_goal_categories(db: SessionDep, current_user: CurrentUser):
     categories = db.query(GoalCategory).filter(
         or_(
@@ -36,7 +36,7 @@ def get_goal_categories(db: SessionDep, current_user: CurrentUser):
     
     return categories
 
-@router.post("/", response_model=GoalCategoryResponse, status_code=201)
+@router.post("", response_model=GoalCategoryResponse, status_code=201)
 def create_goal_category(
     request: GoalCategoryCreate, 
     db: SessionDep, 
