@@ -40,7 +40,7 @@ class GoalResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-@router.post("/", response_model=GoalResponse)
+@router.post("", response_model=GoalResponse)
 def api_create_goal(request: GoalCreate, db: SessionDep, current_user: CurrentUser):
     if request.target_amount <= 0:
         raise HTTPException(status_code=400, detail="Target amount must be > 0")
@@ -57,7 +57,7 @@ def api_create_goal(request: GoalCreate, db: SessionDep, current_user: CurrentUs
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/", response_model=list[GoalResponse])
+@router.get("", response_model=list[GoalResponse])
 def get_goals(db: SessionDep, current_user: CurrentUser):
     from sqlalchemy.orm import joinedload
     return db.query(Goal).options(joinedload(Goal.category)).filter(Goal.user_id == current_user.id).all()

@@ -72,7 +72,7 @@ export default function CreateGoalPage() {
   const fetchCategories = async () => {
     try {
       setIsLoadingCategories(true);
-      const res = await apiFetch("/goal-categories/");
+      const res = await apiFetch("/goal-categories");
       if (res.ok) {
         const data = await res.json();
         setCategories(data);
@@ -93,7 +93,7 @@ export default function CreateGoalPage() {
     setIsSubmittingCat(true);
     
     try {
-      const res = await apiFetch("/goal-categories/", {
+      const res = await apiFetch("/goal-categories", {
         method: "POST",
         body: JSON.stringify({
           name: newCatName.trim(),
@@ -147,7 +147,7 @@ export default function CreateGoalPage() {
     };
 
     try {
-      const res = await apiFetch("/goals/", {
+      const res = await apiFetch("/goals", {
         method: "POST",
         body: JSON.stringify(payload)
       });

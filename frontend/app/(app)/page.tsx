@@ -80,7 +80,7 @@ export default function Dashboard() {
         const [accRes, txRes, goalRes] = await Promise.all([
           apiFetch("/accounts"),
           apiFetch("/transactions"),
-          apiFetch("/goals/")
+          apiFetch("/goals")
         ]);
 
         if (!accRes.ok || !txRes.ok || !goalRes.ok) {
