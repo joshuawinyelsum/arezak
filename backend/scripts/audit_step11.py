@@ -42,10 +42,13 @@ def run_audit():
         # RELEASE LEDGER VERIFICATION
         released_goal = db.query(Goal).filter(Goal.status == "RELEASED").first()
         if released_goal:
-            # Check ledger entries for this goal
-            entries = db.query(LedgerEntry).filter(LedgerEntry.account_id == released_goal.account_id, LedgerEntry.description.like('%Release%')).all()
-            if entries:
-                print(f"RELEASE_LEDGER: Found release transaction. Entries={len(entries)}")
+            # Check transaction for this user
+            release_tx = db.query(Transaction).filter(Transaction.user_id == released_goal.user_id, Transaction.type == "GOAL_RELEASE").first()
+            if release_tx:
+                entries = db.query(LedgerEntry).filter(LedgerEntry.transaction_id == release_tx.id).all()
+                print(f"RELEASE_LEDGER: Found release transaction '{release_tx.type}'. Entries={len(entries)}")
+                for e in entries:
+                    print(f"RELEASE_LEDGER: Entry -> account_id={e.account_id} type={e.entry_type} amount={e.amount} description='{e.description}'")
             print(f"RELEASE_LEDGER: Target={released_goal.target_amount} Current={released_goal.current_amount}")
         else:
             print(f"RELEASE_LEDGER: No released goal found.")
@@ -61,4 +64,3 @@ def run_audit():
 
 if __name__ == "__main__":
     run_audit()
-
