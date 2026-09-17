@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { FundAccountModal } from "@/components/FundAccountModal";
 
 type Money = {
   amount_pesewas: number;

@@ -193,7 +193,18 @@ def api_correct_transaction(
             new_currency=request.new_amount.currency,
             idempotency_key=idempotency_key
         )
+        db.commit()
+        db.refresh(tx)
         return TransactionResponse.from_orm_transaction(tx)
+    except ConstraintViolationException as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": e.decision.code,
+                "message": e.decision.message
+            }
+        )
     except ValueError as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))

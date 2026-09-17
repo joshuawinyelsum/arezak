@@ -51,6 +51,11 @@ def contribute_to_goal(
         if existing_contrib:
             return existing_contrib.transaction
             
+    # 1.5 Enforce single-account funding invariant
+    existing_contrib = db.query(GoalContribution).filter_by(goal_id=goal_id).first()
+    if existing_contrib and existing_contrib.account_id != account_id:
+        raise ValueError("A goal can only be funded from a single account.")
+
     # 2. Constraint Engine Evaluation (Will lock account and goal, and verify constraints)
     context = EvaluationContext(
         db=db,
@@ -326,6 +331,9 @@ def delete_goal(
         raise ValueError('Goal not found')
         
     # Check for any financial history
+    # A goal with no GoalContributions has never been funded, meaning it has no GOAL_CONTRIBUTION transactions.
+    # Because it was never funded, it cannot have been released or cancelled (both require funds).
+    # Therefore, checking has_contributions guarantees no financial linkage.
     has_contributions = db.query(GoalContribution).filter_by(goal_id=goal_id).first() is not None
     if has_contributions or goal.current_amount > 0 or goal.locked_amount > 0 or goal.status != 'ACTIVE':
         raise ValueError('Goal has financial history and cannot be deleted. Archive or cancel it instead.')

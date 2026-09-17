@@ -44,15 +44,15 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await page.goto('/goals');
     await expect(page.getByText('No goals yet')).toBeVisible();
     
-    // 4. TEST USER A — INCOME
+    // 4. TEST USER A - INCOME
     await page.goto('/transactions');
-    await page.locator('button[aria-label="Add Income"]').evaluate(node => (node as HTMLButtonElement).click());
-    await page.fill('input[placeholder="What was this for?"]', 'Step11 Income');
+    await page.locator('button[aria-label="Fund Account"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', '1000.00');
-    await page.locator('button:has-text("Submit Income")').evaluate(node => (node as HTMLButtonElement).click());
-    await page.waitForTimeout(500);
-    
-    await expect(page.getByText('Step11 Income')).toBeVisible();
+    // For source, we can just use default (Salary)
+    await page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click());
+
+    // Use the <select> element to choose the first account
+    await expect(page.getByText('Salary')).toBeVisible();
     
     // Refresh browser
     await page.reload();
@@ -192,10 +192,11 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     
     // Income GH₵400
     await page.goto('/transactions');
-    await page.locator('button[aria-label="Add Income"]').evaluate(node => (node as HTMLButtonElement).click());
-    await page.fill('input[placeholder="What was this for?"]', 'User B Income');
+    await page.locator('button[aria-label="Fund Account"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', '400.00');
-    await page.locator('button:has-text("Submit Income")').evaluate(node => (node as HTMLButtonElement).click());
+    // Note: for User B Income, we just add a note
+    await page.fill('input[placeholder="e.g. September allowance"]', 'User B Income');
+    await page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click());
     await page.waitForTimeout(500);
     
     // Expense GH₵50

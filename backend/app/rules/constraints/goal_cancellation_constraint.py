@@ -36,3 +36,4 @@ class GoalCancellationConstraint(BaseConstraint):
         context.amount_pesewas = goal.locked_amount
         context.goal = goal
         return ConstraintDecision.allow()
+
