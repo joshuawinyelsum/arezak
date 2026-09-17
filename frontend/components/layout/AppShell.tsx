@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useAuth } from "@/contexts/AuthContext";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -47,6 +48,7 @@ const mobileNavItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <div className="flex h-screen w-full bg-[#f8fafc] text-slate-900 overflow-hidden font-sans">
@@ -123,11 +125,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="relative">
                  <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="flex items-center gap-3 hover:bg-slate-100 p-1.5 rounded-full pr-3 transition-colors focus:outline-none">
                     <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                       <img src="https://i.pravatar.cc/150?u=joshua" alt="Avatar" className="w-full h-full object-cover" />
+                       <img src="https://i.pravatar.cc/150?u=user" alt="Avatar" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col text-left">
-                       <span className="text-sm font-semibold leading-none text-slate-900">Joshua Winyelsum</span>
-                       <span className="text-xs text-slate-500 mt-1 leading-none">Student</span>
+                       <span className="text-sm font-semibold leading-none text-slate-900">{user?.name || "User"}</span>
+                       <span className="text-xs text-slate-500 mt-1 leading-none">{user?.email || ""}</span>
                     </div>
                     <ChevronDown className={cn("w-4 h-4 text-slate-400 ml-1 transition-transform", isMobileMenuOpen && "rotate-180")} />
                  </button>
@@ -135,7 +137,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                  {isMobileMenuOpen && (
                     <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
                        <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Profile Settings</Link>
-                       <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign out</Link>
+                       <button onClick={() => { setIsMobileMenuOpen(false); logout(); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign out</button>
                     </div>
                  )}
               </div>
