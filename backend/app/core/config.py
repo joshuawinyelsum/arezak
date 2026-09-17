@@ -39,6 +39,8 @@ class Settings(BaseSettings):
                 raise ValueError("SECRET_KEY must be provided via environment in staging/production")
             if self.DB_DIALECT == "sqlite":
                 raise ValueError("SQLite cannot be used in staging or production. Please configure POSTGRES_SERVER and set DB_DIALECT=postgresql")
+            if self.POSTGRES_SERVER in ["localhost", "127.0.0.1"] and not env_db_url:
+                raise ValueError("Staging/Production database cannot be localhost. Please set DATABASE_URL or POSTGRES_SERVER.")
                 
         if self.DB_DIALECT == "sqlite":
             return "sqlite:///./arezak.db"
