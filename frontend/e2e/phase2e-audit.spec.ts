@@ -20,57 +20,71 @@ test.describe("Phase 2E Final Audit", () => {
   });
 
   test("Transaction actions and Goal actions", async ({ page }) => {
-    // 1. Create Account
-    await page.goto("/accounts");
-    await page.fill("input[placeholder=\"e.g. Daily Spending\"]", "Main");
-    await page.click("button:has-text(\"Add Account\")");
-    await expect(page.getByText("Main")).toBeVisible();
+    // (Accounts are auto-created for new users, so we can skip creation)
 
     // 2. Fund Account
     await page.goto("/transactions");
     await page.locator("button[aria-label=\"Fund Account\"]").evaluate(node => (node as HTMLButtonElement).click());
     await page.fill("input[placeholder=\"0.00\"]", "1000.00");
     await page.fill("input[placeholder=\"e.g. September allowance\"]", "Initial Fund");
-    await page.locator("button:has-text(\"Fund Account\")").nth(1).evaluate(node => (node as HTMLButtonElement).click());
-    await expect(page.getByText("Initial Fund")).toBeVisible();
+    
+    const [fundRes] = await Promise.all([
+      page.waitForResponse(res => res.url().includes('/transactions/income')),
+      page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click())
+    ]);
+    await expect(page.getByText("Initial Fund").first()).toBeVisible();
 
     // 3. Edit Metadata
     await page.getByText("Edit").first().click({ force: true });
     await page.fill("input[placeholder=\"Extra details\"]", "Updated Note");
-    await page.click("button:has-text(\"Save Metadata\")");
-    await expect(page.getByText("Updated Note")).toBeVisible();
+    const [editRes] = await Promise.all([
+      page.waitForResponse(res => res.url().includes('/metadata')),
+      page.getByRole('button', { name: 'Save Metadata' }).click()
+    ]);
+    await expect(page.getByText("Updated Note").first()).toBeVisible();
 
     // 4. Correct Transaction
     await page.getByText("Correct").first().click({ force: true });
     await page.fill("input[type=\"number\"]", "800.00");
-    await page.click("button:has-text(\"Confirm Correction\")");
-    await page.waitForTimeout(500); // Wait for load
+    const [correctRes] = await Promise.all([
+      page.waitForResponse(res => res.url().includes('/correct')),
+      page.getByRole('button', { name: 'Confirm Correction' }).click()
+    ]);
 
     // 5. Create Goal
     await page.goto("/goals/create");
-    await page.fill("input[placeholder=\"e.g. Emergency Fund\"]", "Test Goal");
-    await page.fill("input[placeholder=\"0.00\"]", "500.00");
-    await page.click("button:has-text(\"Create Goal\")");
+    await page.fill("input[placeholder=\"e.g. MacBook Pro M3\"]", "Test Goal");
+    await page.fill("input[placeholder=\"2000.00\"]", "500.00");
+    await page.getByRole('button', { name: 'Create Goal' }).evaluate(node => (node as HTMLButtonElement).click());
     await expect(page).toHaveURL("/goals");
+    await expect(page.getByText("Test Goal")).toBeVisible();
 
     // 6. Contribute to Goal
     await page.getByText("Contribute").first().click();
     await page.fill("input[placeholder=\"0.00\"]", "100.00");
-    await page.click("button:has-text(\"Confirm Contribution\")");
-    await page.waitForTimeout(500); // wait for completion
+    const [contribRes] = await Promise.all([
+      page.waitForResponse(res => res.url().includes('/contributions')),
+      page.getByRole('button', { name: 'Confirm Contribution' }).evaluate(node => (node as HTMLButtonElement).click())
+    ]);
+    await expect(page.getByText("Cancel Goal")).toBeVisible();
 
     // 7. Cancel Goal
     await page.getByText("Cancel Goal").first().click();
-    await page.click("button:has-text(\"Cancel Goal & Return Funds\")");
-    await page.waitForTimeout(500);
+    const [cancelRes] = await Promise.all([
+      page.waitForResponse(res => res.url().includes('/cancel')),
+      page.getByRole('button', { name: 'Cancel Goal & Return Funds' }).evaluate(node => (node as HTMLButtonElement).click())
+    ]);
+    await expect(page.getByText("Archive").first()).toBeVisible();
 
-    // 8. Archive Cancelled Goal
+    // 8. Archive Goal
     await page.getByText("Archive").first().click();
-    await page.click("button:has-text(\"Archive Goal\")");
-    await page.waitForTimeout(500);
+    const [archiveRes] = await Promise.all([
+      page.waitForResponse(res => res.url().includes('/archive')),
+      page.getByRole('button', { name: 'Archive Goal' }).evaluate(node => (node as HTMLButtonElement).click())
+    ]);
     
     // Validate it disappeared
-    await expect(page.getByText("Archive")).not.toBeVisible();
+    await expect(page.getByText("Test Goal").first()).not.toBeVisible();
   });
-});
 
+});

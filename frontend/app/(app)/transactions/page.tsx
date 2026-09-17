@@ -210,10 +210,18 @@ export default function TransactionsPage() {
                              <div className={cn("w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform", bg, color)}>
                                 <Icon className="w-5 h-5" />
                              </div>
-                             <div>
-                                <div className="font-semibold text-sm text-slate-900 capitalize">{item.description || item.type.toLowerCase().replace("_", " ")}</div>
-                                <div className="text-[11px] text-slate-500 mt-0.5 capitalize">{item.type.toLowerCase().replace("_", " ")}</div>
-                             </div>
+                               <div>
+                                  <div className="font-semibold text-sm text-slate-900 capitalize">{item.description || item.type.toLowerCase().replace("_", " ")}</div>
+                                  <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                                    <span className="capitalize">{item.type.toLowerCase().replace("_", " ")}</span>
+                                    {item.note && (
+                                      <>
+                                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                                        <span>{item.note}</span>
+                                      </>
+                                    )}
+                                  </div>
+                               </div>
                           </div>
                             <div className="flex flex-col items-end gap-2">
                                <div className={cn(
@@ -364,7 +372,23 @@ export default function TransactionsPage() {
           </div>
         </div>
       )}
+      
+      <FundAccountModal 
+        isOpen={showFundModal} 
+        onClose={() => setShowFundModal(false)} 
+        accountId={accountId} 
+        onSuccess={() => {
+          loadData();
+        }} 
+      />
 
+      <TransactionActionModal
+        isOpen={!!actionModalTx}
+        onClose={() => setActionModalTx(null)}
+        transaction={actionModalTx}
+        mode={actionModalMode}
+        onSuccess={() => loadData()}
+      />
     </div>
   );
 }
