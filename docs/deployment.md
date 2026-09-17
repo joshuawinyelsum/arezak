@@ -46,6 +46,7 @@ Arezak uses a decoupled architecture:
 - Inject the required environment variables (see above).
 - Railway will automatically detect the Python environment.
 - The `start.sh` script executes `alembic upgrade head` followed by `uvicorn app.main:app`.
+  - *Note: Automatic migrations on application startup (`start.sh`) are acceptable for Staging as a convenience (since it runs a single instance). For Production, this pattern must be replaced by a separate pre-deployment migration job to prevent race conditions across multiple instances.*
 - **Health Checks**: Configure Railway healthchecks against `/health/ready`.
 
 ### 3. Frontend (Vercel)
@@ -74,3 +75,4 @@ If a deployment fails:
 - `main`: Stable, deployable branch.
 - `staging`: Target for feature merges. Triggers deployment to the staging environment.
 - `feature/*`: Local development.
+
