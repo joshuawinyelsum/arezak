@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, Response
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import get_db
@@ -9,6 +10,16 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+@app.middleware("http")
+async def csrf_protect(request: Request, call_next):
+    # Only protect state-changing methods
+    if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        # We require a custom header to ensure the request was made via fetch/XHR (which triggers CORS preflight)
+        # This prevents simple form submissions from malicious sites (which bypass preflight)
+        if not request.headers.get("x-requested-with"):
+            return JSONResponse(status_code=403, content={"detail": "CSRF protection: missing x-requested-with header"})
+    return await call_next(request)
 
 # Set up CORS
 app.add_middleware(
