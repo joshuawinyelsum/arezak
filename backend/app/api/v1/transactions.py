@@ -20,6 +20,8 @@ class IncomeRequest(BaseModel):
     account_id: uuid.UUID
     amount: Money
     description: str | None = None
+    funding_source: str | None = None
+    note: str | None = None
 
 class ExpenseRequest(BaseModel):
     account_id: uuid.UUID
@@ -32,6 +34,8 @@ class TransactionResponse(BaseModel):
     amount: Money
     status: str
     description: str | None = None
+    funding_source: str | None = None
+    note: str | None = None
     created_at: datetime
 
     @classmethod
@@ -42,6 +46,8 @@ class TransactionResponse(BaseModel):
             amount=Money(amount_pesewas=tx.amount, currency=tx.currency),
             status=tx.status,
             description=tx.description,
+            funding_source=tx.funding_source,
+            note=tx.note,
             created_at=tx.created_at
         )
 
@@ -70,7 +76,17 @@ def add_income(
     idempotency_key: Annotated[str | None, Header()] = None
 ):
     try:
-        tx = process_income(db, current_user.id, request.account_id, request.amount.amount_pesewas, request.amount.currency, idempotency_key, request.description or "Income")
+        tx = process_income(
+            db, 
+            current_user.id, 
+            request.account_id, 
+            request.amount.amount_pesewas, 
+            request.amount.currency, 
+            idempotency_key, 
+            request.description or "Income",
+            request.funding_source,
+            request.note
+        )
         db.commit()
         db.refresh(tx)
         return TransactionResponse.from_orm_transaction(tx)
@@ -127,4 +143,58 @@ def get_transaction_ledger(transaction_id: uuid.UUID, db: SessionDep, current_us
     if not tx:
         raise HTTPException(status_code=404, detail={"code": "TRANSACTION_NOT_FOUND", "message": "Transaction not found."})
     return [LedgerResponse.from_orm_ledger(entry) for entry in tx.ledger_entries]
+
+
+class TransactionMetadataUpdate(BaseModel):
+    description: str | None = None
+    funding_source: str | None = None
+    note: str | None = None
+
+class TransactionCorrectionRequest(BaseModel):
+    new_amount: Money
+
+@router.patch('/{transaction_id}/metadata', response_model=TransactionResponse)
+def api_update_transaction_metadata(
+    transaction_id: uuid.UUID,
+    request: TransactionMetadataUpdate,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    try:
+        from app.services.transaction_service import update_transaction_metadata
+        tx = update_transaction_metadata(
+            db=db,
+            user_id=current_user.id,
+            transaction_id=transaction_id,
+            description=request.description,
+            funding_source=request.funding_source,
+            note=request.note
+        )
+        return TransactionResponse.from_orm_transaction(tx)
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post('/{transaction_id}/correct', response_model=TransactionResponse)
+def api_correct_transaction(
+    transaction_id: uuid.UUID,
+    request: TransactionCorrectionRequest,
+    db: SessionDep,
+    current_user: CurrentUser,
+    idempotency_key: Annotated[str | None, Header()] = None
+):
+    try:
+        from app.services.transaction_service import correct_transaction
+        tx = correct_transaction(
+            db=db,
+            user_id=current_user.id,
+            transaction_id=transaction_id,
+            new_amount_pesewas=request.new_amount.amount_pesewas,
+            new_currency=request.new_amount.currency,
+            idempotency_key=idempotency_key
+        )
+        return TransactionResponse.from_orm_transaction(tx)
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
 

@@ -199,3 +199,137 @@ def release_goal(
     db.add(ledger_entry)
     
     return transaction
+
+def edit_goal(
+    db: Session,
+    user_id: uuid.UUID,
+    goal_id: uuid.UUID,
+    name: str | None = None,
+    target_amount: int | None = None,
+    category_id: uuid.UUID | None = None,
+) -> Goal:
+    goal = db.query(Goal).filter_by(id=goal_id, user_id=user_id).first()
+    if not goal:
+        raise ValueError('Goal not found')
+        
+    if goal.status != 'ACTIVE':
+        if target_amount is not None and target_amount != goal.target_amount:
+            raise ValueError(f'Cannot edit target amount for {goal.status} goal')
+            
+    if target_amount is not None:
+        if target_amount < goal.current_amount:
+            raise ValueError('new_target_amount >= current_amount must be enforced')
+        goal.target_amount = target_amount
+        
+        # Check achievement transition
+        if goal.status == 'ACTIVE' and goal.current_amount >= goal.target_amount:
+            goal.status = 'ACHIEVED'
+            
+    if name is not None:
+        goal.name = name
+        
+    if category_id is not None:
+        category = db.query(GoalCategory).filter(GoalCategory.id == category_id).first()
+        if not category:
+            raise ValueError('Invalid category')
+        if not category.is_system and category.user_id != user_id:
+            raise ValueError('Category belongs to another user')
+        goal.category_id = category_id
+        
+    db.commit()
+    db.refresh(goal)
+    return goal
+
+
+def cancel_goal(
+    db: Session,
+    user_id: uuid.UUID,
+    account_id: uuid.UUID,
+    goal_id: uuid.UUID,
+    idempotency_key: str | None = None
+) -> Transaction:
+    if idempotency_key:
+        existing_tx = db.query(Transaction).filter_by(reference=idempotency_key, user_id=user_id, type='GOAL_CANCELLATION').first()
+        if existing_tx:
+            return existing_tx
+
+    goal = db.query(Goal).filter_by(id=goal_id).first()
+    if not goal:
+        raise ValueError("Goal not found")
+
+    context = EvaluationContext(
+        db=db,
+        user_id=user_id,
+        operation_type='GOAL_CANCELLATION',
+        amount_pesewas=goal.locked_amount,
+        currency='GHS',
+        account_id=account_id,
+        goal_id=goal_id
+    )
+    
+    account = db.query(Account).filter_by(id=account_id).first()
+    if account:
+        context.currency = account.currency
+
+    decision = engine.evaluate(context)
+    if not decision.allowed:
+        raise ConstraintViolationException(decision)
+        
+    if idempotency_key:
+        existing_tx = db.query(Transaction).filter_by(reference=idempotency_key, user_id=user_id, type='GOAL_CANCELLATION').first()
+        if existing_tx:
+            return existing_tx
+            
+    account = context.account
+    goal = context.goal
+    amount_pesewas = context.amount_pesewas
+    
+    account.locked_balance -= amount_pesewas
+    account.available_balance += amount_pesewas
+    
+    goal.locked_amount = 0
+    goal.status = 'CANCELLED'
+    
+    transaction = Transaction(
+        user_id=user_id,
+        account_id=account_id,
+        amount=amount_pesewas,
+        currency=goal.currency,
+        type='GOAL_CANCELLATION',
+        status='COMPLETED',
+        reference=idempotency_key,
+        description=f'Cancelled goal: {goal.name}'
+    )
+    db.add(transaction)
+    db.flush()
+    
+    ledger_entry = LedgerEntry(
+        account_id=account_id,
+        transaction_id=transaction.id,
+        amount=amount_pesewas,
+        currency=goal.currency,
+        entry_type='RELEASE', # Same effect as release on ledger conceptually
+        description='Goal cancelled and locked funds returned'
+    )
+    db.add(ledger_entry)
+    
+    return transaction
+
+
+def delete_goal(
+    db: Session,
+    user_id: uuid.UUID,
+    goal_id: uuid.UUID
+):
+    goal = db.query(Goal).filter_by(id=goal_id, user_id=user_id).first()
+    if not goal:
+        raise ValueError('Goal not found')
+        
+    # Check for any financial history
+    has_contributions = db.query(GoalContribution).filter_by(goal_id=goal_id).first() is not None
+    if has_contributions or goal.current_amount > 0 or goal.locked_amount > 0 or goal.status != 'ACTIVE':
+        raise ValueError('Goal has financial history and cannot be deleted. Archive or cancel it instead.')
+        
+    db.delete(goal)
+    db.commit()
+

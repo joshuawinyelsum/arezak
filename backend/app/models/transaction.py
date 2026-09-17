@@ -32,6 +32,12 @@ class Transaction(BaseModel):
     reference: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
     
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    funding_source: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    note: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # Lineage for transaction correction
+    reverses_transaction_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("transactions.id"), nullable=True)
+    correction_of_transaction_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("transactions.id"), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="transactions")
     ledger_entries: Mapped[list["LedgerEntry"]] = relationship("LedgerEntry", back_populates="transaction", cascade="all, delete-orphan")

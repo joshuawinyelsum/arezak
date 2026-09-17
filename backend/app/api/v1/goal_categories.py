@@ -28,6 +28,7 @@ class GoalCategoryCreate(BaseModel):
 @router.get("", response_model=list[GoalCategoryResponse])
 def get_goal_categories(db: SessionDep, current_user: CurrentUser):
     categories = db.query(GoalCategory).filter(
+        GoalCategory.is_archived == False,
         or_(
             GoalCategory.is_system == True,
             GoalCategory.user_id == current_user.id
@@ -70,3 +71,33 @@ def create_goal_category(
     db.refresh(new_category)
     
     return new_category
+
+@router.delete('/{category_id}')
+def delete_goal_category(
+    category_id: uuid.UUID,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    category = db.query(GoalCategory).filter_by(id=category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail='Category not found')
+        
+    if category.is_system:
+        raise HTTPException(status_code=400, detail='Cannot delete system category')
+        
+    if category.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail='Cannot delete another user\'s category')
+        
+    # Check if used by goals
+    from app.models.goal import Goal
+    has_goals = db.query(Goal).filter_by(category_id=category_id).first() is not None
+    
+    if has_goals:
+        category.is_archived = True
+        db.commit()
+        return {'message': 'Category archived successfully'}
+    else:
+        db.delete(category)
+        db.commit()
+        return {'message': 'Category deleted successfully'}
+
