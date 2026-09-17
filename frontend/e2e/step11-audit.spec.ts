@@ -232,14 +232,15 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await pageA.waitForURL('**/');
     
     // Get B's actual account via B's page
-    const resBAuth = await page.request.get('http://localhost:8000/api/v1/accounts', {
+    const resBAuth = await page.request.get(`${process.env.API_URL || 'http://localhost:8000/api/v1'}/accounts`, {
         headers: { 'x-requested-with': 'XMLHttpRequest' }
     });
     const dataB = await resBAuth.json();
     const accountBId = dataB[0].id;
     
     // User A attacks B's account
-    const attackRes = await pageA.request.post('http://localhost:8000/api/v1/transactions/expense', {
+    const apiUrl = process.env.API_URL || 'http://localhost:8000/api/v1';
+    const attackRes = await pageA.request.post(`${apiUrl}/transactions/expense`, {
       headers: { 'x-requested-with': 'XMLHttpRequest' },
       data: {
         account_id: accountBId, // Using B's account ID

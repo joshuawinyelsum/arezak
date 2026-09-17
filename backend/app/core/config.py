@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # PostgreSQL is now the standard across all environments (including local)
     DB_DIALECT: str = os.getenv("DB_DIALECT", "postgresql") 
     
-    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://arezak-staging.vercel.app")
     
     @property
     def DATABASE_URL(self) -> str:
