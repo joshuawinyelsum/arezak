@@ -10,10 +10,12 @@ export async function apiFetch(
 
   const headers = {
     "Content-Type": "application/json",
+    "x-requested-with": "XMLHttpRequest",
     ...options.headers,
   };
 
   const response = await fetch(url, {
+    credentials: "include",
     ...options,
     headers,
   });

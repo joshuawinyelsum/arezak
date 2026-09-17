@@ -53,13 +53,15 @@ def login(login_data: LoginRequest, db: SessionDep, response: Response):
         
     access_token = create_access_token(subject=str(user.id))
     
+    is_secure = settings.ENVIRONMENT in ("staging", "production")
+    
     # Set HttpOnly cookie
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False, # Set to True in production (HTTPS)
-        samesite="lax",
+        secure=is_secure,
+        samesite="none" if is_secure else "lax",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     
@@ -67,7 +69,12 @@ def login(login_data: LoginRequest, db: SessionDep, response: Response):
 
 @router.post("/logout", response_model=MessageResponse)
 def logout(response: Response):
-    response.delete_cookie(key="access_token", samesite="lax")
+    is_secure = settings.ENVIRONMENT in ("staging", "production")
+    response.delete_cookie(
+        key="access_token", 
+        samesite="none" if is_secure else "lax",
+        secure=is_secure
+    )
     return {"message": "Successfully logged out"}
 
 @router.get("/me", response_model=UserResponse)
