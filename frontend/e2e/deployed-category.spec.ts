@@ -27,7 +27,7 @@ test('Deployed Goal Category Test', async ({ page }) => {
   await page.locator('button > svg.lucide-music').locator('..').click();
   
   // FIX: use specific button type
-  await page.locator('button[type="submit"]:has-text("Create")').click({ force: true });
+  await page.getByRole('button', { name: 'Create', exact: true }).click({ force: true });
 
   await page.waitForSelector('text=Create custom category', { state: 'hidden' }); 
   
