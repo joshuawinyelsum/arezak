@@ -44,3 +44,4 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   // Prevent flash while redirecting
   return null;
 }
+
