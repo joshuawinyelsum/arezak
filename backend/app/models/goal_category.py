@@ -24,3 +24,4 @@ class GoalCategory(BaseModel):
     
     user: Mapped["User"] = relationship("User", back_populates="goal_categories")
     goals: Mapped[list["Goal"]] = relationship("Goal", back_populates="category")
+

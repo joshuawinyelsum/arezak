@@ -70,3 +70,4 @@ def test_goal_categories_flow(client):
     )
     assert res.status_code == 400
     assert "Category belongs to another user" in res.json()["detail"]
+
