@@ -49,6 +49,21 @@ def setup_db():
     
     # Now we can safely bind and create tables in the test database
     Base.metadata.create_all(bind=engine)
+    
+    # Seed system categories for tests
+    with engine.begin() as conn:
+        from sqlalchemy import text
+        conn.execute(text("""
+            INSERT INTO goal_categories (id, name, icon, is_system, created_at, updated_at) VALUES
+            (gen_random_uuid(), 'Emergency', 'Shield', true, now(), now()),
+            (gen_random_uuid(), 'Home', 'Home', true, now(), now()),
+            (gen_random_uuid(), 'Education', 'GraduationCap', true, now(), now()),
+            (gen_random_uuid(), 'Health', 'Heart', true, now(), now()),
+            (gen_random_uuid(), 'Devices & Tech', 'Laptop', true, now(), now()),
+            (gen_random_uuid(), 'Travel', 'Plane', true, now(), now()),
+            (gen_random_uuid(), 'Family', 'Users', true, now(), now())
+        """))
+    
     yield
     Base.metadata.drop_all(bind=engine)
 
