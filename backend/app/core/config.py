@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "arezak")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "arezak_password")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "arezak_db")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
     
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development") # development, staging, production
     
@@ -22,6 +23,14 @@ class Settings(BaseSettings):
     
     @property
     def DATABASE_URL(self) -> str:
+        env_db_url = os.getenv("DATABASE_URL")
+        if env_db_url:
+            if env_db_url.startswith("postgres://"):
+                env_db_url = env_db_url.replace("postgres://", "postgresql+psycopg://")
+            elif env_db_url.startswith("postgresql://"):
+                env_db_url = env_db_url.replace("postgresql://", "postgresql+psycopg://")
+            return env_db_url
+            
         if self.ENVIRONMENT not in ["development", "staging", "production"]:
             raise ValueError("ENVIRONMENT must be development, staging, or production")
             
@@ -34,7 +43,7 @@ class Settings(BaseSettings):
         if self.DB_DIALECT == "sqlite":
             return "sqlite:///./arezak.db"
         # Use psycopg driver
-        return f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+        return f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 settings = Settings()
 
