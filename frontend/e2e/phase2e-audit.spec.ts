@@ -12,20 +12,11 @@ test.describe("Phase 2E Final Audit", () => {
   test.beforeEach(async ({ page }) => {
     // Register
     await page.goto("/register");
-    await page.fill("input[name=\"firstName\"]", user.firstName);
-    await page.fill("input[name=\"lastName\"]", user.lastName);
-    await page.fill("input[name=\"email\"]", user.email);
-    await page.fill("input[name=\"password\"]", user.password);
-    await page.fill("input[name=\"confirmPassword\"]", user.password);
+    await page.fill("input[id=\"name\"]", user.firstName + " " + user.lastName);
+    await page.fill("input[id=\"email\"]", user.email);
+    await page.fill("input[id=\"password\"]", user.password);
     await page.click("button[type=\"submit\"]");
-    await expect(page).toHaveURL("/login");
-
-    // Login
-    await page.goto("/login");
-    await page.fill("input[type=\"email\"]", user.email);
-    await page.fill("input[type=\"password\"]", user.password);
-    await page.click("button[type=\"submit\"]");
-    await expect(page).toHaveURL("/");
+    await page.waitForURL("**/");
   });
 
   test("Transaction actions and Goal actions", async ({ page }) => {
