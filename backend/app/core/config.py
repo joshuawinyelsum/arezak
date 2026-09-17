@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development") # development, staging, production
     
-    # Allows fallback to SQLite for local dev without postgres
-    DB_DIALECT: str = os.getenv("DB_DIALECT", "sqlite") 
+    # PostgreSQL is now the standard across all environments (including local)
+    DB_DIALECT: str = os.getenv("DB_DIALECT", "postgresql") 
     
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
     
