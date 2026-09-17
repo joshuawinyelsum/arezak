@@ -223,3 +223,22 @@ def api_cancel_goal(
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
+
+@router.post("/{goal_id}/archive")
+def api_archive_goal(
+    goal_id: uuid.UUID,
+    db: SessionDep,
+    current_user: CurrentUser
+):
+    from app.models.goal import Goal
+    goal = db.query(Goal).filter_by(id=goal_id, user_id=current_user.id).first()
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found")
+        
+    if goal.status not in ["RELEASED", "CANCELLED"]:
+        raise HTTPException(status_code=400, detail="Only released or cancelled goals can be archived.")
+        
+    goal.status = "ARCHIVED"
+    db.commit()
+    return {"message": "Goal archived successfully"}
+

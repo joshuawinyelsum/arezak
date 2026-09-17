@@ -8,6 +8,7 @@ from app.rules.constraints.account_access_constraint import AccountAccessConstra
 from app.rules.constraints.goal_access_constraint import GoalAccessConstraint
 from app.rules.constraints.goal_release_constraint import GoalReleaseConstraint
 from app.rules.constraints.goal_cancellation_constraint import GoalCancellationConstraint
+from app.rules.constraints.correction_constraint import CorrectionConstraint
 from app.rules.constraints.balance import BalanceConstraint
 
 class ConstraintEngine:
@@ -19,6 +20,7 @@ class ConstraintEngine:
             GoalAccessConstraint(),
             GoalReleaseConstraint(),
             GoalCancellationConstraint(),
+            CorrectionConstraint(),
             BalanceConstraint()
         ]
         

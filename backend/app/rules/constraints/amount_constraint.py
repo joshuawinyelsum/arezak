@@ -5,7 +5,7 @@ from app.rules.codes import DecisionCode
 
 class ValidAmountConstraint(BaseConstraint):
     def evaluate(self, context: EvaluationContext) -> ConstraintDecision:
-        if context.operation_type == "GOAL_RELEASE":
+        if context.operation_type in ["GOAL_RELEASE", "TRANSACTION_CORRECTION"]:
             return ConstraintDecision.allow()
             
         if context.amount_pesewas <= 0:

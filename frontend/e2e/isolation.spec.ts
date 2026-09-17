@@ -37,13 +37,13 @@ test.describe('Cross-User Isolation', () => {
     
     // Create Income for A
     await page.goto('/transactions');
-    await page.click('button[aria-label="Add Income"]');
-    await page.fill('input[placeholder="What was this for?"]', 'User A Salary');
+    await page.locator('button[aria-label="Fund Account"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', userA.incomeAmount);
+    await page.fill('input[placeholder="e.g. September allowance"]', 'User A Salary');
     
     const [response] = await Promise.all([
       page.waitForResponse(res => res.url().includes('/transactions/income')),
-      page.locator('button:has-text("Submit Income")').evaluate(node => (node as HTMLButtonElement).click())
+      page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click())
     ]);
     
     if (!response.ok()) {
@@ -92,10 +92,10 @@ test.describe('Cross-User Isolation', () => {
     
     // Create Income for B
     await page.goto('/transactions');
-    await page.click('button[aria-label="Add Income"]');
-    await page.fill('input[placeholder="What was this for?"]', 'User B Salary');
+    await page.locator('button[aria-label="Fund Account"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', userB.incomeAmount);
-    await page.locator('button:has-text("Submit Income")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.fill('input[placeholder="e.g. September allowance"]', 'User B Salary');
+    await page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click());
     await expect(page.getByText('User B Salary')).toBeVisible();
 
     // Create Expense for B

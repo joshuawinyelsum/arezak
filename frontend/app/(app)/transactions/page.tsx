@@ -2,45 +2,55 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Download, Wifi, PieChart, Briefcase, Plus, Minus, Loader2, AlertCircle, X } from "lucide-react";
+import { Plus, Minus, ArrowLeftRight, X, AlertCircle, Loader2, PieChart, ShieldCheck, ArrowLeft, Wifi, Briefcase, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
+import { FundAccountModal } from "@/components/FundAccountModal";
+import { TransactionActionModal } from "@/components/TransactionActionModal";
 
-type Money = {
-  amount_pesewas: number;
-  currency: string;
-};
-
-type Transaction = {
-  id: string;
-  type: string;
-  amount: Money;
-  status: string;
-  description?: string;
-  created_at: string;
-};
-
-type Account = {
+interface Account {
   id: string;
   name: string;
-  available_balance: Money;
-};
+  currency: string;
+}
+
+interface Transaction {
+  id: string;
+  type: string;
+  amount: { amount_pesewas: number; currency: string };
+  status: string;
+  created_at: string;
+  description: string;
+  funding_source?: string;
+  note?: string;
+}
 
 export default function TransactionsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountId, setAccountId] = useState<string>("");
+  
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"income" | "expense">("income");
-  const [accountId, setAccountId] = useState("");
+  
+  // Expense Modal State
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [amountStr, setAmountStr] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+
+  // Fund Account Modal State
+  const [showFundModal, setShowFundModal] = useState(false);
+
+  // Action Modal State
+  const [actionModalTx, setActionModalTx] = useState<Transaction | null>(null);
+  const [actionModalMode, setActionModalMode] = useState<"correct" | "metadata" | null>(null);
+  const openActionModal = (tx: Transaction, mode: "correct" | "metadata") => {
+    setActionModalTx(tx);
+    setActionModalMode(mode);
+  };
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
@@ -66,67 +76,6 @@ export default function TransactionsPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  const handleOpenModal = (type: "income" | "expense") => {
-    setModalType(type);
-    setAmountStr("");
-    setDescription("");
-    setModalError(null);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    if (!isSubmitting) {
-      setIsModalOpen(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!accountId || !amountStr || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setModalError(null);
-
-    const amountFloat = parseFloat(amountStr);
-    if (isNaN(amountFloat) || amountFloat <= 0) {
-      setModalError("Please enter a valid positive amount.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    const amountPesewas = Math.round(amountFloat * 100);
-
-    const payload = {
-      account_id: accountId,
-      amount: { amount_pesewas: amountPesewas, currency: "GHS" },
-      description: description || undefined
-    };
-
-    try {
-      const endpoint = modalType === "income" ? "/transactions/income" : "/transactions/expense";
-      
-      const res = await apiFetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Idempotency-Key": crypto.randomUUID()
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail?.message || "Transaction failed");
-      }
-
-      await loadData(); // refresh data
-      setIsModalOpen(false);
-    } catch (err: any) {
-      setModalError(err.message || "An unexpected error occurred.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const formatPesewas = (pesewas: number) => {
     return (pesewas / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -168,24 +117,29 @@ export default function TransactionsPage() {
            </Link>
            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Transactions</h1>
         </div>
-        <div className="flex gap-2">
-           <button 
-             onClick={() => handleOpenModal("expense")}
-             className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors shadow-sm"
-             aria-label="Add Expense"
-           >
-             <Minus className="w-4 h-4 md:mr-1.5" />
-             <span className="hidden md:inline text-sm font-semibold">Expense</span>
-           </button>
-           <button 
-             onClick={() => handleOpenModal("income")}
-             className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-brand text-white hover:bg-brand/90 transition-colors shadow-sm"
-             aria-label="Add Income"
-           >
-             <Plus className="w-4 h-4 md:mr-1.5" />
-             <span className="hidden md:inline text-sm font-semibold">Income</span>
-           </button>
-        </div>
+          <div className="flex gap-2">
+             <button 
+               onClick={() => {
+                 setAmountStr("");
+                 setDescription("");
+                 setModalError(null);
+                 setIsExpenseModalOpen(true);
+               }}
+               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors shadow-sm"
+               aria-label="Add Expense"
+             >
+               <Minus className="w-4 h-4 md:mr-1.5" />
+               <span className="hidden md:inline text-sm font-semibold">Expense</span>
+             </button>
+             <button 
+               onClick={() => setShowFundModal(true)}
+               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-brand text-white hover:bg-brand/90 transition-colors shadow-sm"
+               aria-label="Fund Account"
+             >
+               <Plus className="w-4 h-4 md:mr-1.5" />
+               <span className="hidden md:inline text-sm font-semibold">Fund Account</span>
+             </button>
+          </div>
       </header>
 
       {/* Tabs */}
@@ -261,12 +215,30 @@ export default function TransactionsPage() {
                                 <div className="text-[11px] text-slate-500 mt-0.5 capitalize">{item.type.toLowerCase().replace("_", " ")}</div>
                              </div>
                           </div>
-                          <div className={cn(
-                             "font-semibold text-sm",
-                             isPositive ? "text-green-600" : "text-slate-900"
-                          )}>
-                             {isPositive ? "+" : "-"} GH₵{formatPesewas(item.amount.amount_pesewas)}
-                          </div>
+                            <div className="flex flex-col items-end gap-2">
+                               <div className={cn(
+                                  "font-semibold text-sm",
+                                  isPositive ? "text-green-600" : "text-slate-900"
+                               )}>
+                                  {isPositive ? "+" : "-"} GH₵{formatPesewas(item.amount.amount_pesewas)}
+                               </div>
+                               {(item.type === "INCOME" || item.type === "EXPENSE") && (
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                    <button 
+                                      onClick={() => openActionModal(item, "metadata")} 
+                                      className="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 font-medium"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      onClick={() => openActionModal(item, "correct")} 
+                                      className="text-xs bg-brand/10 hover:bg-brand/20 px-2 py-1 rounded text-brand font-medium"
+                                    >
+                                      Correct
+                                    </button>
+                                  </div>
+                               )}
+                            </div>
                        </div>
                     )})}
                  </div>
@@ -276,13 +248,14 @@ export default function TransactionsPage() {
       )}
 
       {/* Modal Overlay */}
-      {isModalOpen && (
+      {/* Expense Modal */}
+      {isExpenseModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-900">Add {modalType === "income" ? "Income" : "Expense"}</h2>
+              <h2 className="text-xl font-bold text-slate-900">Record Expense</h2>
               <button 
-                onClick={handleCloseModal}
+                onClick={() => { if (!isSubmitting) setIsExpenseModalOpen(false); }}
                 disabled={isSubmitting}
                 className="text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
               >
@@ -296,18 +269,55 @@ export default function TransactionsPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!accountId || !amountStr || isSubmitting) return;
+          
+              setIsSubmitting(true);
+              setModalError(null);
+          
+              const amountFloat = parseFloat(amountStr);
+              if (isNaN(amountFloat) || amountFloat <= 0) {
+                setModalError("Please enter a valid positive amount.");
+                setIsSubmitting(false);
+                return;
+              }
+          
+              const amountPesewas = Math.round(amountFloat * 100);
+          
+              const payload = {
+                account_id: accountId,
+                amount: { amount_pesewas: amountPesewas, currency: accounts.find(a => a.id === accountId)?.currency || "GHS" },
+                description: description || "Expense"
+              };
+          
+              try {
+                const res = await apiFetch("/transactions/expense", {
+                  method: "POST",
+                  body: JSON.stringify(payload)
+                });
+                if (!res.ok) {
+                  const errData = await res.json();
+                  throw new Error(errData.detail?.message || errData.detail || "Failed to record expense");
+                }
+                await loadData();
+                setIsExpenseModalOpen(false);
+              } catch (err: any) {
+                setModalError(err.message || "An unexpected error occurred.");
+              } finally {
+                setIsSubmitting(false);
+              }
+            }} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-1.5">Account</label>
                 <select 
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  disabled={isSubmitting || accounts.length === 0}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
-                  required
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all appearance-none"
+                  disabled={isSubmitting}
                 >
                   {accounts.map(acc => (
-                    <option key={acc.id} value={acc.id}>{acc.name} (GH₵{formatPesewas(acc.available_balance.amount_pesewas)} available)</option>
+                    <option key={acc.id} value={acc.id}>{acc.name} ({acc.currency})</option>
                   ))}
                 </select>
               </div>
@@ -342,17 +352,12 @@ export default function TransactionsPage() {
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className={cn(
-                  "w-full font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm",
-                  modalType === "income" 
-                    ? "bg-brand text-white hover:bg-brand/90" 
-                    : "bg-slate-800 text-white hover:bg-slate-900"
-                )}
+                className="w-full bg-slate-900 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-slate-800"
               >
                 {isSubmitting ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
                 ) : (
-                  `Submit ${modalType === "income" ? "Income" : "Expense"}`
+                  "Record Expense"
                 )}
               </button>
             </form>

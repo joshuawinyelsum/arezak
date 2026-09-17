@@ -161,6 +161,14 @@ def update_transaction_metadata(
     if not tx:
         raise ValueError('Transaction not found')
         
+    if tx.type not in ['INCOME', 'EXPENSE']:
+        raise ValueError('Only user-entered transactions (INCOME/EXPENSE) can be edited')
+        
+    if funding_source is not None and len(funding_source) > 100:
+        funding_source = funding_source[:100]
+    if note is not None and len(note) > 500:
+        note = note[:500]
+        
     if description is not None:
         tx.description = description
     if funding_source is not None:
@@ -200,27 +208,32 @@ def correct_transaction(
     if has_correction:
         raise ValueError('Transaction has already been corrected')
 
-    account = db.query(Account).filter_by(id=tx.account_id).with_for_update().first()
-    if not account:
-        raise ValueError('Account not found')
+    if new_currency != tx.currency:
+        raise ValueError('Currency conversion in correction is not supported. New currency must match original currency.')
+        
+    if new_amount_pesewas <= 0:
+        raise ValueError('New amount must be strictly positive.')
 
-    # Atomic evaluation: Reversal + Replacement
-    simulated_balance = account.available_balance
-    
+    # Calculate net change to available balance (net debit is positive)
     if tx.type == 'INCOME':
-        simulated_balance -= tx.amount
-    elif tx.type == 'EXPENSE':
-        simulated_balance += tx.amount
+        net_debit = tx.amount - new_amount_pesewas
+    else: # EXPENSE
+        net_debit = new_amount_pesewas - tx.amount
 
-    if tx.type == 'INCOME':
-        simulated_balance += new_amount_pesewas
-    elif tx.type == 'EXPENSE':
-        simulated_balance -= new_amount_pesewas
-
-    if simulated_balance < 0:
-        raise ValueError('Correction would exceed your available balance.')
-
-    account.available_balance = simulated_balance
+    context = EvaluationContext(
+        db=db,
+        user_id=user_id,
+        operation_type='TRANSACTION_CORRECTION',
+        amount_pesewas=net_debit, # Can be negative if it's a net credit
+        currency=tx.currency,
+        account_id=tx.account_id
+    )
+    decision = engine.evaluate(context)
+    if not decision.allowed:
+        raise ConstraintViolationException(decision)
+        
+    account = context.account
+    account.available_balance -= net_debit
 
     reversal_tx = Transaction(
         user_id=user_id,
@@ -271,7 +284,6 @@ def correct_transaction(
 
     record_audit(db, user_id, 'TRANSACTION', tx.id, 'TRANSACTION_CORRECTED', 'Transaction corrected via reversal')
 
-    db.commit()
-    db.refresh(replacement_tx)
+    db.flush()
     return replacement_tx
 
