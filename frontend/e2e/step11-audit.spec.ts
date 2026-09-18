@@ -57,7 +57,7 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     
     // Refresh browser
     await page.reload();
-    await expect(page.getByText('Step11 Income')).toBeVisible();
+    await expect(page.getByText('Step11 Income').first()).toBeVisible();
     
     // Verify Dashboard
     await page.goto('/');
@@ -75,9 +75,9 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await page.locator('button:has-text("Record Expense")').evaluate(node => (node as HTMLButtonElement).click());
     await page.waitForTimeout(500);
     
-    await expect(page.getByText('Step11 Expense')).toBeVisible();
+    await expect(page.getByText('Step11 Expense').first()).toBeVisible();
     await page.reload();
-    await expect(page.getByText('Step11 Expense')).toBeVisible();
+    await expect(page.getByText('Step11 Expense').first()).toBeVisible();
     
     // Verify updated balance (1000 - 100 = 900)
     await page.goto('/');
@@ -219,7 +219,7 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await expect(page.getByText('Good morning, BobStep11')).toBeVisible();
     await expect(page.getByText('GH₵ 350.00').first()).toBeVisible(); // 400 - 50 = 350
     await expect(page.getByText(userA.goalName)).not.toBeVisible();
-    await expect(page.getByText('Step11 Expense')).not.toBeVisible();
+    await expect(page.getByText('Step11 Expense').first()).not.toBeVisible();
 
     // 21. FAILED CROSS-USER MUTATION
     // User B is logged into `page`. Attacker will be logged into `pageA`.
