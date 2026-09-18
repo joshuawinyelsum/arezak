@@ -51,7 +51,7 @@ test.describe('Cross-User Isolation', () => {
       console.error('Transaction failed:', response.status(), errorText);
     }
     
-    await expect(page.getByText('User A Salary')).toBeVisible();
+    await expect(page.getByText('User A Salary').first()).toBeVisible();
 
     // Create Expense for A
     await page.click('button[aria-label="Add Expense"]');
@@ -60,7 +60,7 @@ test.describe('Cross-User Isolation', () => {
     
     const [responseExp] = await Promise.all([
       page.waitForResponse(res => res.url().includes('/transactions/expense')),
-      page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click())
+      page.locator('button:has-text("Record Expense")').evaluate(node => (node as HTMLButtonElement).click())
     ]);
     
     if (!responseExp.ok()) {
@@ -68,7 +68,7 @@ test.describe('Cross-User Isolation', () => {
       console.error('Expense failed:', responseExp.status(), errorText);
     }
     
-    await expect(page.getByText('User A Expense')).toBeVisible();
+    await expect(page.getByText('User A Expense').first()).toBeVisible();
 
     // Create Goal for A
     await page.goto('/goals/create');
@@ -96,14 +96,14 @@ test.describe('Cross-User Isolation', () => {
     await page.fill('input[placeholder="0.00"]', userB.incomeAmount);
     await page.fill('input[placeholder="e.g. September allowance"]', 'User B Salary');
     await page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click());
-    await expect(page.getByText('User B Salary')).toBeVisible();
+    await expect(page.getByText('User B Salary').first()).toBeVisible();
 
     // Create Expense for B
     await page.click('button[aria-label="Add Expense"]');
     await page.fill('input[placeholder="What was this for?"]', 'User B Expense');
     await page.fill('input[placeholder="0.00"]', userB.expenseAmount);
-    await page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click());
-    await expect(page.getByText('User B Expense')).toBeVisible();
+    await page.locator('button:has-text("Record Expense")').evaluate(node => (node as HTMLButtonElement).click());
+    await expect(page.getByText('User B Expense').first()).toBeVisible();
 
     // Create Goal for B
     await page.goto('/goals/create');
@@ -130,8 +130,8 @@ test.describe('Cross-User Isolation', () => {
     await expect(page.getByText('Good morning, Alice')).toBeVisible();
     await expect(page.getByText('GH₵ 900.00').first()).toBeVisible(); // 1000 - 100 = 900
     // Note: Goal widget is hidden on mobile, so we don't assert it here.
-    await expect(page.getByText('User A Salary')).toBeVisible();
-    await expect(page.getByText('User B Salary')).not.toBeVisible();
+    await expect(page.getByText('User A Salary').first()).toBeVisible();
+    await expect(page.getByText('User B Salary').first()).not.toBeVisible();
     
     // Accounts
     await page.goto('/accounts');
@@ -139,9 +139,9 @@ test.describe('Cross-User Isolation', () => {
     
     // Transactions
     await page.goto('/transactions');
-    await expect(page.getByText('User A Salary')).toBeVisible();
-    await expect(page.getByText('User A Expense')).toBeVisible();
-    await expect(page.getByText('User B Salary')).not.toBeVisible();
+    await expect(page.getByText('User A Salary').first()).toBeVisible();
+    await expect(page.getByText('User A Expense').first()).toBeVisible();
+    await expect(page.getByText('User B Salary').first()).not.toBeVisible();
     
     // Goals
     await page.goto('/goals');
@@ -172,18 +172,18 @@ test.describe('Cross-User Isolation', () => {
     await expect(page.getByText('Good morning, Bob')).toBeVisible();
     await expect(page.getByText('GH₵ 350.00').first()).toBeVisible(); // 400 - 50 = 350
     // await expect(page.getByText(userB.goalName)).toBeVisible(); // Hidden on mobile dashboard
-    await expect(page.getByText('User B Salary')).toBeVisible();
+    await expect(page.getByText('User B Salary').first()).toBeVisible();
     
     // Ensure User A's data is ABSENT
     await expect(page.getByText('Alice').first()).not.toBeVisible();
     await expect(page.getByText('GH₵ 900.00')).not.toBeVisible();
     await expect(page.getByText(userA.goalName)).not.toBeVisible();
-    await expect(page.getByText('User A Salary')).not.toBeVisible();
+    await expect(page.getByText('User A Salary').first()).not.toBeVisible();
     
     // Transactions
     await page.goto('/transactions');
-    await expect(page.getByText('User B Salary')).toBeVisible();
-    await expect(page.getByText('User A Salary')).not.toBeVisible();
+    await expect(page.getByText('User B Salary').first()).toBeVisible();
+    await expect(page.getByText('User A Salary').first()).not.toBeVisible();
   });
 
   test('Direct URL and Hard Refresh Test', async ({ page }) => {
@@ -208,8 +208,8 @@ test.describe('Cross-User Isolation', () => {
     // Direct URL to transactions
     await page.goto('/transactions');
     await page.reload();
-    await expect(page.getByText('User B Salary')).toBeVisible();
-    await expect(page.getByText('User A Salary')).not.toBeVisible();
+    await expect(page.getByText('User B Salary').first()).toBeVisible();
+    await expect(page.getByText('User A Salary').first()).not.toBeVisible();
   });
 
   test('Back/Forward Navigation Test', async ({ page }) => {
