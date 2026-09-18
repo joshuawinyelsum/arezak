@@ -87,4 +87,24 @@ test.describe("Phase 2E Final Audit", () => {
     await expect(page.getByText("Test Goal").first()).not.toBeVisible();
   });
 
+  test("Negative Failure Paths", async ({ page }) => {
+    // 1. Initial Fund
+    await page.goto("/transactions");
+    await page.locator("button[aria-label=\"Fund Account\"]").evaluate(node => (node as HTMLButtonElement).click());
+    await page.fill("input[placeholder=\"0.00\"]", "100.00");
+    await page.fill("input[placeholder=\"e.g. September allowance\"]", "Initial Fund");
+    await Promise.all([
+      page.waitForResponse(res => res.url().includes('/transactions/income')),
+      page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click())
+    ]);
+
+    // 2. Invalid Correction (Correct higher than available)
+    await page.getByText("Correct").first().click({ force: true });
+    await page.fill("input[type=\"number\"]", "200.00");
+    await page.getByRole('button', { name: 'Confirm Correction' }).click();
+    await expect(page.getByText(/Amount exceeds available balance|ConstraintViolationException/i)).toBeVisible();
+    await page.keyboard.press("Escape");
+  });
+
 });
+

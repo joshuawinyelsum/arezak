@@ -258,7 +258,7 @@ def cancel_goal(
         if existing_tx:
             return existing_tx
 
-    goal = db.query(Goal).filter_by(id=goal_id).first()
+    goal = db.query(Goal).filter_by(id=goal_id, user_id=user_id).first()
     if not goal:
         raise ValueError("Goal not found")
 
