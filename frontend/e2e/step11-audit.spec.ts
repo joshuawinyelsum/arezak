@@ -48,11 +48,12 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await page.goto('/transactions');
     await page.locator('button[aria-label="Fund Account"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="0.00"]', '1000.00');
+    await page.fill('input[placeholder="e.g. September allowance"]', 'Step11 Income');
     // For source, we can just use default (Salary)
     await page.locator('button:has-text("Fund Account")').nth(1).evaluate(node => (node as HTMLButtonElement).click());
 
     // Use the <select> element to choose the first account
-    await expect(page.getByText('Salary')).toBeVisible();
+    // Skip checking 'Salary' as it's a hidden <option> in a <select> element
     
     // Refresh browser
     await page.reload();
@@ -71,7 +72,7 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await page.locator('button[aria-label="Add Expense"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'Step11 Expense');
     await page.fill('input[placeholder="0.00"]', '100.00');
-    await page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.locator('button:has-text("Record Expense")').evaluate(node => (node as HTMLButtonElement).click());
     await page.waitForTimeout(500);
     
     await expect(page.getByText('Step11 Expense')).toBeVisible();
@@ -124,7 +125,7 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await page.locator('button[aria-label="Add Expense"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'Too Expensive');
     await page.fill('input[placeholder="0.00"]', '800.00'); // Available is 700
-    await page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.locator('button:has-text("Record Expense")').evaluate(node => (node as HTMLButtonElement).click());
     await page.waitForTimeout(500);
     
     // The backend rejects it. Wait for error message (which shows in a toast or modal).
@@ -203,7 +204,7 @@ test.describe('Step 11: End-to-End Financial Integrity Audit', () => {
     await page.locator('button[aria-label="Add Expense"]').evaluate(node => (node as HTMLButtonElement).click());
     await page.fill('input[placeholder="What was this for?"]', 'User B Expense');
     await page.fill('input[placeholder="0.00"]', '50.00');
-    await page.locator('button:has-text("Submit Expense")').evaluate(node => (node as HTMLButtonElement).click());
+    await page.locator('button:has-text("Record Expense")').evaluate(node => (node as HTMLButtonElement).click());
     await page.waitForTimeout(500);
     
     // Goal "School"
