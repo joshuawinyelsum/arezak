@@ -33,6 +33,8 @@ type Account = {
   id: string;
   name: string;
   available_balance: Money;
+  locked_balance: Money;
+  total_balance: Money;
 };
 
 const ICON_MAP: Record<string, any> = {
@@ -223,9 +225,13 @@ export default function GoalsPage() {
   const filteredGoals = goals.filter(g => {
     if (activeTab === "all") return true;
     if (activeTab === "active") return g.status === "ACTIVE" || g.status === "ACHIEVED"; // ACHIEVED implies funds still locked waiting for release
-    if (activeTab === "completed") return g.status === "RELEASED";
+    if (activeTab === "completed") return g.status === "RELEASED" || g.status === "ARCHIVED";
     return true;
   });
+
+  const totalBalance = accounts.reduce((sum, acc) => sum + (acc.total_balance?.amount_pesewas || 0), 0);
+  const availableBalance = accounts.reduce((sum, acc) => sum + (acc.available_balance?.amount_pesewas || 0), 0);
+  const lockedBalance = accounts.reduce((sum, acc) => sum + (acc.locked_balance?.amount_pesewas || 0), 0);
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-5 animate-in fade-in duration-500 pb-12">
@@ -242,6 +248,28 @@ export default function GoalsPage() {
            Create Goal
         </Link>
       </header>
+
+      {/* Financial Summary */}
+      {!isLoading && !error && accounts.length > 0 && (
+        <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-md mb-6">
+          <div className="text-slate-400 text-sm font-medium mb-1">Total Money</div>
+          <div className="text-3xl font-bold mb-6">GH₵ {formatPesewas(totalBalance)}</div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <div className="text-slate-400 text-xs font-medium mb-1">Available to Spend</div>
+              <div className="text-lg font-bold text-green-400">GH₵ {formatPesewas(availableBalance)}</div>
+            </div>
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <div className="flex items-center gap-1.5 mb-1">
+                <LucideIcons.Lock className="w-3.5 h-3.5 text-slate-400" />
+                <div className="text-slate-400 text-xs font-medium">Locked in Goals</div>
+              </div>
+              <div className="text-lg font-bold text-blue-400">GH₵ {formatPesewas(lockedBalance)}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-100 pb-4">
@@ -332,28 +360,39 @@ export default function GoalsPage() {
                          </div>
                          <div className="flex-1">
                             <h3 className="font-bold text-slate-900 text-[15px] flex items-center gap-2">
-                               {goal.name}
+                               <Link href={`/goals/${goal.id}`} className="hover:underline">{goal.name}</Link>
                                {goal.status === "ACHIEVED" && <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Achieved</span>}
                                {goal.status === "RELEASED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Released</span>}
+                               {goal.status === "ARCHIVED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Archived</span>}
                             </h3>
                               {goal.category && (
-                                <div className="text-[11px] text-slate-500 font-medium">
+                                <div className="text-[11px] text-slate-500 font-medium mb-2">
                                   {goal.category.name}
                                 </div>
                               )}
-                            <div className="text-xs text-brand font-medium mt-0.5 mb-1.5">
-                               GH₵ {formatPesewas(goal.current_amount)} / {formatPesewas(goal.target_amount)}
+                            
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                              <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
+                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Locked</div>
+                                <div className="text-sm font-bold text-blue-500">GH₵ {formatPesewas(goal.locked_amount)}</div>
+                              </div>
+                              <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
+                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Remaining</div>
+                                <div className="text-sm font-bold text-slate-700">GH₵ {formatPesewas(Math.max(0, goal.target_amount - goal.current_amount))}</div>
+                              </div>
+                            </div>
+
+                            <div className="flex justify-between items-center text-xs text-brand font-medium mt-3 mb-1.5">
+                               <span>GH₵ {formatPesewas(goal.current_amount)} / GH₵ {formatPesewas(goal.target_amount)}</span>
+                               <span className="font-bold text-slate-900">{percentage}%</span>
                             </div>
                             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                                <div 
-                                 className={cn("h-full rounded-full transition-all duration-1000", goal.status === "RELEASED" ? "bg-slate-300" : "bg-brand")}
+                                 className={cn("h-full rounded-full transition-all duration-1000", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "bg-brand")}
                                  style={{ width: `${Math.min(percentage, 100)}%` }}
                                />
                             </div>
                          </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2 ml-4">
-                         <div className="text-xs font-bold text-slate-900">{percentage > 0 ? `${percentage}%` : ""}</div>
                       </div>
                    </div>
 
