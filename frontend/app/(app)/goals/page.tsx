@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Laptop, Home, Shield, Plane, Wallet, Loader2, AlertCircle, Target, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import { ICON_MAP } from "@/lib/icon-map";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { GoalEditModal } from "@/components/GoalEditModal";
@@ -124,7 +124,7 @@ export default function GoalsPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail?.message || "Contribution failed.");
+        throw new Error(err.detail?.message || err.detail || "Contribution failed.");
       }
 
       await loadData();
@@ -180,7 +180,7 @@ export default function GoalsPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail?.message || "Release failed.");
+        throw new Error(err.detail?.message || err.detail || "Release failed.");
       }
 
       await loadData();
@@ -199,7 +199,7 @@ export default function GoalsPage() {
   const filteredGoals = goals.filter(g => {
     if (activeTab === "all") return true;
     if (activeTab === "active") return g.status === "ACTIVE" || g.status === "ACHIEVED"; // ACHIEVED implies funds still locked waiting for release
-    if (activeTab === "completed") return g.status === "RELEASED" || g.status === "ARCHIVED";
+    if (activeTab === "released") return g.status === "RELEASED" || g.status === "ARCHIVED" || g.status === "CANCELLED";
     return true;
   });
 
@@ -232,9 +232,9 @@ export default function GoalsPage() {
       {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-100 pb-4">
          {[
-           { id: "all", label: `All (${goals.length})` },
+           { id: "all", label: `Total Goals (${goals.length})` },
            { id: "active", label: `Active (${goals.filter(g => g.status === "ACTIVE" || g.status === "ACHIEVED").length})` },
-           { id: "completed", label: `Completed (${goals.filter(g => g.status === "RELEASED").length})` }
+           { id: "released", label: `Released/Archived (${goals.filter(g => g.status === "RELEASED" || g.status === "ARCHIVED" || g.status === "CANCELLED").length})` }
          ].map(tab => (
            <button 
              key={tab.id}
@@ -292,7 +292,7 @@ export default function GoalsPage() {
               let bg = "bg-brand/10";
               
               if (goal.icon) {
-                Icon = (LucideIcons as any)[goal.icon] || Target;
+                Icon = ICON_MAP[goal.icon] || Target;
               } else {
                 const legacy = getIconForName(goal.name);
                 Icon = legacy.icon;
@@ -351,7 +351,15 @@ export default function GoalsPage() {
                    </div>
 
                      {/* Actions Row */}
-                     <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
+                     <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                        <Link 
+                           href={`/goals/${goal.id}`}
+                           className="flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors"
+                        >
+                           View Goal
+                        </Link>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                     
                         {goal.status === "ACTIVE" && (
                            <>
                              <button 
@@ -395,9 +403,10 @@ export default function GoalsPage() {
                             className="flex items-center gap-1.5 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors"
                          >
                             Archive
-                         </button>
-                      )}
-                   </div>
+                             </button>
+                          )}
+                          </div>
+                     </div>
                 </div>
               );
            })}
@@ -555,6 +564,12 @@ export default function GoalsPage() {
     </div>
   );
 }
+
+
+
+
+
+
 
 
 

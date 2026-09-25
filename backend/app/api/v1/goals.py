@@ -63,7 +63,7 @@ def api_create_goal(request: GoalCreate, db: SessionDep, current_user: CurrentUs
 
 @router.get("", response_model=list[GoalResponse])
 def get_goals(db: SessionDep, current_user: CurrentUser):
-    return db.query(Goal).filter(Goal.user_id == current_user.id).all()
+    return db.query(Goal).filter(Goal.user_id == current_user.id).order_by(Goal.created_at.desc()).all()
 
 @router.get("/{goal_id}", response_model=GoalResponse)
 def get_goal(goal_id: uuid.UUID, db: SessionDep, current_user: CurrentUser):

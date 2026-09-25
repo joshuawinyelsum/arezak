@@ -2,14 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle, Target } from "lucide-react";
+import { ICON_MAP } from "@/lib/icon-map";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { IconPicker } from "@/components/IconPicker";
 
-const ICON_MAP = LucideIcons as Record<string, any>;
 
 export default function CreateGoalPage() {
   const router = useRouter();
@@ -88,7 +87,7 @@ export default function CreateGoalPage() {
     }
   };
 
-  const SelectedIcon = ICON_MAP[icon] || LucideIcons.Target;
+  const SelectedIcon = ICON_MAP[icon] || Target;
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20 px-4 pt-4">
@@ -334,3 +333,6 @@ export default function CreateGoalPage() {
     </div>
   );
 }
+
+
+

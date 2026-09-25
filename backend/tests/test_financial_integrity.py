@@ -186,28 +186,25 @@ from app.models.goal import Goal
 
 
 def test_goal_editing(db_session: Session, test_user):
-
-
-    db_session.commit()
-    
-    goal = create_goal(db_session, test_user.id, "Goal Edit", 500000, icon="Test")
-    
     account = Account(user_id=test_user.id, name="Main", type="MAIN", currency="GHS")
     db_session.add(account)
     db_session.commit()
     
     process_income(db_session, test_user.id, account.id, 500000)
-    contribute_to_goal(db_session, test_user.id, account.id, goal.id, 200000)
+    goal = create_goal(db_session, test_user.id, "Goal Edit", 10000, icon="Test")
+    contribute_to_goal(db_session, test_user.id, account.id, goal.id, 2000)
     db_session.commit()
     
-    # Valid
-    edit_goal(db_session, test_user.id, goal.id, target_amount=400000)
-    
-    # Invalid
-    with pytest.raises(ValueError, match="must be enforced"):
+    # Invalid: lowering below current amount
+    with pytest.raises(ValueError, match="Target amount cannot be lower than the amount already locked in this goal"):
         with db_session.begin_nested():
-            edit_goal(db_session, test_user.id, goal.id, target_amount=100000)
-        
+            edit_goal(db_session, test_user.id, goal.id, target_amount=1000)
+            
+    # Valid: increasing amount
+    edit_goal(db_session, test_user.id, goal.id, target_amount=20000)
+    db_session.refresh(goal)
+    assert goal.target_amount == 20000
+    assert goal.current_amount == 2000
     
     # Test achieved/released/cancelled cannot edit financial target
     goal.status = "ACHIEVED"
@@ -215,7 +212,7 @@ def test_goal_editing(db_session: Session, test_user):
     
     with pytest.raises(ValueError, match="Cannot edit target amount for ACHIEVED goal"):
         edit_goal(db_session, test_user.id, goal.id, target_amount=600000)
-        
+
 def test_fund_account_and_idempotency(db_session: Session, test_user):
     account = Account(user_id=test_user.id, name="Fund Acc", type="MAIN", currency="GHS")
     db_session.add(account)
@@ -264,5 +261,7 @@ def test_cross_user_isolation(db_session: Session, test_user):
     # B tries to correct A's transaction
     with pytest.raises(ValueError, match="not found"):
         correct_transaction(db_session, user_b.id, tx_a.id, 500)
+
+
 
 

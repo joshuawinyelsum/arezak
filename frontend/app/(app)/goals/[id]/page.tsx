@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Loader2, Target, ArrowDownCircle, ArrowUpCircle, X, AlertCircle } from "lucide-react";
-import * as LucideIcons from "lucide-react";
+import { ArrowLeft, Loader2, Target, ArrowDownCircle, ArrowUpCircle, X, AlertCircle, Laptop, Home, Shield, Plane } from "lucide-react";
+import { ICON_MAP } from "@/lib/icon-map";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { GoalEditModal } from "@/components/GoalEditModal";
@@ -39,11 +39,11 @@ type Account = {
 
 const getIconForName = (name: string) => {
   const n = name.toLowerCase();
-  if (n.includes("laptop") || n.includes("tech") || n.includes("macbook")) return { icon: LucideIcons.Laptop, color: "text-blue-500", bg: "bg-blue-50" };
-  if (n.includes("home") || n.includes("house")) return { icon: LucideIcons.Home, color: "text-red-500", bg: "bg-red-50" };
-  if (n.includes("emergency") || n.includes("safe")) return { icon: LucideIcons.Shield, color: "text-green-500", bg: "bg-green-50" };
-  if (n.includes("travel") || n.includes("vacation") || n.includes("flight")) return { icon: LucideIcons.Plane, color: "text-orange-500", bg: "bg-orange-50" };
-  return { icon: LucideIcons.Target, color: "text-slate-600", bg: "bg-slate-100" };
+  if (n.includes("laptop") || n.includes("tech") || n.includes("macbook")) return { icon: Laptop, color: "text-blue-500", bg: "bg-blue-50" };
+  if (n.includes("home") || n.includes("house")) return { icon: Home, color: "text-red-500", bg: "bg-red-50" };
+  if (n.includes("emergency") || n.includes("safe")) return { icon: Shield, color: "text-green-500", bg: "bg-green-50" };
+  if (n.includes("travel") || n.includes("vacation") || n.includes("flight")) return { icon: Plane, color: "text-orange-500", bg: "bg-orange-50" };
+  return { icon: Target, color: "text-slate-600", bg: "bg-slate-100" };
 };
 
 export default function GoalDetailPage() {
@@ -228,12 +228,12 @@ export default function GoalDetailPage() {
     );
   }
 
-  let Icon = LucideIcons.Target;
+  let Icon = Target;
   let color = "text-brand";
   let bg = "bg-brand/10";
   
   if (goal.icon) {
-    Icon = (LucideIcons as any)[goal.icon] || LucideIcons.Target;
+    Icon = ICON_MAP[goal.icon] || Target;
   } else {
     const legacy = getIconForName(goal.name);
     Icon = legacy.icon;
@@ -518,4 +518,9 @@ export default function GoalDetailPage() {
     </div>
   );
 }
+
+
+
+
+
 

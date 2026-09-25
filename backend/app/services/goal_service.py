@@ -221,7 +221,7 @@ def edit_goal(
             
     if target_amount is not None:
         if target_amount < goal.current_amount:
-            raise ValueError('new_target_amount >= current_amount must be enforced')
+            raise ValueError('Target amount cannot be lower than the amount already locked in this goal.')
         goal.target_amount = target_amount
         
         # Check achievement transition

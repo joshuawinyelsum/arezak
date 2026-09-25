@@ -1,48 +1,11 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import * as LucideIcons from "lucide-react";
+import { ICON_MAP, ICON_GROUPS } from "@/lib/icon-map";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ICON_GROUPS = [
-  {
-    name: "Popular",
-    icons: ["Target", "Heart", "Star", "Flame", "Zap", "CheckCircle", "ThumbsUp", "Award"]
-  },
-  {
-    name: "Finance & Wealth",
-    icons: ["Wallet", "Banknote", "Coins", "CreditCard", "PiggyBank", "TrendingUp", "Landmark", "Briefcase", "Gem", "Building", "PieChart", "BarChart"]
-  },
-  {
-    name: "Travel & Transport",
-    icons: ["Plane", "Car", "Bus", "Train", "Bike", "Ship", "Navigation", "Map", "Globe", "Luggage", "Ticket", "Palmtree", "Hotel", "Compass"]
-  },
-  {
-    name: "Technology & Devices",
-    icons: ["Laptop", "Smartphone", "Tablet", "Monitor", "Headphones", "Camera", "Watch", "Tv", "Gamepad", "Speaker", "Wifi", "Battery", "Cpu"]
-  },
-  {
-    name: "Home & Lifestyle",
-    icons: ["Home", "Sofa", "Bed", "Coffee", "Utensils", "Shirt", "ShoppingBag", "ShoppingCart", "Gift", "Music", "Umbrella", "Smile", "Sun", "Moon"]
-  },
-  {
-    name: "Health & Fitness",
-    icons: ["Activity", "Dumbbell", "HeartPulse", "Apple", "Stethoscope", "Cross", "Pill", "Medal", "Timer"]
-  },
-  {
-    name: "Education & Learning",
-    icons: ["GraduationCap", "Book", "BookOpen", "Library", "PenTool", "Microscope", "Calculator", "Lightbulb", "FileText"]
-  },
-  {
-    name: "People & Family",
-    icons: ["User", "Users", "Baby", "PersonStanding", "UserCircle", "Contact"]
-  },
-  {
-    name: "Security & Tools",
-    icons: ["Shield", "Key", "Lock", "Unlock", "Tool", "Hammer", "Wrench", "Settings", "Sliders"]
-  }
-];
+
 
 const ALL_ICONS = Array.from(new Set(ICON_GROUPS.flatMap(g => g.icons)));
 
@@ -61,19 +24,8 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
     const lowerTerm = searchTerm.toLowerCase();
     
     // Also search all lucide icons if there's a search term, to allow discovering unlisted ones
-    const allLucideKeys = Object.keys(LucideIcons).filter(k => 
-      k !== "createLucideIcon" && 
-      k !== "default" && 
-      !k.endsWith("Icon") &&
-      k.toLowerCase().includes(lowerTerm)
-    ).slice(0, 50); // Limit to 50 results for performance
-
-    return [
-      {
-        name: "Search Results",
-        icons: allLucideKeys
-      }
-    ];
+    const allLucideKeys = Object.keys(ICON_MAP).filter(k => k.toLowerCase().includes(lowerTerm));
+    return [{ name: "Search Results", icons: allLucideKeys }];
   }, [searchTerm]);
 
   if (!isOpen) return null;
@@ -122,7 +74,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">{group.name}</h3>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {group.icons.map(iconName => {
-                    const IconComp = (LucideIcons as any)[iconName];
+                    const IconComp = ICON_MAP[iconName];
                     if (!IconComp) return null;
                     
                     const isSelected = value === iconName;
@@ -162,3 +114,5 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
     </div>
   );
 }
+
+

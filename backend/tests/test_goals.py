@@ -87,12 +87,30 @@ def test_contribution_exceeds_available(db_session: Session, test_user, test_acc
 def test_contribution_exceeds_target(db_session: Session, test_user, test_account):
     process_income(db_session, test_user.id, test_account.id, 20000, "GHS", "init3")
     db_session.commit()
+    db_session.refresh(test_account)
     
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 5000, "GHS", "contrib3a")
+    db_session.commit()
+    db_session.refresh(goal)
+    db_session.refresh(test_account)
+    
+    available_before = test_account.available_balance
+    locked_before = test_account.locked_balance
+    goal_locked_before = goal.locked_amount
+    goal_current_before = goal.current_amount
     
     with pytest.raises(ConstraintViolationException) as exc:
-        contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 15000, "GHS", "contrib3")
+        contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 6000, "GHS", "contrib3b")
     assert exc.value.decision.code == DecisionCode.CONTRIBUTION_EXCEEDS_REMAINING_TARGET
+    
+    db_session.refresh(goal)
+    db_session.refresh(test_account)
+    
+    assert test_account.available_balance == available_before
+    assert test_account.locked_balance == locked_before
+    assert goal.locked_amount == goal_locked_before
+    assert goal.current_amount == goal_current_before
     
 def test_exact_target_achievement(db_session: Session, test_user, test_account):
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "init4")

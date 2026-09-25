@@ -36,7 +36,8 @@ class GoalAccessConstraint(BaseConstraint):
             
         remaining = goal.target_amount - goal.current_amount
         if context.amount_pesewas > remaining:
-            return ConstraintDecision.deny(DecisionCode.CONTRIBUTION_EXCEEDS_REMAINING_TARGET, "Contribution exceeds remaining target amount.")
+            formatted_remaining = f"{remaining / 100:,.2f}".replace(".00", "")
+            return ConstraintDecision.deny(DecisionCode.CONTRIBUTION_EXCEEDS_REMAINING_TARGET, f"Contribution exceeds remaining target. You can contribute up to GH₵{formatted_remaining} to this goal.")
 
         # Attach to context for mutation phase
         context.goal = goal
