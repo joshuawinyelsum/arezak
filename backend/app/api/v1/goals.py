@@ -39,6 +39,7 @@ class GoalResponse(BaseModel):
     target_reached: bool = False
     date_reached: bool = False
     is_eligible_for_release: bool = False
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -210,5 +211,6 @@ def api_archive_goal(
     goal.status = "ARCHIVED"
     db.commit()
     return {"message": "Goal archived successfully"}
+
 
 

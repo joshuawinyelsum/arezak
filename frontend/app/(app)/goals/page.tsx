@@ -25,6 +25,7 @@ type Goal = {
   unlock_date?: string;
   is_eligible_for_release?: boolean;
   icon?: string;
+  created_at?: string;
 };
 
 type Account = {
@@ -196,7 +197,8 @@ export default function GoalsPage() {
     return (pesewas / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const filteredGoals = goals.filter(g => {
+  const sortedGoals = [...goals].sort((a, b) => new Date(b.created_at || "1970-01-01").getTime() - new Date(a.created_at || "1970-01-01").getTime());
+  const filteredGoals = sortedGoals.filter(g => {
     if (activeTab === "all") return true;
     if (activeTab === "active") return g.status === "ACTIVE" || g.status === "ACHIEVED"; // ACHIEVED implies funds still locked waiting for release
     if (activeTab === "released") return g.status === "RELEASED" || g.status === "ARCHIVED" || g.status === "CANCELLED";
@@ -564,6 +566,9 @@ export default function GoalsPage() {
     </div>
   );
 }
+
+
+
 
 
 
