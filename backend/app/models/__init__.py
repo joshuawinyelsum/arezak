@@ -4,7 +4,6 @@ from app.models.account import Account
 from app.models.category import Category
 from app.models.allocation_rule import AllocationRule
 from app.models.goal import Goal
-from app.models.goal_category import GoalCategory
 from app.models.goal_contribution import GoalContribution
 from app.models.transaction import Transaction
 from app.models.debt import Debt
@@ -21,7 +20,6 @@ __all__ = [
     "Account",
     "Category",
     "AllocationRule",
-    "GoalCategory",
     "Goal",
     "GoalContribution",
     "Transaction",

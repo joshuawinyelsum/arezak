@@ -58,15 +58,10 @@ def test_funding_and_correction_flow(client):
     assert res.json()[0]["available_balance"]["amount_pesewas"] == 1000
     assert res.json()[0]["locked_balance"]["amount_pesewas"] == 1000
     
-    # Cancel goal
-    res = client.post(f"{settings.API_V1_STR}/goals/{goal_id}/cancel", cookies=cookies, headers=headers)
-    print("Cancel goal response:", res.json())
-    assert res.status_code == 200
-    
-    # Check balance: 1000 + 1000 = 2000 available
-    res = client.get(f"{settings.API_V1_STR}/accounts", cookies=cookies, headers=headers)
-    assert res.json()[0]["available_balance"]["amount_pesewas"] == 2000
-    assert res.json()[0]["locked_balance"]["amount_pesewas"] == 0
+    # Try to delete funded goal
+    res = client.delete(f"{settings.API_V1_STR}/goals/{goal_id}", cookies=cookies, headers=headers)
+    assert res.status_code == 400
+    assert "locked funds" in res.json()["detail"]
     
     # Untouched Goal Deletion
     res = client.post(f"{settings.API_V1_STR}/goals", cookies=cookies, headers=headers, json={"name": "Empty", "target_amount": 5000})

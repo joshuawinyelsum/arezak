@@ -53,16 +53,7 @@ def setup_db():
     # Seed system categories for tests
     with engine.begin() as conn:
         from sqlalchemy import text
-        conn.execute(text("""
-            INSERT INTO goal_categories (id, name, icon, is_system, is_archived, created_at, updated_at) VALUES
-            (gen_random_uuid(), 'Emergency', 'Shield', true, false, now(), now()),
-            (gen_random_uuid(), 'Home', 'Home', true, false, now(), now()),
-            (gen_random_uuid(), 'Education', 'GraduationCap', true, false, now(), now()),
-            (gen_random_uuid(), 'Health', 'Heart', true, false, now(), now()),
-            (gen_random_uuid(), 'Devices & Tech', 'Laptop', true, false, now(), now()),
-            (gen_random_uuid(), 'Travel', 'Plane', true, false, now(), now()),
-            (gen_random_uuid(), 'Family', 'Users', true, false, now(), now())
-        """))
+        
     
     yield
     Base.metadata.drop_all(bind=engine)
@@ -94,3 +85,5 @@ def client():
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+

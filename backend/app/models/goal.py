@@ -9,7 +9,6 @@ import typing
 if typing.TYPE_CHECKING:
     from app.models.user import User
     from app.models.goal_contribution import GoalContribution
-    from app.models.goal_category import GoalCategory
 
 class Goal(BaseModel):
     __tablename__ = "goals"
@@ -25,7 +24,6 @@ class Goal(BaseModel):
     
     status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False) # ACTIVE, ACHIEVED, CANCELLED
     
-    category_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("goal_categories.id", ondelete="SET NULL"), nullable=True)
     icon: Mapped[str | None] = mapped_column(String(50), nullable=True)
     
     lock_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -35,7 +33,6 @@ class Goal(BaseModel):
     deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="goals")
-    category: Mapped["GoalCategory | None"] = relationship("GoalCategory", back_populates="goals")
     contributions: Mapped[list["GoalContribution"]] = relationship("GoalContribution", back_populates="goal", cascade="all, delete-orphan")
 
     @property

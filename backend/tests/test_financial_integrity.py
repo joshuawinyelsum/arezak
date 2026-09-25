@@ -5,10 +5,10 @@ from app.models.goal import Goal
 from app.models.user import User
 from app.models.transaction import Transaction
 from app.models.ledger_entry import LedgerEntry
-from app.models.goal_category import GoalCategory
+
 from app.models.goal_contribution import GoalContribution
 from app.services.transaction_service import process_income, process_expense, correct_transaction, update_transaction_metadata
-from app.services.goal_service import create_goal, contribute_to_goal, cancel_goal, delete_goal
+from app.services.goal_service import create_goal, contribute_to_goal, delete_goal
 from sqlalchemy.orm import Session
 from app.rules import ConstraintViolationException
 
@@ -107,11 +107,11 @@ def test_correction_eligibility(db_session: Session, test_user):
     db_session.add(account)
     db_session.commit()
     
-    cat = GoalCategory(name="Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
+
+
     db_session.commit()
     
-    goal = create_goal(db_session, test_user.id, "Goal", 100000, category_id=cat.id)
+    goal = create_goal(db_session, test_user.id, "Goal", 100000, icon="Test")
     db_session.commit()
     
     process_income(db_session, test_user.id, account.id, 100000)
@@ -126,11 +126,11 @@ def test_metadata_editing(db_session: Session, test_user):
     db_session.add(account)
     db_session.commit()
     
-    cat = GoalCategory(name="Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
+
+
     db_session.commit()
     
-    goal = create_goal(db_session, test_user.id, "Goal", 100000, category_id=cat.id)
+    goal = create_goal(db_session, test_user.id, "Goal", 100000, icon="Test")
     db_session.commit()
     
     process_income(db_session, test_user.id, account.id, 100000)
@@ -149,11 +149,11 @@ def test_goal_account_invariant(db_session: Session, test_user):
     process_income(db_session, test_user.id, account1.id, 10000)
     process_income(db_session, test_user.id, account2.id, 10000)
     
-    cat = GoalCategory(name="Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
+
+
     db_session.commit()
     
-    goal = create_goal(db_session, test_user.id, "Goal", 100000, category_id=cat.id)
+    goal = create_goal(db_session, test_user.id, "Goal", 100000, icon="Test")
     
     contribute_to_goal(db_session, test_user.id, account1.id, goal.id, 100)
     db_session.commit()
@@ -161,68 +161,36 @@ def test_goal_account_invariant(db_session: Session, test_user):
     with pytest.raises(ValueError, match="single account"):
         contribute_to_goal(db_session, test_user.id, account2.id, goal.id, 100)
         
-def test_goal_cancellation(db_session: Session, test_user):
-    account = Account(user_id=test_user.id, name="C1", type="MAIN", currency="GHS")
-    db_session.add(account)
-    db_session.commit()
-    
-    process_income(db_session, test_user.id, account.id, 200000)
-    cat = GoalCategory(name="Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
-    db_session.commit()
-    
-    goal = create_goal(db_session, test_user.id, "Goal", 100000, category_id=cat.id)
-    contribute_to_goal(db_session, test_user.id, account.id, goal.id, 50000)
-    db_session.commit()
-    
-    db_session.refresh(account)
-    assert account.available_balance == 150000
-    assert account.locked_balance == 50000
-    
-    tx = cancel_goal(db_session, test_user.id, account.id, goal.id)
-    db_session.commit()
-    
-    db_session.refresh(account)
-    assert account.available_balance == 200000
-    assert account.locked_balance == 0
-    assert account.total_balance == 200000
-    assert tx.type == 'GOAL_CANCELLATION'
-    
-    # second cancellation
-    with pytest.raises(ConstraintViolationException):
-        cancel_goal(db_session, test_user.id, account.id, goal.id)
-
 def test_goal_deletion(db_session: Session, test_user):
     account = Account(user_id=test_user.id, name="D1", type="MAIN", currency="GHS")
     db_session.add(account)
     db_session.commit()
     
-    cat = GoalCategory(name="Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
+
+
     db_session.commit()
     
-    goal1 = create_goal(db_session, test_user.id, "G1", 10000, category_id=cat.id)
+    goal1 = create_goal(db_session, test_user.id, "G1", 10000, icon="Test")
     db_session.commit()
     delete_goal(db_session, test_user.id, goal1.id) # Should succeed
     
     process_income(db_session, test_user.id, account.id, 10000)
-    goal2 = create_goal(db_session, test_user.id, "G2", 10000, category_id=cat.id)
+    goal2 = create_goal(db_session, test_user.id, "G2", 10000, icon="Test")
     contribute_to_goal(db_session, test_user.id, account.id, goal2.id, 100)
-    cancel_goal(db_session, test_user.id, account.id, goal2.id)
-    db_session.commit()
-    
-    with pytest.raises(ValueError, match="history"):
+    with pytest.raises(ValueError):
         delete_goal(db_session, test_user.id, goal2.id)
+
+    db_session.commit()
 from app.services.goal_service import edit_goal, delete_goal
 from app.models.goal import Goal
-from app.api.v1.goal_categories import delete_goal_category
+
 
 def test_goal_editing(db_session: Session, test_user):
-    cat = GoalCategory(name="Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
+
+
     db_session.commit()
     
-    goal = create_goal(db_session, test_user.id, "Goal Edit", 500000, category_id=cat.id)
+    goal = create_goal(db_session, test_user.id, "Goal Edit", 500000, icon="Test")
     
     account = Account(user_id=test_user.id, name="Main", type="MAIN", currency="GHS")
     db_session.add(account)
@@ -248,42 +216,6 @@ def test_goal_editing(db_session: Session, test_user):
     with pytest.raises(ValueError, match="Cannot edit target amount for ACHIEVED goal"):
         edit_goal(db_session, test_user.id, goal.id, target_amount=600000)
         
-def test_category_ownership_and_archiving(db_session: Session, test_user):
-    user_b = User(email=f"b_{uuid.uuid4()}@example.com", name="User B", password_hash="pass", currency="GHS")
-    db_session.add(user_b)
-    db_session.commit()
-    db_session.refresh(user_b)
-    
-    cat = GoalCategory(name="User A Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
-    db_session.commit()
-    
-    # User B cannot use
-    with pytest.raises(ValueError, match="Category belongs to another user"):
-        create_goal(db_session, user_b.id, "B Goal", 100, category_id=cat.id)
-        
-    # Used category -> archive
-    goal = create_goal(db_session, test_user.id, "Goal", 100, category_id=cat.id)
-    db_session.commit()
-    
-    # User B cannot delete/archive
-    from fastapi import HTTPException
-    with pytest.raises(HTTPException):
-        delete_goal_category(cat.id, db_session, user_b)
-        
-    # Archiving instead of deleting when in use
-    delete_goal_category(cat.id, db_session, test_user)
-    db_session.refresh(cat)
-    assert cat.is_archived == True
-    
-    # User A unused category -> physical delete
-    cat_unused = GoalCategory(name="Unused", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat_unused)
-    db_session.commit()
-    
-    delete_goal_category(cat_unused.id, db_session, test_user)
-    assert db_session.query(GoalCategory).filter_by(id=cat_unused.id).first() is None
-    
 def test_fund_account_and_idempotency(db_session: Session, test_user):
     account = Account(user_id=test_user.id, name="Fund Acc", type="MAIN", currency="GHS")
     db_session.add(account)
@@ -317,11 +249,11 @@ def test_cross_user_isolation(db_session: Session, test_user):
     db_session.add(account_a)
     db_session.commit()
     
-    cat = GoalCategory(name="Cat", user_id=test_user.id, icon="icon", is_system=False)
-    db_session.add(cat)
+
+
     db_session.commit()
     
-    goal_a = create_goal(db_session, test_user.id, "G", 1000, category_id=cat.id)
+    goal_a = create_goal(db_session, test_user.id, "G", 1000, icon="Test")
     tx_a = process_income(db_session, test_user.id, account_a.id, 1000)
     db_session.commit()
     
@@ -332,7 +264,5 @@ def test_cross_user_isolation(db_session: Session, test_user):
     # B tries to correct A's transaction
     with pytest.raises(ValueError, match="not found"):
         correct_transaction(db_session, user_b.id, tx_a.id, 500)
-        
-    # B tries to cancel A's goal
-    with pytest.raises(ValueError, match="not found"):
-        cancel_goal(db_session, user_b.id, account_a.id, goal_a.id)
+
+

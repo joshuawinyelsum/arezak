@@ -193,40 +193,6 @@ def api_delete_goal(
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post('/{goal_id}/cancel')
-def api_cancel_goal(
-    goal_id: uuid.UUID,
-    db: SessionDep,
-    current_user: CurrentUser,
-    x_idempotency_key: Annotated[str | None, Header()] = None
-):
-    from app.models.goal_contribution import GoalContribution
-    contrib = db.query(GoalContribution).filter_by(goal_id=goal_id).first()
-    if not contrib:
-        # If there are no contributions, we can't determine account_id easily this way,
-        # but if there are no contributions, locked_amount is 0. 
-        # But wait, we can just delete it instead.
-        raise HTTPException(status_code=400, detail='Goal has no contributions. Delete it instead.')
-        
-    try:
-        from app.services.goal_service import cancel_goal
-        tx = cancel_goal(
-            db=db,
-            user_id=current_user.id,
-            account_id=contrib.account_id,
-            goal_id=goal_id,
-            idempotency_key=x_idempotency_key
-        )
-        db.commit()
-        return {'message': 'Cancellation successful', 'transaction_id': tx.id}
-    except ConstraintViolationException as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail={'code': e.decision.code, 'message': e.decision.message})
-    except ValueError as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-
-
 @router.post("/{goal_id}/archive")
 def api_archive_goal(
     goal_id: uuid.UUID,
@@ -244,4 +210,5 @@ def api_archive_goal(
     goal.status = "ARCHIVED"
     db.commit()
     return {"message": "Goal archived successfully"}
+
 

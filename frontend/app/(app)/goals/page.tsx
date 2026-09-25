@@ -35,30 +35,6 @@ type Account = {
   total_balance: Money;
 };
 
-const ICON_MAP: Record<string, any> = {
-  "Shield": LucideIcons.Shield,
-  "Home": LucideIcons.Home,
-  "GraduationCap": LucideIcons.GraduationCap,
-  "Heart": LucideIcons.Heart,
-  "Laptop": LucideIcons.Laptop,
-  "Plane": LucideIcons.Plane,
-  "Users": LucideIcons.Users,
-  "Music": LucideIcons.Music,
-  "Briefcase": LucideIcons.Briefcase,
-  "Car": LucideIcons.Car,
-  "Wheat": LucideIcons.Wheat,
-  "Cross": LucideIcons.Cross,
-  "Smartphone": LucideIcons.Smartphone,
-  "TrendingUp": LucideIcons.TrendingUp,
-  "Wallet": LucideIcons.Wallet,
-  "Settings": LucideIcons.Settings,
-  "ShoppingCart": LucideIcons.ShoppingCart,
-  "Banknote": LucideIcons.Banknote,
-  "Building": LucideIcons.Building,
-  "Gift": LucideIcons.Gift,
-  "Key": LucideIcons.Key,
-  "Camera": LucideIcons.Camera
-};
 
 const getIconForName = (name: string) => {
   const n = name.toLowerCase();
@@ -78,7 +54,7 @@ export default function GoalsPage() {
 
   // Modal State
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
-  const [modalMode, setModalMode] = useState<"contribute" | "release" | "edit" | "cancel" | "delete" | "archive" | null>(null);
+  const [modalMode, setModalMode] = useState<"contribute" | "release" | "edit" | "delete" | "archive" | null>(null);
   const [amountStr, setAmountStr] = useState("");
   const [accountId, setAccountId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,7 +85,7 @@ export default function GoalsPage() {
     loadData();
   }, [loadData]);
 
-  const openModal = (goal: Goal, mode: "contribute" | "release" | "edit" | "cancel" | "delete" | "archive") => {
+  const openModal = (goal: Goal, mode: "contribute" | "release" | "edit" | "delete" | "archive") => {
     setSelectedGoal(goal);
     setModalMode(mode);
     setAmountStr("");
@@ -316,7 +292,7 @@ export default function GoalsPage() {
               let bg = "bg-brand/10";
               
               if (goal.icon) {
-                Icon = ICON_MAP[goal.icon] || Target;
+                Icon = (LucideIcons as any)[goal.icon] || Target;
               } else {
                 const legacy = getIconForName(goal.name);
                 Icon = legacy.icon;
@@ -374,47 +350,45 @@ export default function GoalsPage() {
                       </div>
                    </div>
 
-                   {/* Actions Row */}
-                   <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
-                      {goal.status === "ACTIVE" && (
-                         <>
-                           <button 
-                              onClick={() => openModal(goal, "edit")}
-                              className="flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors"
-                           >
-                              Edit
-                           </button>
-                           <button 
-                              onClick={() => openModal(goal, "contribute")}
-                              className="flex items-center gap-1.5 bg-brand/10 text-brand px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-brand/20 transition-colors"
-                           >
-                              <ArrowDownCircle className="w-4 h-4" /> Contribute
-                           </button>
-                           {goal.current_amount === 0 ? (
+                     {/* Actions Row */}
+                     <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
+                        {goal.status === "ACTIVE" && (
+                           <>
                              <button 
-                                onClick={() => openModal(goal, "delete")}
-                                className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
+                                onClick={() => openModal(goal, "edit")}
+                                className="flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors"
                              >
-                                Delete
+                                Edit
                              </button>
-                           ) : (
                              <button 
-                                onClick={() => openModal(goal, "cancel")}
-                                className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-orange-100 transition-colors"
+                                onClick={() => openModal(goal, "contribute")}
+                                className="flex items-center gap-1.5 bg-brand/10 text-brand px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-brand/20 transition-colors"
                              >
-                                Cancel Goal
+                                <ArrowDownCircle className="w-4 h-4" /> Contribute
                              </button>
-                           )}
-                         </>
-                      )}
-                      {goal.status === "ACHIEVED" && (
-                         <button 
-                            onClick={() => openModal(goal, "release")}
-                            className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-green-600 transition-colors shadow-sm"
-                         >
-                            <ArrowUpCircle className="w-4 h-4" /> Release Funds
-                         </button>
-                      )}
+                             {goal.current_amount === 0 && (
+                               <button 
+                                  onClick={() => openModal(goal, "delete")}
+                                  className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
+                               >
+                                  Delete
+                               </button>
+                             )}
+                           </>
+                        )}
+                        {goal.status === "ACHIEVED" && (
+                           <button 
+                              onClick={() => goal.is_eligible_for_release ? openModal(goal, "release") : undefined}
+                              disabled={!goal.is_eligible_for_release}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm ${
+                                goal.is_eligible_for_release 
+                                  ? "bg-green-500 text-white hover:bg-green-600" 
+                                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                              }`}
+                           >
+                              <ArrowUpCircle className="w-4 h-4" /> Release Funds
+                           </button>
+                        )}
                       {(goal.status === "RELEASED" || goal.status === "CANCELLED") && (
                          <button 
                             onClick={() => openModal(goal, "archive")}
@@ -438,7 +412,7 @@ export default function GoalsPage() {
                 <h2 className="text-xl font-bold text-slate-900">
                    {modalMode === "contribute" && "Fund Goal"}
                    {modalMode === "release" && "Release Funds"}
-                   {modalMode === "cancel" && "Cancel Goal"}
+                   
                    {modalMode === "delete" && "Delete Goal"}
                    {modalMode === "archive" && "Archive Goal"}
                 </h2>
@@ -534,28 +508,6 @@ export default function GoalsPage() {
                </div>
             )}
 
-            {modalMode === "cancel" && (
-               <div className="space-y-4">
-                  <div className="bg-orange-50 rounded-xl p-4 text-center border border-orange-100">
-                     <AlertCircle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                     <p className="text-sm font-medium text-orange-800">Cancel this goal?</p>
-                     <p className="text-xs text-orange-600 mt-1">GH₵{formatPesewas(selectedGoal.locked_amount)} is currently locked.</p>
-                  </div>
-                  
-                  <p className="text-sm text-slate-600 text-center">
-                     Cancelling will return GH₵{formatPesewas(selectedGoal.locked_amount)} to your Available balance.
-                  </p>
-
-                  <button 
-                     onClick={() => handleAction("/cancel")}
-                     disabled={isSubmitting}
-                     className="w-full bg-orange-500 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-orange-600"
-                  >
-                     {isSubmitting ? "Cancelling..." : "Cancel Goal & Return Funds"}
-                  </button>
-               </div>
-            )}
-
             {modalMode === "delete" && (
                <div className="space-y-4">
                   <p className="text-sm text-slate-600 text-center">
@@ -603,4 +555,8 @@ export default function GoalsPage() {
     </div>
   );
 }
+
+
+
+
 

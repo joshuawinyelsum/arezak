@@ -36,31 +36,6 @@ type Account = {
   total_balance: Money;
 };
 
-const ICON_MAP: Record<string, any> = {
-  "Target": LucideIcons.Target,
-  "Shield": LucideIcons.Shield,
-  "Home": LucideIcons.Home,
-  "GraduationCap": LucideIcons.GraduationCap,
-  "Heart": LucideIcons.Heart,
-  "Laptop": LucideIcons.Laptop,
-  "Plane": LucideIcons.Plane,
-  "Users": LucideIcons.Users,
-  "Music": LucideIcons.Music,
-  "Briefcase": LucideIcons.Briefcase,
-  "Car": LucideIcons.Car,
-  "Wheat": LucideIcons.Wheat,
-  "Cross": LucideIcons.Cross,
-  "Smartphone": LucideIcons.Smartphone,
-  "TrendingUp": LucideIcons.TrendingUp,
-  "Wallet": LucideIcons.Wallet,
-  "Settings": LucideIcons.Settings,
-  "ShoppingCart": LucideIcons.ShoppingCart,
-  "Banknote": LucideIcons.Banknote,
-  "Building": LucideIcons.Building,
-  "Gift": LucideIcons.Gift,
-  "Key": LucideIcons.Key,
-  "Camera": LucideIcons.Camera
-};
 
 const getIconForName = (name: string) => {
   const n = name.toLowerCase();
@@ -258,7 +233,7 @@ export default function GoalDetailPage() {
   let bg = "bg-brand/10";
   
   if (goal.icon) {
-    Icon = ICON_MAP[goal.icon] || LucideIcons.Target;
+    Icon = (LucideIcons as any)[goal.icon] || LucideIcons.Target;
   } else {
     const legacy = getIconForName(goal.name);
     Icon = legacy.icon;
@@ -543,3 +518,4 @@ export default function GoalDetailPage() {
     </div>
   );
 }
+

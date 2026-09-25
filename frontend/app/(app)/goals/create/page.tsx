@@ -7,14 +7,7 @@ import * as LucideIcons from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
-
-const AVAILABLE_ICONS = [
-  "Target", "Shield", "Home", "GraduationCap", "Heart", 
-  "Laptop", "Plane", "Users", "Music", "Briefcase", 
-  "Car", "Wheat", "Cross", "Smartphone", "TrendingUp",
-  "Wallet", "Settings", "ShoppingCart", "Banknote", 
-  "Building", "Gift", "Key", "Camera"
-];
+import { IconPicker } from "@/components/IconPicker";
 
 const ICON_MAP = LucideIcons as Record<string, any>;
 
@@ -24,6 +17,7 @@ export default function CreateGoalPage() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState("Target");
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [targetAmountStr, setTargetAmountStr] = useState("");
   
   const [lockType, setLockType] = useState<"TARGET_REACHED" | "DATE_REACHED" | "TARGET_AND_DATE">("TARGET_REACHED");
@@ -139,26 +133,19 @@ export default function CreateGoalPage() {
 
                <div>
                   <label className="block text-sm font-bold text-slate-900 mb-2">Choose Icon</label>
-                  <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 p-1">
-                     {AVAILABLE_ICONS.map(iconName => {
-                        const IconCmp = ICON_MAP[iconName];
-                        if (!IconCmp) return null;
-                        const isSelected = icon === iconName;
-                        return (
-                           <button
-                              key={iconName}
-                              type="button"
-                              onClick={() => setIcon(iconName)}
-                              className={cn(
-                                 "aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2",
-                                 isSelected ? "border-brand bg-brand/5 text-brand" : "border-transparent bg-slate-50 text-slate-500 hover:bg-slate-100"
-                              )}
-                           >
-                              <IconCmp className="w-6 h-6" />
-                           </button>
-                        );
-                     })}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsIconPickerOpen(true)}
+                    className="w-full flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-brand/10 text-brand rounded-lg flex items-center justify-center">
+                        <SelectedIcon className="w-5 h-5" />
+                      </div>
+                      <span className="font-semibold text-slate-700">{icon}</span>
+                    </div>
+                    <span className="text-sm font-bold text-brand">Change Icon</span>
+                  </button>
                </div>
 
                <button 
@@ -337,6 +324,13 @@ export default function CreateGoalPage() {
             </div>
          )}
       </div>
+      
+      <IconPicker 
+        isOpen={isIconPickerOpen}
+        onClose={() => setIsIconPickerOpen(false)}
+        value={icon}
+        onChange={setIcon}
+      />
     </div>
   );
 }

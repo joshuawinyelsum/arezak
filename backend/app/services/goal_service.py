@@ -12,7 +12,7 @@ from app.rules.context import EvaluationContext
 from app.rules.engine import engine
 from app.rules.decision import ConstraintViolationException
 
-from app.models.goal_category import GoalCategory
+
 
 def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, icon: str | None = None, currency: str = "GHS", lock_type: str | None = None, unlock_date: datetime | None = None) -> Goal:
     if lock_type and lock_type not in ["TARGET_REACHED", "DATE_REACHED", "TARGET_AND_DATE", "BOTH"]:
@@ -239,81 +239,6 @@ def edit_goal(
     return goal
 
 
-def cancel_goal(
-    db: Session,
-    user_id: uuid.UUID,
-    account_id: uuid.UUID,
-    goal_id: uuid.UUID,
-    idempotency_key: str | None = None
-) -> Transaction:
-    if idempotency_key:
-        existing_tx = db.query(Transaction).filter_by(reference=idempotency_key, user_id=user_id, type='GOAL_CANCELLATION').first()
-        if existing_tx:
-            return existing_tx
-
-    goal = db.query(Goal).filter_by(id=goal_id, user_id=user_id).first()
-    if not goal:
-        raise ValueError("Goal not found")
-
-    context = EvaluationContext(
-        db=db,
-        user_id=user_id,
-        operation_type='GOAL_CANCELLATION',
-        amount_pesewas=goal.locked_amount,
-        currency='GHS',
-        account_id=account_id,
-        goal_id=goal_id
-    )
-    
-    account = db.query(Account).filter_by(id=account_id).first()
-    if account:
-        context.currency = account.currency
-
-    decision = engine.evaluate(context)
-    if not decision.allowed:
-        raise ConstraintViolationException(decision)
-        
-    if idempotency_key:
-        existing_tx = db.query(Transaction).filter_by(reference=idempotency_key, user_id=user_id, type='GOAL_CANCELLATION').first()
-        if existing_tx:
-            return existing_tx
-            
-    account = context.account
-    goal = context.goal
-    amount_pesewas = context.amount_pesewas
-    
-    account.locked_balance -= amount_pesewas
-    account.available_balance += amount_pesewas
-    
-    goal.locked_amount = 0
-    goal.status = 'CANCELLED'
-    
-    transaction = Transaction(
-        user_id=user_id,
-        account_id=account_id,
-        amount=amount_pesewas,
-        currency=goal.currency,
-        type='GOAL_CANCELLATION',
-        status='COMPLETED',
-        reference=idempotency_key,
-        description=f'Cancelled goal: {goal.name}'
-    )
-    db.add(transaction)
-    db.flush()
-    
-    ledger_entry = LedgerEntry(
-        account_id=account_id,
-        transaction_id=transaction.id,
-        amount=amount_pesewas,
-        currency=goal.currency,
-        entry_type='RELEASE', # Same effect as release on ledger conceptually
-        description='Goal cancelled and locked funds returned'
-    )
-    db.add(ledger_entry)
-    
-    return transaction
-
-
 def delete_goal(
     db: Session,
     user_id: uuid.UUID,
@@ -325,12 +250,17 @@ def delete_goal(
         
     # Check for any financial history
     # A goal with no GoalContributions has never been funded, meaning it has no GOAL_CONTRIBUTION transactions.
-    # Because it was never funded, it cannot have been released or cancelled (both require funds).
-    # Therefore, checking has_contributions guarantees no financial linkage.
+    if goal.current_amount > 0:
+        raise ValueError("This goal cannot be deleted because it contains locked funds. Reach the target before deleting or releasing the funds.")
+        
     has_contributions = db.query(GoalContribution).filter_by(goal_id=goal_id).first() is not None
-    if has_contributions or goal.current_amount > 0 or goal.locked_amount > 0 or goal.status != 'ACTIVE':
-        raise ValueError('Goal has financial history and cannot be deleted. Archive or cancel it instead.')
+    if has_contributions or goal.locked_amount > 0 or goal.status != 'ACTIVE':
+        raise ValueError('Goal has financial history and cannot be deleted. Archive it instead.')
         
     db.delete(goal)
     db.commit()
+
+
+
+
 
