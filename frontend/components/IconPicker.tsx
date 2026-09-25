@@ -96,7 +96,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
 
           {filteredGroups.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-slate-500 text-sm">No icons found for "{searchTerm}"</p>
+              <p className="text-slate-500 text-sm">No icons found for &quot;{searchTerm}&quot;</p>
             </div>
           )}
         </div>
@@ -104,3 +104,4 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
     </div>
   );
 }
+
