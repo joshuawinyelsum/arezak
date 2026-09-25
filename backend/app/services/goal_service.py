@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -13,7 +14,7 @@ from app.rules.decision import ConstraintViolationException
 
 from app.models.goal_category import GoalCategory
 
-def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, category_id: uuid.UUID | None = None, currency: str = "GHS") -> Goal:
+def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, category_id: uuid.UUID | None = None, currency: str = "GHS", lock_type: str | None = None, unlock_date: datetime | None = None) -> Goal:
     # Validate category if provided
     if category_id:
         category = db.query(GoalCategory).filter(GoalCategory.id == category_id).first()
@@ -23,13 +24,19 @@ def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, 
         if not category.is_system and category.user_id != user_id:
             raise ValueError("Category belongs to another user")
 
+    if lock_type and lock_type not in ["TARGET_REACHED", "DATE_REACHED", "BOTH"]:
+        raise ValueError(f"Invalid lock_type: {lock_type}")
+
     goal = Goal(
         user_id=user_id,
         name=name,
         target_amount=target_amount,
         currency=currency,
         category_id=category_id,
-        status="ACTIVE"
+        status="ACTIVE",
+        lock_enabled=bool(lock_type),
+        lock_type=lock_type,
+        unlock_date=unlock_date
     )
     db.add(goal)
     db.commit()

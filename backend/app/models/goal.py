@@ -37,3 +37,25 @@ class Goal(BaseModel):
     category: Mapped["GoalCategory | None"] = relationship("GoalCategory", back_populates="goals")
     contributions: Mapped[list["GoalContribution"]] = relationship("GoalContribution", back_populates="goal", cascade="all, delete-orphan")
 
+    @property
+    def is_eligible_for_release(self) -> bool:
+        if self.status == "RELEASED" or self.status == "CANCELLED":
+            return False
+            
+        from datetime import datetime, timezone
+        
+        if self.lock_type == "DATE_REACHED" and self.unlock_date:
+            now = datetime.now(timezone.utc)
+            if now >= self.unlock_date:
+                return True
+        elif self.lock_type == "TARGET_REACHED" or not self.lock_type:
+            if self.current_amount >= self.target_amount:
+                return True
+        elif self.lock_type == "BOTH":
+            if self.current_amount >= self.target_amount:
+                now = datetime.now(timezone.utc)
+                if self.unlock_date and now >= self.unlock_date:
+                    return True
+                    
+        return False
+

@@ -21,6 +21,9 @@ type Goal = {
   locked_amount: number;
   currency: string;
   status: string; // ACTIVE, ACHIEVED, RELEASED
+  lock_type?: string;
+  unlock_date?: string;
+  is_eligible_for_release?: boolean;
   category?: {
     id: string;
     name: string;
@@ -249,27 +252,11 @@ export default function GoalsPage() {
         </Link>
       </header>
 
-      {/* Financial Summary */}
-      {!isLoading && !error && accounts.length > 0 && (
-        <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-md mb-6">
-          <div className="text-slate-400 text-sm font-medium mb-1">Total Money</div>
-          <div className="text-3xl font-bold mb-6">GH₵ {formatPesewas(totalBalance)}</div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-              <div className="text-slate-400 text-xs font-medium mb-1">Available to Spend</div>
-              <div className="text-lg font-bold text-green-400">GH₵ {formatPesewas(availableBalance)}</div>
-            </div>
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-              <div className="flex items-center gap-1.5 mb-1">
-                <LucideIcons.Lock className="w-3.5 h-3.5 text-slate-400" />
-                <div className="text-slate-400 text-xs font-medium">Locked in Goals</div>
-              </div>
-              <div className="text-lg font-bold text-blue-400">GH₵ {formatPesewas(lockedBalance)}</div>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="mb-6 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+        <p className="text-sm text-blue-800 font-medium leading-relaxed">
+          Goals allow you to intentionally lock money toward something you want to achieve.
+        </p>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-slate-100 pb-4">
@@ -391,6 +378,14 @@ export default function GoalsPage() {
                                  className={cn("h-full rounded-full transition-all duration-1000", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "bg-brand")}
                                  style={{ width: `${Math.min(percentage, 100)}%` }}
                                />
+                            </div>
+
+                            <div className="mt-4 pt-3 border-t border-slate-100">
+                               <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Unlock condition</div>
+                               <div className="text-xs font-semibold text-slate-600">
+                                 {goal.lock_type === "TARGET_REACHED" || !goal.lock_type ? "When target is reached" : 
+                                  goal.lock_type === "DATE_REACHED" && goal.unlock_date ? `Unlock date: ${new Date(goal.unlock_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : "When target is reached"}
+                               </div>
                             </div>
                          </div>
                       </div>
@@ -625,3 +620,4 @@ export default function GoalsPage() {
     </div>
   );
 }
+

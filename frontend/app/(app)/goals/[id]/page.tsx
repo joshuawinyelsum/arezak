@@ -22,6 +22,9 @@ type Goal = {
   locked_amount: number;
   currency: string;
   status: string;
+  lock_type?: string;
+  unlock_date?: string;
+  is_eligible_for_release?: boolean;
   category?: {
     id: string;
     name: string;
@@ -276,6 +279,7 @@ export default function GoalDetailPage() {
 
   const percentage = goal.target_amount > 0 ? Math.floor((goal.current_amount / goal.target_amount) * 100) : 0;
   const remainingAmount = Math.max(0, goal.target_amount - goal.current_amount);
+  const isEligible = goal.is_eligible_for_release ?? (goal.status === "ACHIEVED");
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20 px-4 pt-4">
@@ -319,6 +323,20 @@ export default function GoalDetailPage() {
             </div>
          </div>
 
+         {/* Unlock Condition */}
+         <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-8 flex items-center justify-between">
+            <div>
+               <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Unlock condition</div>
+               <div className="text-sm font-bold text-slate-700">
+                  {goal.lock_type === "TARGET_REACHED" || !goal.lock_type ? "When target is reached" : 
+                   goal.lock_type === "DATE_REACHED" && goal.unlock_date ? `Unlock date: ${new Date(goal.unlock_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : "When target is reached"}
+               </div>
+            </div>
+            {isEligible && goal.status !== "RELEASED" && goal.status !== "ARCHIVED" && (
+               <div className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Eligible for Release</div>
+            )}
+         </div>
+
          {/* Progress Bar */}
          <div className="mb-8">
             <div className="flex justify-between items-end mb-2">
@@ -349,7 +367,7 @@ export default function GoalDetailPage() {
                </>
             )}
             
-            {goal.status === "ACHIEVED" && (
+            {isEligible && goal.status !== "RELEASED" && goal.status !== "ARCHIVED" && (
                <button 
                   onClick={() => openModal("release")}
                   className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white py-3.5 rounded-xl font-semibold hover:bg-green-600 transition-all shadow-sm"
@@ -465,7 +483,7 @@ export default function GoalDetailPage() {
                   <p className="text-sm text-slate-600 text-center">
                      from this Goal. The money will become available to spend again. This will move the Goal from:
                   </p>
-                  <p className="text-center font-bold text-slate-900 text-sm">ACHIEVED → RELEASED</p>
+                  <p className="text-center font-bold text-slate-900 text-sm">{goal.status} → RELEASED</p>
                   
                   <button 
                      onClick={handleRelease}

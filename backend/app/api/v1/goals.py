@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import BaseModel, ConfigDict
 import uuid
+from datetime import datetime
 from typing import Annotated
 
 from app.api.deps import SessionDep, CurrentUser
@@ -17,6 +18,8 @@ class GoalCreate(BaseModel):
     currency: str = "GHS"
     description: str | None = None
     category_id: uuid.UUID | None = None
+    lock_type: str | None = None
+    unlock_date: datetime | None = None
 
 class ContributeRequest(BaseModel):
     amount: int
@@ -36,7 +39,10 @@ class GoalResponse(BaseModel):
     locked_amount: int
     currency: str
     status: str
+    lock_type: str | None = None
+    unlock_date: datetime | None = None
     category: GoalCategoryInfo | None = None
+    is_eligible_for_release: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -52,7 +58,9 @@ def api_create_goal(request: GoalCreate, db: SessionDep, current_user: CurrentUs
             name=request.name,
             target_amount=request.target_amount,
             category_id=request.category_id,
-            currency=request.currency
+            currency=request.currency,
+            lock_type=request.lock_type,
+            unlock_date=request.unlock_date
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

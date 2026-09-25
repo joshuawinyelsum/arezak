@@ -31,11 +31,14 @@ class GoalReleaseConstraint(BaseConstraint):
         if goal.currency != context.currency:
             return ConstraintDecision.deny(DecisionCode.CURRENCY_MISMATCH, "Goal currency mismatch.")
             
+        from datetime import datetime, timezone
+        
         if goal.status == "RELEASED":
             return ConstraintDecision.deny(DecisionCode.GOAL_ALREADY_RELEASED, "Goal has already been released.")
             
-        if goal.status != "ACHIEVED" or goal.current_amount < goal.target_amount:
-            return ConstraintDecision.deny(DecisionCode.GOAL_NOT_ACHIEVED, "Goal must be achieved to be released.")
+        # Determine if the goal is eligible for release based on its lock condition
+        if not goal.is_eligible_for_release:
+            return ConstraintDecision.deny(DecisionCode.GOAL_NOT_ACHIEVED, "Goal condition not met for release.")
             
         if goal.locked_amount <= 0:
             return ConstraintDecision.deny(DecisionCode.GOAL_LOCK_INTEGRITY_ERROR, "Goal has no locked funds to release.")
