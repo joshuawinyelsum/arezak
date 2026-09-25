@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Laptop, Home, Shield, Plane, Wallet, Loader2, AlertCircle, Target, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
-import { icons } from "lucide-react";
+import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { GoalEditModal } from "@/components/GoalEditModal";
@@ -289,15 +289,12 @@ export default function GoalsPage() {
       {!isLoading && !error && filteredGoals.length > 0 && (
         <div className="space-y-4">
            {filteredGoals.map(goal => {
-              let Icon = Target;
               let color = "text-brand";
               let bg = "bg-brand/10";
-              
-              if (goal.icon) {
-                Icon = icons[goal.icon as keyof typeof icons] || Target;
-              } else {
+              let legacyIcon = Target;
+              if (!goal.icon) {
                 const legacy = getIconForName(goal.name);
-                Icon = legacy.icon;
+                legacyIcon = legacy.icon;
                 color = legacy.color;
                 bg = legacy.bg;
               }
@@ -309,7 +306,7 @@ export default function GoalsPage() {
                    <div className="flex items-start justify-between">
                       <div className="flex items-center gap-4 flex-1">
                          <div className={cn("w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0", bg, color)}>
-                            <Icon className="w-6 h-6" />
+                            {goal.icon ? <Icon name={goal.icon} className="w-6 h-6" /> : React.createElement(legacyIcon, { className: "w-6 h-6" })}
                          </div>
                          <div className="flex-1">
                             <h3 className="font-bold text-slate-900 text-[15px] flex items-center gap-2">
@@ -566,6 +563,7 @@ export default function GoalsPage() {
     </div>
   );
 }
+
 
 
 

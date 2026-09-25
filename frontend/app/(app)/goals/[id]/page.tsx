@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Loader2, Target, ArrowDownCircle, ArrowUpCircle, X, AlertCircle, Laptop, Home, Shield, Plane } from "lucide-react";
-import { icons } from "lucide-react";
+import { Icon as DynamicIcon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { GoalEditModal } from "@/components/GoalEditModal";
@@ -228,15 +228,12 @@ export default function GoalDetailPage() {
     );
   }
 
-  let Icon = Target;
   let color = "text-brand";
   let bg = "bg-brand/10";
-  
-  if (goal.icon) {
-    Icon = icons[goal.icon as keyof typeof icons] || Target;
-  } else {
+  let legacyIcon = Target;
+  if (!goal.icon) {
     const legacy = getIconForName(goal.name);
-    Icon = legacy.icon;
+    legacyIcon = legacy.icon;
     color = legacy.color;
     bg = legacy.bg;
   }
@@ -260,7 +257,7 @@ export default function GoalDetailPage() {
       <div className="bg-white rounded-[24px] p-6 sm:p-8 shadow-sm border border-slate-200">
          <div className="flex flex-col items-center text-center mb-8">
             <div className={cn("w-16 h-16 rounded-[18px] flex items-center justify-center shrink-0 mb-4", bg, color)}>
-               <Icon className="w-8 h-8" />
+               {goal.icon ? <DynamicIcon name={goal.icon} className="w-8 h-8" /> : React.createElement(legacyIcon, { className: "w-8 h-8" })}
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">{goal.name}</h2>
             
@@ -518,6 +515,7 @@ export default function GoalDetailPage() {
     </div>
   );
 }
+
 
 
 

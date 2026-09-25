@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, X, AlertCircle, Target, icons } from "lucide-react";
+import { Loader2, X, AlertCircle, Target } from "lucide-react";
+import { Icon } from "./Icon";
 import { apiFetch } from "@/lib/api";
 import { IconPicker } from "./IconPicker";
 import { cn } from "@/lib/utils";
@@ -54,7 +55,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
     }
   };
 
-  const SelectedIcon = icons[icon as keyof typeof icons] || Target;
+  
 
   return (
     <>
@@ -85,7 +86,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
                 onClick={() => setIsIconPickerOpen(true)}
                 className="w-20 h-20 bg-brand/10 text-brand rounded-[20px] flex items-center justify-center hover:bg-brand/20 hover:scale-105 transition-all group"
               >
-                <SelectedIcon className="w-10 h-10 group-hover:scale-110 transition-transform" />
+                <Icon name={icon || "Target"} className="w-10 h-10 group-hover:scale-110 transition-transform" />
               </button>
               <div className="text-xs font-semibold text-brand mt-2">Tap to change icon</div>
             </div>
@@ -141,6 +142,8 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
     </>
   );
 }
+
+
 
 
 

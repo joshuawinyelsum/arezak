@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, AlertCircle, Target, icons } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle, Target } from "lucide-react";
+import { Icon } from "@/components/Icon";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { IconPicker } from "@/components/IconPicker";
-const ICON_MAP = icons as Record<string, any>;
+
 
 
 export default function CreateGoalPage() {
@@ -87,7 +88,7 @@ export default function CreateGoalPage() {
     }
   };
 
-  const SelectedIcon = ICON_MAP[icon] || Target;
+  
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20 px-4 pt-4">
@@ -139,7 +140,7 @@ export default function CreateGoalPage() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-brand/10 text-brand rounded-lg flex items-center justify-center">
-                        <SelectedIcon className="w-5 h-5" />
+                        <Icon name={icon} className="w-5 h-5" />
                       </div>
                       <span className="font-semibold text-slate-700">{icon}</span>
                     </div>
@@ -281,7 +282,7 @@ export default function CreateGoalPage() {
                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-4">
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
-                        <SelectedIcon className="w-6 h-6" />
+                        <Icon name={icon} className="w-6 h-6" />
                      </div>
                      <div>
                         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Goal</div>
@@ -333,6 +334,7 @@ export default function CreateGoalPage() {
     </div>
   );
 }
+
 
 
 
