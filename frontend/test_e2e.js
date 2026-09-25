@@ -11,17 +11,17 @@ const assert = require('assert');
   const password = 'Password123!';
   
   // Register a new user
-  await page.goto('http://localhost:3003/register');
+  await page.goto('https://arezak-staging.vercel.app/register');
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
   await page.fill('input[id="name"]', 'Test User');
   await page.click('button[type="submit"]');
   
   await page.waitForTimeout(2000);
-  await page.goto('http://localhost:3003/');
+  await page.goto('https://arezak-staging.vercel.app/');
   
   // Create Goal A
-  await page.goto('http://localhost:3003/goals/create');
+  await page.goto('https://arezak-staging.vercel.app/goals/create');
   
   await page.waitForSelector('input[placeholder="e.g. MacBook Pro, Emergency Fund"]');
   await page.fill('input[placeholder="e.g. MacBook Pro, Emergency Fund"]', 'ORDER TEST OLDER');
@@ -67,12 +67,12 @@ const assert = require('assert');
   
   await page.click('button:has-text("Create Goal")');
   
-  await page.waitForURL('http://localhost:3003/goals');
+  await page.waitForURL('https://arezak-staging.vercel.app/goals');
   console.log('1. POST payload:');
   console.log(`   icon: ${postDataA.icon}`);
   
   // Create Goal B
-  await page.goto('http://localhost:3003/goals/create');
+  await page.goto('https://arezak-staging.vercel.app/goals/create');
   await page.waitForSelector('input[placeholder="e.g. MacBook Pro, Emergency Fund"]');
   await page.fill('input[placeholder="e.g. MacBook Pro, Emergency Fund"]', 'ORDER TEST NEWER');
   
@@ -87,7 +87,7 @@ const assert = require('assert');
   await page.waitForTimeout(500);
   
   await page.click('button:has-text("Create Goal")');
-  await page.waitForURL('http://localhost:3003/goals');
+  await page.waitForURL('https://arezak-staging.vercel.app/goals');
   
   await page.waitForSelector('h3:has-text("ORDER TEST")');
   await page.waitForTimeout(500);
@@ -97,9 +97,9 @@ const assert = require('assert');
   console.log(`   data-icon="${hasCameraSvg > 0 ? postDataA.icon : 'Target'}"`);
   
   // Soft nav
-  await page.goto('http://localhost:3003/');
+  await page.goto('https://arezak-staging.vercel.app/');
   await page.waitForSelector('text=Total Available Balance');
-  await page.goto('http://localhost:3003/goals');
+  await page.goto('https://arezak-staging.vercel.app/goals');
   await page.waitForSelector('h3:has-text("ORDER TEST")');
   await page.waitForTimeout(500);
   
@@ -117,7 +117,7 @@ const assert = require('assert');
   console.log(`   data-icon="${hasCameraSvgHard > 0 ? postDataA.icon : 'Target'}"`);
 
   // DB timestamps
-  const response = await context.request.get('http://localhost:8000/api/v1/goals', {
+  const response = await context.request.get('https://arezak-staging-api.up.railway.app/api/v1/goals', {
     headers: { 'Cookie': (await context.cookies()).map(c => `${c.name}=${c.value}`).join('; ') }
   });
   const goalsJson = await response.json();
@@ -144,4 +144,6 @@ const assert = require('assert');
 
   await browser.close();
 })();
+
+
 
