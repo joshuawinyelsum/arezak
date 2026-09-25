@@ -24,12 +24,7 @@ type Goal = {
   lock_type?: string;
   unlock_date?: string;
   is_eligible_for_release?: boolean;
-  category?: {
-    id: string;
-    name: string;
-    icon: string;
-    is_system: boolean;
-  };
+  icon?: string;
 };
 
 type Account = {
@@ -317,18 +312,11 @@ export default function GoalsPage() {
         <div className="space-y-4">
            {filteredGoals.map(goal => {
               let Icon = Target;
-              let color = "text-slate-600";
-              let bg = "bg-slate-100";
+              let color = "text-brand";
+              let bg = "bg-brand/10";
               
-              if (goal.category) {
-                Icon = ICON_MAP[goal.category.icon] || Target;
-                if (goal.category.is_system) {
-                  color = "text-slate-600";
-                  bg = "bg-slate-100";
-                } else {
-                  color = "text-brand";
-                  bg = "bg-brand/10";
-                }
+              if (goal.icon) {
+                Icon = ICON_MAP[goal.icon] || Target;
               } else {
                 const legacy = getIconForName(goal.name);
                 Icon = legacy.icon;
@@ -352,11 +340,6 @@ export default function GoalsPage() {
                                {goal.status === "RELEASED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Released</span>}
                                {goal.status === "ARCHIVED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Archived</span>}
                             </h3>
-                              {goal.category && (
-                                <div className="text-[11px] text-slate-500 font-medium mb-2">
-                                  {goal.category.name}
-                                </div>
-                              )}
                             
                             <div className="grid grid-cols-2 gap-2 mt-2">
                               <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">

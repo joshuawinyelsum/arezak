@@ -25,12 +25,7 @@ type Goal = {
   lock_type?: string;
   unlock_date?: string;
   is_eligible_for_release?: boolean;
-  category?: {
-    id: string;
-    name: string;
-    icon: string;
-    is_system: boolean;
-  };
+  icon?: string;
 };
 
 type Account = {
@@ -42,6 +37,7 @@ type Account = {
 };
 
 const ICON_MAP: Record<string, any> = {
+  "Target": LucideIcons.Target,
   "Shield": LucideIcons.Shield,
   "Home": LucideIcons.Home,
   "GraduationCap": LucideIcons.GraduationCap,
@@ -72,7 +68,7 @@ const getIconForName = (name: string) => {
   if (n.includes("home") || n.includes("house")) return { icon: LucideIcons.Home, color: "text-red-500", bg: "bg-red-50" };
   if (n.includes("emergency") || n.includes("safe")) return { icon: LucideIcons.Shield, color: "text-green-500", bg: "bg-green-50" };
   if (n.includes("travel") || n.includes("vacation") || n.includes("flight")) return { icon: LucideIcons.Plane, color: "text-orange-500", bg: "bg-orange-50" };
-  return { icon: Target, color: "text-slate-600", bg: "bg-slate-100" };
+  return { icon: LucideIcons.Target, color: "text-slate-600", bg: "bg-slate-100" };
 };
 
 export default function GoalDetailPage() {
@@ -156,7 +152,7 @@ export default function GoalDetailPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail?.message || "Contribution failed.");
+        throw new Error(err.detail?.message || err.detail || "Contribution failed.");
       }
 
       await loadData();
@@ -217,7 +213,7 @@ export default function GoalDetailPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail?.message || "Release failed.");
+        throw new Error(err.detail?.message || err.detail || "Release failed.");
       }
 
       await loadData();
@@ -257,19 +253,12 @@ export default function GoalDetailPage() {
     );
   }
 
-  let Icon = Target;
-  let color = "text-slate-600";
-  let bg = "bg-slate-100";
+  let Icon = LucideIcons.Target;
+  let color = "text-brand";
+  let bg = "bg-brand/10";
   
-  if (goal.category) {
-    Icon = ICON_MAP[goal.category.icon] || Target;
-    if (goal.category.is_system) {
-      color = "text-slate-600";
-      bg = "bg-slate-100";
-    } else {
-      color = "text-brand";
-      bg = "bg-brand/10";
-    }
+  if (goal.icon) {
+    Icon = ICON_MAP[goal.icon] || LucideIcons.Target;
   } else {
     const legacy = getIconForName(goal.name);
     Icon = legacy.icon;
@@ -299,11 +288,8 @@ export default function GoalDetailPage() {
                <Icon className="w-8 h-8" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">{goal.name}</h2>
-            {goal.category && (
-               <p className="text-sm text-slate-500 font-medium mb-4">{goal.category.name}</p>
-            )}
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 mt-2">
                {goal.status === "ACTIVE" && <span className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Active</span>}
                {goal.status === "ACHIEVED" && <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Achieved</span>}
                {goal.status === "RELEASED" && <span className="bg-slate-100 text-slate-600 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Released</span>}

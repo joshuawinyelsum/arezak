@@ -26,9 +26,10 @@ class Goal(BaseModel):
     status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False) # ACTIVE, ACHIEVED, CANCELLED
     
     category_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("goal_categories.id", ondelete="SET NULL"), nullable=True)
+    icon: Mapped[str | None] = mapped_column(String(50), nullable=True)
     
     lock_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    lock_type: Mapped[str | None] = mapped_column(String(50), nullable=True) # TARGET_REACHED, DATE_REACHED, BOTH
+    lock_type: Mapped[str | None] = mapped_column(String(50), nullable=True) # TARGET_REACHED, DATE_REACHED, TARGET_AND_DATE
     
     unlock_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -38,24 +39,26 @@ class Goal(BaseModel):
     contributions: Mapped[list["GoalContribution"]] = relationship("GoalContribution", back_populates="goal", cascade="all, delete-orphan")
 
     @property
+    def target_reached(self) -> bool:
+        return self.current_amount >= self.target_amount
+
+    @property
+    def date_reached(self) -> bool:
+        if not self.unlock_date:
+            return False
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        return now >= self.unlock_date
+
+    @property
     def is_eligible_for_release(self) -> bool:
         if self.status == "RELEASED" or self.status == "CANCELLED":
             return False
             
-        from datetime import datetime, timezone
-        
-        if self.lock_type == "DATE_REACHED" and self.unlock_date:
-            now = datetime.now(timezone.utc)
-            if now >= self.unlock_date:
-                return True
-        elif self.lock_type == "TARGET_REACHED" or not self.lock_type:
-            if self.current_amount >= self.target_amount:
-                return True
-        elif self.lock_type == "BOTH":
-            if self.current_amount >= self.target_amount:
-                now = datetime.now(timezone.utc)
-                if self.unlock_date and now >= self.unlock_date:
-                    return True
-                    
-        return False
+        if self.lock_type == "DATE_REACHED":
+            return self.date_reached
+        elif self.lock_type == "TARGET_AND_DATE":
+            return self.target_reached and self.date_reached
+        else: # Default TARGET_REACHED
+            return self.target_reached
 

@@ -14,10 +14,10 @@ router = APIRouter(prefix="/goals", tags=["goals"])
 
 class GoalCreate(BaseModel):
     name: str
+    icon: str | None = None
     target_amount: int
     currency: str = "GHS"
     description: str | None = None
-    category_id: uuid.UUID | None = None
     lock_type: str | None = None
     unlock_date: datetime | None = None
 
@@ -25,15 +25,10 @@ class ContributeRequest(BaseModel):
     amount: int
     account_id: uuid.UUID
 
-class GoalCategoryInfo(BaseModel):
-    id: uuid.UUID
-    name: str
-    icon: str
-    is_system: bool
-
 class GoalResponse(BaseModel):
     id: uuid.UUID
     name: str
+    icon: str | None = None
     target_amount: int
     current_amount: int
     locked_amount: int
@@ -41,7 +36,8 @@ class GoalResponse(BaseModel):
     status: str
     lock_type: str | None = None
     unlock_date: datetime | None = None
-    category: GoalCategoryInfo | None = None
+    target_reached: bool = False
+    date_reached: bool = False
     is_eligible_for_release: bool = False
 
     model_config = ConfigDict(from_attributes=True)
@@ -56,8 +52,8 @@ def api_create_goal(request: GoalCreate, db: SessionDep, current_user: CurrentUs
             db=db,
             user_id=current_user.id,
             name=request.name,
+            icon=request.icon,
             target_amount=request.target_amount,
-            category_id=request.category_id,
             currency=request.currency,
             lock_type=request.lock_type,
             unlock_date=request.unlock_date
@@ -67,8 +63,7 @@ def api_create_goal(request: GoalCreate, db: SessionDep, current_user: CurrentUs
 
 @router.get("", response_model=list[GoalResponse])
 def get_goals(db: SessionDep, current_user: CurrentUser):
-    from sqlalchemy.orm import joinedload
-    return db.query(Goal).options(joinedload(Goal.category)).filter(Goal.user_id == current_user.id).all()
+    return db.query(Goal).filter(Goal.user_id == current_user.id).all()
 
 @router.get("/{goal_id}", response_model=GoalResponse)
 def get_goal(goal_id: uuid.UUID, db: SessionDep, current_user: CurrentUser):
@@ -101,10 +96,10 @@ def api_contribute_to_goal(
         status = 400
         if "NOT_FOUND" in e.decision.code or "DENIED" in e.decision.code or "NOT_OWNED" in e.decision.code:
             status = 404 # To obscure existence or standard 404
-        raise HTTPException(status_code=status, detail={"code": e.decision.code, "message": e.decision.message})
-    except Exception as e:
+        raise HTTPException(status_code=status, detail=e.decision.message)
+    except ValueError as e:
         db.rollback()
-        raise e
+        raise HTTPException(status_code=400, detail=str(e))
 @router.post("/{goal_id}/release")
 def api_release_goal(
     goal_id: uuid.UUID,
@@ -152,15 +147,15 @@ def api_release_goal(
         status = 400
         if "NOT_FOUND" in e.decision.code or "DENIED" in e.decision.code or "NOT_OWNED" in e.decision.code:
             status = 404
-        raise HTTPException(status_code=status, detail={"code": e.decision.code, "message": e.decision.message})
-    except Exception as e:
+        raise HTTPException(status_code=status, detail=e.decision.message)
+    except ValueError as e:
         db.rollback()
-        raise e
+        raise HTTPException(status_code=400, detail=str(e))
 
 class GoalEditRequest(BaseModel):
     name: str | None = None
+    icon: str | None = None
     target_amount: int | None = None
-    category_id: uuid.UUID | None = None
 
 @router.patch('/{goal_id}', response_model=GoalResponse)
 def api_edit_goal(
@@ -176,8 +171,8 @@ def api_edit_goal(
             user_id=current_user.id,
             goal_id=goal_id,
             name=request.name,
-            target_amount=request.target_amount,
-            category_id=request.category_id
+            icon=request.icon,
+            target_amount=request.target_amount
         )
         return goal
     except ValueError as e:

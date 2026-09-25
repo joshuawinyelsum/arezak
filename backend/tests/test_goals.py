@@ -424,3 +424,90 @@ def test_release_concurrency():
     assert goal_after.status == "RELEASED"
     assert goal_after.locked_amount == 0
     verify_session.close()
+import pytest
+from datetime import datetime, timedelta, timezone
+from sqlalchemy.orm import Session
+from app.models.goal import Goal
+from app.services.goal_service import create_goal, contribute_to_goal, release_goal
+from app.rules.decision import ConstraintViolationException
+from app.rules.codes import DecisionCode
+from tests.test_goals import process_income
+
+def test_target_reached_unlock(db_session: Session, test_user, test_account):
+    process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "t_init")
+    db_session.commit()
+    
+    goal = create_goal(db_session, test_user.id, "Target Only", 10000, lock_type="TARGET_REACHED")
+    db_session.commit()
+    
+    assert goal.is_eligible_for_release is False
+    
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "t_contrib")
+    db_session.commit()
+    db_session.refresh(goal)
+    
+    assert goal.status == "ACHIEVED"
+    assert goal.is_eligible_for_release is True
+
+def test_date_reached_unlock_before_date(db_session: Session, test_user, test_account):
+    future_date = datetime.now(timezone.utc) + timedelta(days=7)
+    process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "d_init")
+    db_session.commit()
+    
+    goal = create_goal(db_session, test_user.id, "Date Only", 10000, lock_type="DATE_REACHED", unlock_date=future_date)
+    db_session.commit()
+    
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "d_contrib")
+    db_session.commit()
+    db_session.refresh(goal)
+    
+    assert goal.status == "ACHIEVED"
+    assert goal.is_eligible_for_release is False
+    
+    with pytest.raises(ConstraintViolationException) as exc:
+        release_goal(db_session, test_user.id, test_account.id, goal.id, "d_release")
+    assert exc.value.decision.code == DecisionCode.GOAL_NOT_ACHIEVED
+
+def test_date_reached_unlock_after_date(db_session: Session, test_user, test_account):
+    past_date = datetime.now(timezone.utc) - timedelta(days=1)
+    process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "d_init2")
+    db_session.commit()
+    
+    goal = create_goal(db_session, test_user.id, "Date Only", 10000, lock_type="DATE_REACHED", unlock_date=past_date)
+    db_session.commit()
+    
+    # Even if target is NOT reached, date passed so it's eligible!
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 5000, "GHS", "d_contrib2")
+    db_session.commit()
+    db_session.refresh(goal)
+    
+    assert goal.status == "ACTIVE"
+    assert goal.is_eligible_for_release is True
+
+def test_target_and_date_unlock(db_session: Session, test_user, test_account):
+    past_date = datetime.now(timezone.utc) - timedelta(days=1)
+    future_date = datetime.now(timezone.utc) + timedelta(days=1)
+    
+    process_income(db_session, test_user.id, test_account.id, 40000, "GHS", "td_init")
+    db_session.commit()
+    
+    # 1. Past date but target not reached
+    goal1 = create_goal(db_session, test_user.id, "G1", 10000, lock_type="TARGET_AND_DATE", unlock_date=past_date)
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal1.id, 5000, "GHS", "td_c1")
+    db_session.commit()
+    db_session.refresh(goal1)
+    assert goal1.is_eligible_for_release is False
+    
+    # 2. Target reached but date not passed
+    goal2 = create_goal(db_session, test_user.id, "G2", 10000, lock_type="TARGET_AND_DATE", unlock_date=future_date)
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal2.id, 10000, "GHS", "td_c2")
+    db_session.commit()
+    db_session.refresh(goal2)
+    assert goal2.is_eligible_for_release is False
+    
+    # 3. Target reached AND date passed
+    goal3 = create_goal(db_session, test_user.id, "G3", 10000, lock_type="TARGET_AND_DATE", unlock_date=past_date)
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal3.id, 10000, "GHS", "td_c3")
+    db_session.commit()
+    db_session.refresh(goal3)
+    assert goal3.is_eligible_for_release is True

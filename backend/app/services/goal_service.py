@@ -14,25 +14,16 @@ from app.rules.decision import ConstraintViolationException
 
 from app.models.goal_category import GoalCategory
 
-def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, category_id: uuid.UUID | None = None, currency: str = "GHS", lock_type: str | None = None, unlock_date: datetime | None = None) -> Goal:
-    # Validate category if provided
-    if category_id:
-        category = db.query(GoalCategory).filter(GoalCategory.id == category_id).first()
-        if not category:
-            raise ValueError("Invalid category")
-        
-        if not category.is_system and category.user_id != user_id:
-            raise ValueError("Category belongs to another user")
-
-    if lock_type and lock_type not in ["TARGET_REACHED", "DATE_REACHED", "BOTH"]:
+def create_goal(db: Session, user_id: uuid.UUID, name: str, target_amount: int, icon: str | None = None, currency: str = "GHS", lock_type: str | None = None, unlock_date: datetime | None = None) -> Goal:
+    if lock_type and lock_type not in ["TARGET_REACHED", "DATE_REACHED", "TARGET_AND_DATE", "BOTH"]:
         raise ValueError(f"Invalid lock_type: {lock_type}")
 
     goal = Goal(
         user_id=user_id,
         name=name,
+        icon=icon,
         target_amount=target_amount,
         currency=currency,
-        category_id=category_id,
         status="ACTIVE",
         lock_enabled=bool(lock_type),
         lock_type=lock_type,
@@ -217,8 +208,8 @@ def edit_goal(
     user_id: uuid.UUID,
     goal_id: uuid.UUID,
     name: str | None = None,
+    icon: str | None = None,
     target_amount: int | None = None,
-    category_id: uuid.UUID | None = None,
 ) -> Goal:
     goal = db.query(Goal).filter_by(id=goal_id, user_id=user_id).first()
     if not goal:
@@ -240,13 +231,8 @@ def edit_goal(
     if name is not None:
         goal.name = name
         
-    if category_id is not None:
-        category = db.query(GoalCategory).filter(GoalCategory.id == category_id).first()
-        if not category:
-            raise ValueError('Invalid category')
-        if not category.is_system and category.user_id != user_id:
-            raise ValueError('Category belongs to another user')
-        goal.category_id = category_id
+    if icon is not None:
+        goal.icon = icon
         
     db.commit()
     db.refresh(goal)
