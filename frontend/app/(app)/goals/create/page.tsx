@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, AlertCircle, Target } from "lucide-react";
-import { ICON_MAP } from "@/lib/icon-map";
+import { ArrowLeft, Loader2, AlertCircle, Target, icons } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { IconPicker } from "@/components/IconPicker";
+const ICON_MAP = icons as Record<string, any>;
 
 
 export default function CreateGoalPage() {
@@ -333,6 +333,7 @@ export default function CreateGoalPage() {
     </div>
   );
 }
+
 
 
 

@@ -215,18 +215,12 @@ def edit_goal(
     if not goal:
         raise ValueError('Goal not found')
         
-    if goal.status != 'ACTIVE':
-        if target_amount is not None and target_amount != goal.target_amount:
+    if target_amount is not None and target_amount != goal.target_amount:
+        if goal.status != 'ACTIVE':
             raise ValueError(f'Cannot edit target amount for {goal.status} goal')
-            
-    if target_amount is not None:
-        if target_amount < goal.current_amount:
-            raise ValueError('Target amount cannot be lower than the amount already locked in this goal.')
+        if goal.current_amount > 0:
+            raise ValueError('Target amount cannot be changed once money has been locked in this goal.')
         goal.target_amount = target_amount
-        
-        # Check achievement transition
-        if goal.status == 'ACTIVE' and goal.current_amount >= goal.target_amount:
-            goal.status = 'ACHIEVED'
             
     if name is not None:
         goal.name = name
@@ -259,6 +253,7 @@ def delete_goal(
         
     db.delete(goal)
     db.commit()
+
 
 
 

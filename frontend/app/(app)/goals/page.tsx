@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Laptop, Home, Shield, Plane, Wallet, Loader2, AlertCircle, Target, ArrowDownCircle, ArrowUpCircle, X } from "lucide-react";
-import { ICON_MAP } from "@/lib/icon-map";
+import { icons } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { GoalEditModal } from "@/components/GoalEditModal";
@@ -292,7 +292,7 @@ export default function GoalsPage() {
               let bg = "bg-brand/10";
               
               if (goal.icon) {
-                Icon = ICON_MAP[goal.icon] || Target;
+                Icon = icons[goal.icon as keyof typeof icons] || Target;
               } else {
                 const legacy = getIconForName(goal.name);
                 Icon = legacy.icon;
@@ -564,6 +564,7 @@ export default function GoalsPage() {
     </div>
   );
 }
+
 
 
 

@@ -195,15 +195,17 @@ def test_goal_editing(db_session: Session, test_user):
     contribute_to_goal(db_session, test_user.id, account.id, goal.id, 2000)
     db_session.commit()
     
-    # Invalid: lowering below current amount
-    with pytest.raises(ValueError, match="Target amount cannot be lower than the amount already locked in this goal"):
+    # Invalid: modifying target amount once funded
+    with pytest.raises(ValueError, match="Target amount cannot be changed once money has been locked in this goal."):
         with db_session.begin_nested():
-            edit_goal(db_session, test_user.id, goal.id, target_amount=1000)
+            edit_goal(db_session, test_user.id, goal.id, target_amount=2000)
             
-    # Valid: increasing amount
-    edit_goal(db_session, test_user.id, goal.id, target_amount=20000)
+    # Also cannot increase target amount once funded
+    with pytest.raises(ValueError, match="Target amount cannot be changed once money has been locked in this goal."):
+        with db_session.begin_nested():
+            edit_goal(db_session, test_user.id, goal.id, target_amount=20000)
     db_session.refresh(goal)
-    assert goal.target_amount == 20000
+    assert goal.target_amount == 10000
     assert goal.current_amount == 2000
     
     # Test achieved/released/cancelled cannot edit financial target
@@ -261,6 +263,8 @@ def test_cross_user_isolation(db_session: Session, test_user):
     # B tries to correct A's transaction
     with pytest.raises(ValueError, match="not found"):
         correct_transaction(db_session, user_b.id, tx_a.id, 500)
+
+
 
 
 

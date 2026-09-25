@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, X, AlertCircle, Target } from "lucide-react";
-import { ICON_MAP } from "@/lib/icon-map";
+import { Loader2, X, AlertCircle, Target, icons } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { IconPicker } from "./IconPicker";
 import { cn } from "@/lib/utils";
@@ -55,7 +54,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
     }
   };
 
-  const SelectedIcon = ICON_MAP[icon] || Target;
+  const SelectedIcon = icons[icon as keyof typeof icons] || Target;
 
   return (
     <>
@@ -142,6 +141,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
     </>
   );
 }
+
 
 
 
