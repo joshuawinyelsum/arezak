@@ -18,15 +18,17 @@ export const Icon = React.memo(({ name, ...props }: IconProps) => {
   if (!(kebabName in dynamicIconImports)) {
     // Fallback if icon not found
     const Fallback = dynamic(dynamicIconImports['target']);
-    return <Fallback {...props} />;
+    return <Fallback data-icon="Target" {...props} />;
   }
 
   const LucideIcon = dynamic(dynamicIconImports[kebabName as IconName], {
     loading: () => <div className={props.className} style={{ width: '1em', height: '1em', backgroundColor: 'currentColor', opacity: 0.2, borderRadius: '20%' }} />
   });
 
-  return <LucideIcon {...props} />;
+  return <LucideIcon data-icon={name} {...props} />;
 });
 
 Icon.displayName = 'Icon';
+
+
 
