@@ -197,22 +197,33 @@ export default function Dashboard() {
           
           {/* Top Row: Balance & Money Flow */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-             {/* Total Available Balance Card */}
+             {/* Total Balance Card */}
              <div className="rounded-[24px] bg-gradient-to-br from-brand to-[#1a37a5] text-white p-6 relative overflow-hidden shadow-lg shadow-brand/20">
                <div className="relative z-10 flex flex-col h-full justify-between gap-8">
                  <div>
                    <div className="flex items-center justify-between mb-2">
-                     <span className="text-sm font-medium text-white/80">Total Available Balance ❖</span>
+                     <span className="text-sm font-medium text-white/80">Total Balance</span>
                      <button onClick={() => setShowBalance(!showBalance)} className="text-white/60 hover:text-white transition-colors">
                        {showBalance ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                      </button>
                    </div>
                    <div className="text-[32px] font-bold tracking-tight mb-2">
-                     {formatMoney(totalAvailable)}
+                     {formatMoney(totalSum)}
                    </div>
-                   {/* Static trend removed, no backend trend API yet */}
+                     {/* Static trend removed, no backend trend API yet */}
+                   </div>
+                 
+                 <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                       <div className="text-xs text-white/60 mb-1 uppercase tracking-wider font-semibold">Available</div>
+                       <div className="text-lg font-semibold">{formatMoney(totalAvailable)}</div>
+                    </div>
+                    <div>
+                       <div className="text-xs text-white/60 mb-1 uppercase tracking-wider font-semibold">Protected</div>
+                       <div className="text-lg font-semibold">{formatMoney(totalProtected)}</div>
+                    </div>
                  </div>
-               </div>
+                 </div>
                
                <div className="absolute -bottom-16 -right-16 opacity-20 pointer-events-none mix-blend-overlay">
                   <div className="w-64 h-64 border-[40px] border-white rounded-full"></div>

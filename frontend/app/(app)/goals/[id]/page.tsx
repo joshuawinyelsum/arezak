@@ -47,7 +47,7 @@ export default function GoalDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Modal State
-  const [modalMode, setModalMode] = useState<"contribute" | "release" | "edit" | "delete" | null>(null);
+  const [modalMode, setModalMode] = useState<"contribute" | "withdraw" | "edit" | "delete" | null>(null);
   const [amountStr, setAmountStr] = useState("");
   const [accountId, setAccountId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,7 +80,7 @@ export default function GoalDetailPage() {
     loadData();
   }, [loadData]);
 
-  const openModal = (mode: "contribute" | "release" | "edit" | "delete") => {
+  const openModal = (mode: "contribute" | "withdraw" | "edit" | "delete") => {
     setModalMode(mode);
     setAmountStr("");
     setModalError(null);
@@ -280,14 +280,14 @@ export default function GoalDetailPage() {
                   <ArrowUpCircle className="w-6 h-6" />
                </div>
                <div>
-                  <h3 className="font-bold text-green-900">Move to available</h3>
+                  <h3 className="font-bold text-green-900">Withdraw</h3>
                   <p className="text-sm text-green-700/80 mt-1">You&apos;ve reached your target. Your money is still protected.</p>
                </div>
                <button 
-                  onClick={() => openModal("release")}
+                  onClick={() => openModal("withdraw")}
                   className="w-full bg-green-500 text-white font-semibold rounded-xl py-3 mt-2 transition-all hover:bg-green-600 shadow-sm"
                >
-                  Move to available
+                  Withdraw
                </button>
             </div>
          )}
@@ -322,7 +322,7 @@ export default function GoalDetailPage() {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-slate-900">
                    {modalMode === "contribute" && "Add money"}
-                   {modalMode === "release" && "Move to available"}
+                   {modalMode === "withdraw" && "Withdraw"}
                    {modalMode === "delete" && "Delete goal"}
                 </h2>
               <button 
@@ -392,10 +392,10 @@ export default function GoalDetailPage() {
                </form>
             )}
             
-            {modalMode === "release" && (
+            {modalMode === "withdraw" && (
                <div className="space-y-4">
                   <p className="text-sm text-slate-600">
-                     This will complete your <strong>{goal.name}</strong> goal and make <strong>GH₵{formatPesewas(goal.locked_amount)}</strong> available to spend.
+                     GH₵{formatPesewas(goal.locked_amount)} will be withdrawn from your Goal.<br/><br/>Your Total Balance will not change.<br/>Your Available Balance will increase by GH₵{formatPesewas(goal.locked_amount)}.<br/>Your Goal balance will decrease by GH₵{formatPesewas(goal.locked_amount)}.
                   </p>
 
                   <div className="flex flex-col gap-2 mt-4">
@@ -404,7 +404,7 @@ export default function GoalDetailPage() {
                         disabled={isSubmitting}
                         className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-brand/90"
                      >
-                        {isSubmitting ? "Moving..." : "Move to available"}
+                        {isSubmitting ? "Withdrawing..." : "Withdraw"}
                      </button>
                      <button 
                         onClick={closeModal}

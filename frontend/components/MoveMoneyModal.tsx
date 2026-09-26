@@ -3,7 +3,7 @@ import { Loader2, X, AlertCircle, ArrowUpRight, ShoppingBag, Landmark, Info } fr
 import { apiFetch } from "@/lib/api";
 
 export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, accounts }: any) {
-  const [step, setStep] = useState<"menu" | "send" | "pay" | "transfer">("menu");
+  const [step, setStep] = useState<"menu" | "send" | "pay" | "withdraw">("menu");
   const [amountStr, setAmountStr] = useState("");
   const [destination, setDestination] = useState("");
   const [description, setDescription] = useState("");
@@ -39,14 +39,14 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
       
       let txType = "SPEND";
       if (step === "send") txType = "TRANSFER_OUT";
-      if (step === "transfer") txType = "WITHDRAW";
+      if (step === "withdraw") txType = "WITHDRAW";
       
       const payload = {
         account_id: accountId,
         amount: { amount_pesewas: Math.round(amountFloat * 100), currency: "GHS" },
         type: txType,
         destination: destination,
-        description: description || (step === "send" ? "Money Sent" : step === "pay" ? "Payment" : "Transfer to Wallet/Bank")
+        description: description || (step === "send" ? "Money Sent" : step === "pay" ? "Payment" : "Withdraw to Wallet/Bank")
       };
 
       const res = await apiFetch(`/transactions/outbound`, {
@@ -97,11 +97,11 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
                  </div>
               </button>
               
-              <button onClick={() => setStep("transfer")} className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-2xl hover:border-brand hover:bg-brand/5 transition-colors text-left group">
+              <button onClick={() => setStep("withdraw")} className="w-full flex items-center gap-4 p-4 border border-slate-200 rounded-2xl hover:border-brand hover:bg-brand/5 transition-colors text-left group">
                  <div className="w-10 h-10 rounded-full bg-green-50 text-green-500 flex items-center justify-center group-hover:bg-green-100"><Landmark className="w-5 h-5" /></div>
                  <div>
-                    <div className="font-bold text-slate-900">Transfer</div>
-                    <div className="text-xs text-slate-500">Move money to your wallet or bank</div>
+                    <div className="font-bold text-slate-900">Withdraw</div>
+                    <div className="text-xs text-slate-500">Move money out to your wallet or bank</div>
                  </div>
               </button>
             </div>
@@ -113,7 +113,7 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
               <h2 className="text-xl font-bold">
                 {step === "send" && "Send Money"}
                 {step === "pay" && "Pay"}
-                {step === "transfer" && "Transfer"}
+                {step === "withdraw" && "Withdraw"}
               </h2>
             </div>
 
@@ -146,7 +146,7 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
                 <label className="block text-sm font-semibold mb-1">
                   {step === "send" && "Recipient (Mobile/Name)"}
                   {step === "pay" && "Merchant / Bill Details"}
-                  {step === "transfer" && "Destination Wallet/Bank"}
+                  {step === "withdraw" && "Destination Wallet/Bank"}
                 </label>
                 <input type="text" value={destination} onChange={e => setDestination(e.target.value)} required disabled={isLoading} className="w-full p-3 border border-slate-200 bg-slate-50 rounded-xl focus:ring-2 focus:ring-brand/20 outline-none" placeholder={step === "send" ? "055XXXXXXX" : ""} />
               </div>
@@ -157,7 +157,7 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
               </div>
               
               <button type="submit" disabled={isLoading} className="w-full bg-brand hover:bg-brand-hover transition-colors text-white py-3.5 rounded-xl font-semibold mt-2 flex items-center justify-center gap-2">
-                {isLoading ? <><Loader2 className="w-4 h-4 animate-spin"/> Processing...</> : `Confirm ${step === "send" ? "Send" : step === "pay" ? "Payment" : "Transfer"}`}
+                {isLoading ? <><Loader2 className="w-4 h-4 animate-spin"/> Processing...</> : `Confirm ${step === "send" ? "Send" : step === "pay" ? "Payment" : "Withdraw"}`}
               </button>
             </form>
           </div>

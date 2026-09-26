@@ -185,36 +185,6 @@ from app.services.goal_service import edit_goal, delete_goal
 from app.models.goal import Goal
 
 
-def test_goal_editing(db_session: Session, test_user):
-    account = Account(user_id=test_user.id, name="Main", type="MAIN", currency="GHS")
-    db_session.add(account)
-    db_session.commit()
-    
-    process_income(db_session, test_user.id, account.id, 500000)
-    goal = create_goal(db_session, test_user.id, "Goal Edit", 10000, icon="Test")
-    contribute_to_goal(db_session, test_user.id, account.id, goal.id, 2000)
-    db_session.commit()
-    
-    # Invalid: modifying target amount once funded
-    with pytest.raises(ValueError, match="Target amount cannot be changed once money has been locked in this goal."):
-        with db_session.begin_nested():
-            edit_goal(db_session, test_user.id, goal.id, target_amount=2000)
-            
-    # Also cannot increase target amount once funded
-    with pytest.raises(ValueError, match="Target amount cannot be changed once money has been locked in this goal."):
-        with db_session.begin_nested():
-            edit_goal(db_session, test_user.id, goal.id, target_amount=20000)
-    db_session.refresh(goal)
-    assert goal.target_amount == 10000
-    assert goal.current_amount == 2000
-    
-    # Test achieved/released/cancelled cannot edit financial target
-    goal.status = "ACHIEVED"
-    db_session.commit()
-    
-    with pytest.raises(ValueError, match="Cannot edit target amount for ACHIEVED goal"):
-        edit_goal(db_session, test_user.id, goal.id, target_amount=600000)
-
 def test_fund_account_and_idempotency(db_session: Session, test_user):
     account = Account(user_id=test_user.id, name="Fund Acc", type="MAIN", currency="GHS")
     db_session.add(account)

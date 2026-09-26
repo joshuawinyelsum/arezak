@@ -183,3 +183,73 @@ def delete_goal(
 
 
 
+
+
+def withdraw_from_goal(
+    db: Session,
+    user_id: uuid.UUID,
+    account_id: uuid.UUID,
+    goal_id: uuid.UUID,
+    amount_pesewas: int,
+    currency: str = "GHS",
+    idempotency_key: str | None = None
+) -> Transaction:
+    if amount_pesewas <= 0:
+        raise ValueError("Withdrawal amount must be strictly positive.")
+
+    # 1. Idempotency Check
+    if idempotency_key:
+        existing_tx = db.query(Transaction).filter_by(reference=idempotency_key, user_id=user_id, type="GOAL_WITHDRAWAL").first()
+        if existing_tx:
+            return existing_tx
+            
+    # 2. Lock goal & account
+    goal = db.query(Goal).filter_by(id=goal_id).with_for_update().first()
+    if not goal:
+        raise ValueError("Goal not found.")
+    if goal.user_id != user_id:
+        raise ValueError("Goal does not belong to user.")
+    
+    account = db.query(Account).filter_by(id=account_id).with_for_update().first()
+    if not account:
+        raise ValueError("Account not found.")
+        
+    if amount_pesewas > goal.current_amount:
+        raise ValueError("Cannot withdraw more than the goal's current balance.")
+        
+    # 3. Update balances
+    # Decrease goal
+    goal.current_amount -= amount_pesewas
+    goal.locked_amount -= amount_pesewas
+    
+    # Move funds back to available
+    account.locked_balance -= amount_pesewas
+    account.available_balance += amount_pesewas
+    
+    # Re-evaluate goal status
+    if goal.current_amount < goal.target_amount:
+        goal.status = "ACTIVE"
+        
+    # 4. Create Transaction & Ledger
+    transaction = Transaction(
+        user_id=user_id,
+        account_id=account_id,
+        type="GOAL_WITHDRAWAL",
+        amount=amount_pesewas,
+        currency=currency,
+        reference=idempotency_key,
+        description=f"Withdrawal from goal: {goal.name}"
+    )
+    db.add(transaction)
+    db.flush()
+    
+    ledger_entry = LedgerEntry(
+        account_id=account_id,
+        transaction_id=transaction.id,
+        amount=amount_pesewas,
+        currency=currency,
+        entry_type="CREDIT"
+    )
+    db.add(ledger_entry)
+    
+    return transaction

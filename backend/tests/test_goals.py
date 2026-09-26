@@ -313,3 +313,54 @@ def test_goal_with_contribution_cannot_be_deleted(db_session: Session, test_user
     
     with pytest.raises(ValueError, match="This goal cannot be deleted because it contains locked funds"):
         delete_goal(db_session, test_user.id, goal.id)
+
+import pytest
+from app.services.goal_service import withdraw_from_goal, create_goal, contribute_to_goal
+from app.services.transaction_service import process_income
+
+def test_withdraw_from_goal(db_session, test_user, test_account):
+    # Scenario A: Initial
+    process_income(db_session, test_user.id, test_account.id, 100000, "GHS", "scenario_a_inc")
+    db_session.commit()
+    db_session.refresh(test_account)
+    
+    assert test_account.available_balance == 100000
+    assert test_account.locked_balance == 0
+    assert test_account.total_balance == 100000
+    
+    # Scenario B: Goal Contribution
+    goal = create_goal(db_session, test_user.id, 'Test Goal', 50000)
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 30000, "GHS", "scenario_b_con")
+    db_session.commit()
+    db_session.refresh(test_account)
+    db_session.refresh(goal)
+    
+    assert test_account.available_balance == 70000
+    assert test_account.locked_balance == 30000
+    assert test_account.total_balance == 100000
+    assert goal.current_amount == 30000
+    assert goal.locked_amount == 30000
+    
+    # Scenario C: Goal Withdrawal
+    tx = withdraw_from_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "scenario_c_wd")
+    db_session.commit()
+    db_session.refresh(test_account)
+    db_session.refresh(goal)
+    
+    assert test_account.available_balance == 80000
+    assert test_account.locked_balance == 20000
+    assert test_account.total_balance == 100000 # Unchanged!
+    assert goal.current_amount == 20000
+    assert goal.locked_amount == 20000
+    assert tx.type == "GOAL_WITHDRAWAL"
+
+def test_withdraw_from_goal_exceeds_balance(db_session, test_user, test_account):
+    process_income(db_session, test_user.id, test_account.id, 100000, "GHS", "wd_exceed_inc")
+    db_session.commit()
+    
+    goal = create_goal(db_session, test_user.id, 'Test Goal 2', 50000)
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "wd_exceed_con")
+    db_session.commit()
+    
+    with pytest.raises(ValueError, match="Cannot withdraw more than the goal's current balance."):
+        withdraw_from_goal(db_session, test_user.id, test_account.id, goal.id, 20000)

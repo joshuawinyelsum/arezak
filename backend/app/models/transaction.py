@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, ForeignKey, Integer, DateTime
+from sqlalchemy import String, ForeignKey, Integer, DateTime, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import BaseModel
@@ -9,6 +9,22 @@ import typing
 if typing.TYPE_CHECKING:
     from app.models.user import User
     from app.models.ledger_entry import LedgerEntry
+
+from sqlalchemy import Enum
+import enum
+
+class TransactionType(str, enum.Enum):
+    INCOME = 'INCOME'
+    SPEND = 'SPEND'
+    TRANSFER_OUT = 'TRANSFER_OUT'
+    WITHDRAW = 'WITHDRAW'
+    GOAL_CONTRIBUTION = 'GOAL_CONTRIBUTION'
+    GOAL_WITHDRAWAL = 'GOAL_WITHDRAWAL'
+    CORRECTION_REVERSAL = 'CORRECTION_REVERSAL'
+    CORRECTION_APPLY = 'CORRECTION_APPLY'
+    EXPENSE = 'EXPENSE'
+    TRANSFER = 'TRANSFER'
+    FEE = 'FEE'
 
 class Transaction(BaseModel):
     __tablename__ = "transactions"
@@ -19,7 +35,7 @@ class Transaction(BaseModel):
     # We will keep it for easy querying of user's primary transactions
     account_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=True, index=True)
     
-    type: Mapped[str] = mapped_column(String(50), nullable=False) # INCOME, EXPENSE, TRANSFER, etc.
+    type: Mapped[TransactionType] = mapped_column(Enum(TransactionType, name="transaction_type_enum"), nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False) # absolute pesewas amount
     currency: Mapped[str] = mapped_column(String(3), default="GHS", nullable=False)
     

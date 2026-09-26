@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import String, ForeignKey, Integer
+from sqlalchemy import String, ForeignKey, Integer, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import BaseModel
@@ -20,7 +20,7 @@ class Account(BaseModel):
 
     # Authoritative balances cached for fast reads. Must be updated within same transaction as ledger mutations.
     # By invariant: total_balance = available_balance + reserved_balance + locked_balance
-    available_balance: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # in pesewas
+    available_balance: Mapped[int] = mapped_column(Integer, CheckConstraint("available_balance >= 0", name="chk_positive_available"), default=0, nullable=False) # in pesewas
     reserved_balance: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     locked_balance: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 

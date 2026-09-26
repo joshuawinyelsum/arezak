@@ -182,3 +182,32 @@ def api_archive_goal(
 
 
 
+
+
+class WithdrawRequest(BaseModel):
+    amount_pesewas: int
+    account_id: uuid.UUID
+
+@router.post("/{goal_id}/withdraw")
+def api_withdraw_from_goal(
+    goal_id: uuid.UUID,
+    request: WithdrawRequest,
+    db: SessionDep,
+    current_user: CurrentUser,
+    idempotency_key: str | None = Header(None)
+):
+    try:
+        from app.services.goal_service import withdraw_from_goal
+        tx = withdraw_from_goal(
+            db=db,
+            user_id=current_user.id,
+            account_id=request.account_id,
+            goal_id=goal_id,
+            amount_pesewas=request.amount_pesewas,
+            idempotency_key=idempotency_key
+        )
+        db.commit()
+        return {"status": "success", "transaction_id": tx.id}
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
