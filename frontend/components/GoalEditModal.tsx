@@ -34,7 +34,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
       const payload = {
         name: name.trim(),
         icon,
-        target_amount: Math.round(parseFloat(targetStr) * 100),
+        
       };
       
       const res = await apiFetch(`/goals/${goal.id}`, {
@@ -104,22 +104,19 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-1.5">Target Amount (GH₵)</label>
+              <label className="block text-sm font-semibold text-slate-900 mb-1.5 flex items-center justify-between">
+                <span>Target Amount (GHS)</span>
+                <span className="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold">Fixed</span>
+              </label>
               <input 
                 type="number" 
-                step="0.01" 
-                min="0.01"
                 value={targetStr} 
-                onChange={e => setTargetStr(e.target.value)} 
-                required 
-                disabled={isLoading}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50" 
+                disabled={true}
+                className="w-full bg-slate-100/50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed" 
               />
-              {goal.current_amount > 0 && (
-                <p className="text-xs text-slate-500 mt-1.5">
-                  Currently funded: GH₵{(goal.current_amount / 100).toFixed(2)}.<br/>Target cannot be set lower than this amount.
-                </p>
-              )}
+              <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> The target cannot be changed after a goal is created.
+              </p>
             </div>
             
             <button 

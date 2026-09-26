@@ -156,7 +156,6 @@ def api_release_goal(
 class GoalEditRequest(BaseModel):
     name: str | None = None
     icon: str | None = None
-    target_amount: int | None = None
 
 @router.patch('/{goal_id}', response_model=GoalResponse)
 def api_edit_goal(
@@ -240,6 +239,7 @@ def api_archive_goal(
     goal.status = "ARCHIVED"
     db.commit()
     return {"message": "Goal archived successfully"}
+
 
 
 

@@ -209,18 +209,11 @@ def edit_goal(
     goal_id: uuid.UUID,
     name: str | None = None,
     icon: str | None = None,
-    target_amount: int | None = None,
 ) -> Goal:
     goal = db.query(Goal).filter_by(id=goal_id, user_id=user_id).first()
     if not goal:
         raise ValueError('Goal not found')
         
-    if target_amount is not None and target_amount != goal.target_amount:
-        if goal.status != 'ACTIVE':
-            raise ValueError(f'Cannot edit target amount for {goal.status} goal')
-        if target_amount < goal.current_amount:
-            raise ValueError('Target amount cannot be lower than the currently locked amount.')
-        goal.target_amount = target_amount
             
     if name is not None:
         goal.name = name
