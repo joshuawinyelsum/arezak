@@ -44,6 +44,10 @@ def test_account_2(db_session: Session, test_user_2):
     return account
 
 def test_goal_creation_and_ownership(db_session: Session, test_user, test_account):
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     assert goal.target_amount == 10000
     assert goal.current_amount == 0
@@ -59,6 +63,10 @@ def test_valid_contribution_flow(db_session: Session, test_user, test_account):
     
     assert test_account.available_balance == 50000
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 100000)
     
     # Contribute 20000
@@ -78,6 +86,10 @@ def test_contribution_exceeds_available(db_session: Session, test_user, test_acc
     process_income(db_session, test_user.id, test_account.id, 5000, "GHS", "init2")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     
     with pytest.raises(ConstraintViolationException) as exc:
@@ -89,6 +101,10 @@ def test_contribution_exceeds_target(db_session: Session, test_user, test_accoun
     db_session.commit()
     db_session.refresh(test_account)
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 5000, "GHS", "contrib3a")
     db_session.commit()
@@ -116,6 +132,10 @@ def test_exact_target_achievement(db_session: Session, test_user, test_account):
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "init4")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "contrib4")
     db_session.commit()
@@ -129,6 +149,10 @@ def test_idempotent_goal_contribution(db_session: Session, test_user, test_accou
     process_income(db_session, test_user.id, test_account.id, 20000, "GHS", "init5")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     
     tx1 = contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 5000, "GHS", "idem1")
@@ -142,6 +166,10 @@ def test_idempotent_goal_contribution(db_session: Session, test_user, test_accou
     assert goal.current_amount == 5000 # Second request didn't duplicate the effect
 
 def test_goal_ownership_protection(db_session: Session, test_user, test_user_2, test_account_2):
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "User 1 Goal", 10000)
     process_income(db_session, test_user_2.id, test_account_2.id, 20000, "GHS", "init6")
     db_session.commit()
@@ -174,6 +202,10 @@ def test_concurrency_overfunding_prevention():
     setup_session.commit()
     
     # Create goal
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(setup_session, user.id, "Conc Goal", 10000)
     
     user_id = user.id
@@ -244,6 +276,10 @@ def test_release_exact_completion(db_session: Session, test_user, test_account):
     total_before = test_account.total_balance
     assert total_before == 10000
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "contrib_rel_1")
     db_session.commit()
@@ -278,6 +314,10 @@ def test_release_active_goal_fails(db_session: Session, test_user, test_account)
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "init_rel_2")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 5000, "GHS", "contrib_rel_2")
     db_session.commit()
@@ -292,6 +332,10 @@ def test_release_already_released_goal_fails(db_session: Session, test_user, tes
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "init_rel_3")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "contrib_rel_3")
     db_session.commit()
@@ -341,6 +385,10 @@ def test_release_ownership_isolation(db_session: Session, test_user, test_accoun
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "init_rel_5")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 10000)
     contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 10000, "GHS", "contrib_rel_5")
     db_session.commit()
@@ -358,6 +406,10 @@ def test_release_reserved_funds_isolation(db_session: Session, test_user, test_a
     test_account.available_balance -= 2000
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "MacBook", 5000)
     contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 5000, "GHS", "contrib_rel_6")
     db_session.commit()
@@ -395,6 +447,10 @@ def test_release_concurrency():
     process_income(setup_session, user.id, account.id, 5000, "GHS", f"init_conc_rel_{uid}")
     setup_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(setup_session, user.id, "Conc Goal", 5000)
     contribute_to_goal(setup_session, user.id, account.id, goal.id, 5000, "GHS", f"contrib_conc_rel_{uid}")
     setup_session.commit()
@@ -455,6 +511,10 @@ def test_target_reached_unlock(db_session: Session, test_user, test_account):
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "t_init")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "Target Only", 10000, lock_type="TARGET_REACHED")
     db_session.commit()
     
@@ -472,6 +532,10 @@ def test_date_reached_unlock_before_date(db_session: Session, test_user, test_ac
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "d_init")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "Date Only", 10000, lock_type="DATE_REACHED", unlock_date=future_date)
     db_session.commit()
     
@@ -491,6 +555,10 @@ def test_date_reached_unlock_after_date(db_session: Session, test_user, test_acc
     process_income(db_session, test_user.id, test_account.id, 10000, "GHS", "d_init2")
     db_session.commit()
     
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
     goal = create_goal(db_session, test_user.id, "Date Only", 10000, lock_type="DATE_REACHED", unlock_date=past_date)
     db_session.commit()
     
@@ -529,3 +597,140 @@ def test_target_and_date_unlock(db_session: Session, test_user, test_account):
     db_session.commit()
     db_session.refresh(goal3)
     assert goal3.is_eligible_for_release is True
+
+def test_goal_edit_target_amount(db_session: Session, test_user):
+    from app.services.goal_service import create_goal, edit_goal
+    import uuid
+    goal = create_goal(
+        db=db_session,
+        user_id=test_user.id,
+        name="Edit Test Goal",
+        target_amount=450000,
+        currency="GHS",
+        lock_type="TARGET_REACHED"
+    )
+    db_session.commit()
+    assert goal.target_amount == 450000
+
+    # 4500 -> 3000
+    goal = edit_goal(
+        db=db_session,
+        user_id=test_user.id,
+        goal_id=goal.id,
+        target_amount=300000
+    )
+    db_session.commit()
+    assert goal.target_amount == 300000
+
+    # 3000 -> 6000
+    goal = edit_goal(
+        db=db_session,
+        user_id=test_user.id,
+        goal_id=goal.id,
+        target_amount=600000
+    )
+    db_session.commit()
+    assert goal.target_amount == 600000
+
+def test_goal_edit_target_amount_with_funding(db_session: Session, test_user, test_account):
+    from app.services.goal_service import create_goal, edit_goal, contribute_to_goal
+    import pytest
+    from app.services.transaction_service import process_income
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_edit")
+    db_session.commit()
+    db_session.refresh(test_account)
+    goal = create_goal(
+        db=db_session,
+        user_id=test_user.id,
+        name="Funded Edit Goal",
+        target_amount=450000,
+        currency="GHS",
+        lock_type="TARGET_REACHED"
+    )
+    db_session.commit()
+    
+    # Add 4000
+    contribute_to_goal(
+        db=db_session,
+        user_id=test_user.id,
+        account_id=test_account.id,
+        goal_id=goal.id,
+        amount_pesewas=400000
+    )
+    db_session.commit()
+    
+    # 4500 -> 6000 (Allowed)
+    goal = edit_goal(
+        db=db_session,
+        user_id=test_user.id,
+        goal_id=goal.id,
+        target_amount=600000
+    )
+    db_session.commit()
+    assert goal.target_amount == 600000
+    
+    # 6000 -> 3000 (Fails, because current_amount is 4000)
+    with pytest.raises(ValueError, match="Target amount cannot be lower than the currently locked amount"):
+        edit_goal(
+            db=db_session,
+            user_id=test_user.id,
+            goal_id=goal.id,
+            target_amount=300000
+        )
+
+
+
+def test_full_goal_lifecycle(db_session: Session, test_user, test_account):
+    from app.services.goal_service import create_goal, edit_goal, contribute_to_goal, release_goal
+    from app.services.transaction_service import process_income
+    from app.models.goal import Goal
+    
+    # Setup income
+    process_income(db_session, test_user.id, test_account.id, 1000000, "GHS", "init_lifecycle")
+    db_session.commit()
+    
+    # 1. Create goal at 4500
+    goal = create_goal(
+        db=db_session,
+        user_id=test_user.id,
+        name="Lifecycle Goal",
+        target_amount=450000,
+        currency="GHS",
+        lock_type="TARGET_REACHED"
+    )
+    db_session.commit()
+    assert goal.target_amount == 450000
+    assert goal.status == "ACTIVE"
+    
+    # 2. Edit 4500 -> 3000
+    goal = edit_goal(db_session, test_user.id, goal.id, target_amount=300000)
+    db_session.commit()
+    assert goal.target_amount == 300000
+    
+    # 3. Edit 3000 -> 6000
+    goal = edit_goal(db_session, test_user.id, goal.id, target_amount=600000)
+    db_session.commit()
+    assert goal.target_amount == 600000
+    
+    # 4. Reach target
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 600000)
+    db_session.commit()
+    db_session.refresh(goal)
+    
+    # 5. Verify goal becomes ACHIEVED
+    assert goal.current_amount == 600000
+    assert goal.status == "ACHIEVED"
+    assert goal.target_reached == True
+    assert goal.is_eligible_for_release == True
+    
+    # 6. Verify achieved goal remains retrievable
+    retrieved = db_session.query(Goal).filter_by(id=goal.id).first()
+    assert retrieved is not None
+    assert retrieved.status == "ACHIEVED"
+    
+    # 7 & 8. Release funds
+    release_goal(db_session, test_user.id, test_account.id, goal.id)
+    db_session.commit()
+    db_session.refresh(goal)
+    assert goal.status == "RELEASED"
+

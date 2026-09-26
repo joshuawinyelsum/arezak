@@ -312,7 +312,18 @@ export default function GoalDetailPage() {
             </div>
          </div>
 
-         {/* Primary Actions */}
+         {goal.status === "ACHIEVED" && (
+              <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-center mt-6">
+                 <p className="text-sm text-green-700 font-medium mb-2">
+                    ? Congratulations! You have reached your goal target.
+                 </p>
+                 <p className="text-xs text-green-600">
+                    You can now release the funds back to your available balance. Once released, you will be able to archive this goal.
+                 </p>
+              </div>
+           )}
+           
+           {/* Primary Actions */}
          <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-100">
             {goal.status === "ACTIVE" && (
                <>
@@ -515,6 +526,7 @@ export default function GoalDetailPage() {
     </div>
   );
 }
+
 
 
 
