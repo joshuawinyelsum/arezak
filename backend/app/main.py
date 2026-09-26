@@ -35,6 +35,10 @@ app.include_router(transactions.router, prefix=settings.API_V1_STR)
 app.include_router(accounts.router, prefix=settings.API_V1_STR)
 app.include_router(goals.router, prefix=settings.API_V1_STR)
 
+@app.get("/version")
+def version_check():
+    return {"version": "goal-contract-v2", "commit": "abcecf2e26e98ef4f10ae2d96b2afc4cf31ccb93"}
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "environment": settings.ENVIRONMENT}
@@ -49,3 +53,4 @@ def readiness_check(db: Session = Depends(get_db)):
     except Exception as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=503, detail="Database not ready")
+
