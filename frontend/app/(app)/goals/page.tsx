@@ -105,7 +105,7 @@ export default function GoalsPage() {
     const amountPesewas = Math.round(amountFloat * 100);
 
     try {
-      const res = await apiFetch(/goals/${selectedGoal.id}/contributions, {
+      const res = await apiFetch(`/goals/${selectedGoal.id}/contributions`, {
         method: "POST",
         headers: {
           "Idempotency-Key": crypto.randomUUID()
@@ -134,7 +134,7 @@ export default function GoalsPage() {
     setModalError(null);
 
     try {
-      const res = await apiFetch(/goals/${selectedGoal.id}${actionUrl}, {
+      const res = await apiFetch(`/goals/${selectedGoal.id}${actionUrl}`, {
         method,
         headers: {
           "Idempotency-Key": crypto.randomUUID()
@@ -168,8 +168,8 @@ export default function GoalsPage() {
   const filteredGoals = activeTab === "active" ? activeGoals : completedGoals;
 
   const tabs = [
-     { id: "active", label: "Active goals (" + activeGoals.length + ")" },
-     { id: "completed", label: "Completed goals (" + completedGoals.length + ")" }
+     { id: "active", label: `Active goals (${activeGoals.length})` },
+     { id: "completed", label: `Completed goals (${completedGoals.length})` }
   ];
 
   return (
@@ -243,7 +243,7 @@ export default function GoalsPage() {
                                    <Icon name={goal.icon || "Target"} className="w-5 h-5" />
                                 </div>
                                 <div>
-                                   <Link href={/goals/} className="font-bold text-slate-900 hover:text-brand transition-colors text-lg inline-flex items-center gap-1 group-hover:underline">
+                                   <Link href={`/goals/${goal.id}`} className="font-bold text-slate-900 hover:text-brand transition-colors text-lg inline-flex items-center gap-1 group-hover:underline">
                                       {goal.name}
                                    </Link>
                                 </div>
@@ -270,7 +270,7 @@ export default function GoalsPage() {
                           <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden mb-2">
                              <div 
                                 className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-green-500" : "bg-brand")}
-                                style={{ width: ${Math.min(percentage, 100)}% }}
+                                style={{ width: `${Math.min(percentage, 100)}%` }}
                              ></div>
                           </div>
                           <div className="text-xs text-slate-500 font-medium">{percentage}% protected</div>
@@ -278,7 +278,7 @@ export default function GoalsPage() {
                      
                      <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2">
                           <Link 
-                             href={/goals/}
+                             href={`/goals/${goal.id}`}
                              className="flex-1 flex items-center justify-center gap-1.5 bg-slate-50 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors"
                           >
                              View details
@@ -321,7 +321,7 @@ export default function GoalsPage() {
       {/* Modal Overlay */}
       {selectedGoal && modalMode && modalMode !== "edit" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95">
+          <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-slate-900">
                    {modalMode === "contribute" && "Add money"}
@@ -434,7 +434,6 @@ export default function GoalsPage() {
                   </button>
                </div>
             )}
-
           </div>
         </div>
       )}

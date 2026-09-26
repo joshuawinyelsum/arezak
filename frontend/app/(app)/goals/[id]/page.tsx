@@ -57,7 +57,7 @@ export default function GoalDetailPage() {
     setIsLoading(true);
     try {
       const [goalRes, accRes] = await Promise.all([
-        apiFetch(/goals/),
+        apiFetch(`/goals/${goalId}`),
         apiFetch("/accounts")
       ]);
       if (!goalRes.ok) throw new Error("Failed to load goal");
@@ -107,7 +107,7 @@ export default function GoalDetailPage() {
     const amountPesewas = Math.round(amountFloat * 100);
 
     try {
-      const res = await apiFetch(/goals//contributions, {
+      const res = await apiFetch(`/goals/${goal.id}/contributions`, {
         method: "POST",
         headers: {
           "Idempotency-Key": crypto.randomUUID()
@@ -136,7 +136,7 @@ export default function GoalDetailPage() {
     setModalError(null);
 
     try {
-      const res = await apiFetch(/goals/, {
+      const res = await apiFetch(`/goals/${goal.id}${actionUrl}`, {
         method,
         headers: {
           "Idempotency-Key": crypto.randomUUID()
@@ -249,7 +249,7 @@ export default function GoalDetailPage() {
             <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
                <div 
                   className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-green-500" : "bg-brand", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "")}
-                  style={{ width: ${Math.min(percentage, 100)}% }}
+                  style={{ width: `${Math.min(percentage, 100)}%` }}
                ></div>
             </div>
          </div>
@@ -281,7 +281,7 @@ export default function GoalDetailPage() {
                </div>
                <div>
                   <h3 className="font-bold text-green-900">Move to available</h3>
-                  <p className="text-sm text-green-700/80 mt-1">You've reached your target. Your money is still protected.</p>
+                  <p className="text-sm text-green-700/80 mt-1">You&apos;ve reached your target. Your money is still protected.</p>
                </div>
                <button 
                   onClick={() => openModal("release")}
