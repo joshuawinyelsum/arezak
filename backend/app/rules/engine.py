@@ -6,7 +6,6 @@ from app.rules.constraints.base import BaseConstraint
 from app.rules.constraints.amount_constraint import ValidAmountConstraint
 from app.rules.constraints.account_access_constraint import AccountAccessConstraint
 from app.rules.constraints.goal_access_constraint import GoalAccessConstraint
-from app.rules.constraints.goal_release_constraint import GoalReleaseConstraint
 from app.rules.constraints.correction_constraint import CorrectionConstraint
 from app.rules.constraints.balance import BalanceConstraint
 
@@ -17,7 +16,7 @@ class ConstraintEngine:
             ValidAmountConstraint(),
             AccountAccessConstraint(),
             GoalAccessConstraint(),
-            GoalReleaseConstraint(),
+            
             CorrectionConstraint(),
             BalanceConstraint()
         ]

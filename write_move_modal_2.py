@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import os
+
+p = 'frontend/components/MoveMoneyModal.tsx'
+c = '''import React, { useState } from "react";
 import { Loader2, X, AlertCircle, ArrowUpRight, ShoppingBag, Landmark, Info } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
@@ -132,13 +135,13 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
                 <label className="block text-sm font-semibold mb-1">From Account</label>
                 <select value={accountId} onChange={e => setAccountId(e.target.value)} disabled={isLoading || !accounts?.length} className="w-full p-3 border border-slate-200 bg-slate-50 rounded-xl focus:ring-2 focus:ring-brand/20 outline-none">
                   {accounts?.map((acc: any) => (
-                     <option key={acc.id} value={acc.id}>{acc.name} (Available: GH₵{(acc.available_balance.amount_pesewas/100).toFixed(2)})</option>
+                     <option key={acc.id} value={acc.id}>{acc.name} (Available: GH\u20b5{(acc.available_balance.amount_pesewas/100).toFixed(2)})</option>
                   ))}
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-semibold mb-1">Amount (GH₵)</label>
+                <label className="block text-sm font-semibold mb-1">Amount (GH\u20b5)</label>
                 <input type="number" step="0.01" max={availableBalance/100} value={amountStr} onChange={e => setAmountStr(e.target.value)} required disabled={isLoading} className="w-full p-3 border border-slate-200 bg-slate-50 rounded-xl focus:ring-2 focus:ring-brand/20 outline-none" placeholder="0.00" />
               </div>
               
@@ -166,3 +169,7 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
     </div>
   );
 }
+'''
+
+with open(p, 'w', encoding='utf-8', newline='\n') as f:
+    f.write(c)

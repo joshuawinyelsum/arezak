@@ -101,48 +101,7 @@ def api_contribute_to_goal(
     except ValueError as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-@router.post("/{goal_id}/release")
-def api_release_goal(
-    goal_id: uuid.UUID,
-    db: SessionDep,
-    current_user: CurrentUser,
-    x_idempotency_key: Annotated[str | None, Header()] = None
-):
-    # Determine the account ID from the goal's contribution. 
-    # For Phase 2C-1, we assume goals are tied to accounts through contributions.
-    # To keep the API simple, we'll fetch the goal's account_id from its first contribution,
-    # or just assume the user passes it. The prompt says:
-    # "Do not let the client arbitrarily redirect released funds to another account... The release should operate against the account that actually contains the goal's locked funds."
-    # Let's find the account_id from GoalContribution.
-    
-    from app.models.goal_contribution import GoalContribution
-    contrib = db.query(GoalContribution).filter_by(goal_id=goal_id).first()
-    if not contrib:
-        raise HTTPException(status_code=400, detail="Goal has no contributions to release to.")
-        
-    try:
-        from app.services.goal_service import release_goal
-        tx = release_goal(
-            db=db,
-            user_id=current_user.id,
-            account_id=contrib.account_id,
-            goal_id=goal_id,
-            idempotency_key=x_idempotency_key
-        )
-        db.commit()
-        
-        goal = db.query(Goal).filter_by(id=goal_id).first()
-        account = db.query(Account).filter_by(id=contrib.account_id).first()
-        
-        return {
-            "message": "Release successful", 
-            "transaction_id": tx.id,
-            "goal_status": goal.status,
-            "released_amount": tx.amount,
-            "remaining_locked_amount": goal.locked_amount,
-            "account_available_balance": account.available_balance,
-            "account_locked_balance": account.locked_balance
-        }
+
     except ConstraintViolationException as e:
         db.rollback()
         status = 400
@@ -192,29 +151,7 @@ def api_delete_goal(
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post('/{goal_id}/cancel')
-def api_cancel_goal(
-    goal_id: uuid.UUID,
-    db: SessionDep,
-    current_user: CurrentUser,
-    x_idempotency_key: Annotated[str | None, Header()] = None
-):
-    from app.models.goal_contribution import GoalContribution
-    contrib = db.query(GoalContribution).filter_by(goal_id=goal_id).first()
-    if not contrib:
-        raise HTTPException(status_code=400, detail='Goal has no contributions. Delete it instead.')
-        
-    try:
-        from app.services.goal_service import cancel_goal
-        tx = cancel_goal(
-            db=db,
-            user_id=current_user.id,
-            account_id=contrib.account_id,
-            goal_id=goal_id,
-            idempotency_key=x_idempotency_key
-        )
-        db.commit()
-        return {'message': 'Cancellation successful', 'transaction_id': tx.id}
+
     except ConstraintViolationException as e:
         db.rollback()
         raise HTTPException(status_code=400, detail={'code': e.decision.code, 'message': e.decision.message})
@@ -233,8 +170,8 @@ def api_archive_goal(
     if not goal:
         raise HTTPException(status_code=404, detail="Goal not found")
         
-    if goal.status not in ["RELEASED", "CANCELLED"]:
-        raise HTTPException(status_code=400, detail="Only released or cancelled goals can be archived.")
+    if goal.status != "ACHIEVED":
+        raise HTTPException(status_code=400, detail="Only achieved goals can be archived.")
         
     goal.status = "ARCHIVED"
     db.commit()

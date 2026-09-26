@@ -22,7 +22,7 @@ class Goal(BaseModel):
     locked_amount: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # pesewas (protected)
     currency: Mapped[str] = mapped_column(String(3), default="GHS", nullable=False)
     
-    status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False) # ACTIVE, ACHIEVED, CANCELLED
+    status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False) # ACTIVE, ACHIEVED
     
     icon: Mapped[str | None] = mapped_column(String(50), nullable=True)
     
@@ -49,7 +49,7 @@ class Goal(BaseModel):
 
     @property
     def is_eligible_for_release(self) -> bool:
-        if self.status == "RELEASED" or self.status == "CANCELLED":
+        if self.status == "ACHIEVED":
             return False
             
         if self.lock_type == "DATE_REACHED":

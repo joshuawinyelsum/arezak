@@ -175,7 +175,7 @@ def process_outbound(db: Session, user_id: uuid.UUID, account_id: uuid.UUID, amo
 
     account = context.account
     account.available_balance -= amount_pesewas
-    account.total_balance -= amount_pesewas
+    
 
     transaction = Transaction(
         user_id=user_id,
