@@ -218,8 +218,8 @@ def edit_goal(
     if target_amount is not None and target_amount != goal.target_amount:
         if goal.status != 'ACTIVE':
             raise ValueError(f'Cannot edit target amount for {goal.status} goal')
-        if goal.current_amount > 0:
-            raise ValueError('Target amount cannot be changed once money has been locked in this goal.')
+        if target_amount < goal.current_amount:
+            raise ValueError('Target amount cannot be lower than the currently locked amount.')
         goal.target_amount = target_amount
             
     if name is not None:
@@ -231,6 +231,81 @@ def edit_goal(
     db.commit()
     db.refresh(goal)
     return goal
+
+
+def cancel_goal(
+    db: Session,
+    user_id: uuid.UUID,
+    account_id: uuid.UUID,
+    goal_id: uuid.UUID,
+    idempotency_key: str | None = None
+) -> Transaction:
+    if idempotency_key:
+        existing_tx = db.query(Transaction).filter_by(reference=idempotency_key, user_id=user_id, type='GOAL_CANCELLATION').first()
+        if existing_tx:
+            return existing_tx
+
+    goal = db.query(Goal).filter_by(id=goal_id, user_id=user_id).first()
+    if not goal:
+        raise ValueError("Goal not found")
+
+    context = EvaluationContext(
+        db=db,
+        user_id=user_id,
+        operation_type='GOAL_CANCELLATION',
+        amount_pesewas=goal.locked_amount,
+        currency='GHS',
+        account_id=account_id,
+        goal_id=goal_id
+    )
+    
+    account = db.query(Account).filter_by(id=account_id).first()
+    if account:
+        context.currency = account.currency
+
+    decision = engine.evaluate(context)
+    if not decision.allowed:
+        raise ConstraintViolationException(decision)
+        
+    if idempotency_key:
+        existing_tx = db.query(Transaction).filter_by(reference=idempotency_key, user_id=user_id, type='GOAL_CANCELLATION').first()
+        if existing_tx:
+            return existing_tx
+            
+    account = context.account
+    goal = context.goal
+    amount_pesewas = context.amount_pesewas
+    
+    account.locked_balance -= amount_pesewas
+    account.available_balance += amount_pesewas
+    
+    goal.locked_amount = 0
+    goal.status = 'CANCELLED'
+    
+    transaction = Transaction(
+        user_id=user_id,
+        account_id=account_id,
+        amount=amount_pesewas,
+        currency=goal.currency,
+        type='GOAL_CANCELLATION',
+        status='COMPLETED',
+        reference=idempotency_key,
+        description=f'Cancelled goal: {goal.name}'
+    )
+    db.add(transaction)
+    db.flush()
+    
+    ledger_entry = LedgerEntry(
+        account_id=account_id,
+        transaction_id=transaction.id,
+        amount=amount_pesewas,
+        currency=goal.currency,
+        entry_type='RELEASE',
+        description='Goal cancelled and locked funds returned'
+    )
+    db.add(ledger_entry)
+    
+    return transaction
 
 
 def delete_goal(
@@ -253,6 +328,8 @@ def delete_goal(
         
     db.delete(goal)
     db.commit()
+
+
 
 
 

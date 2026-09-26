@@ -200,8 +200,9 @@ export default function GoalsPage() {
   const sortedGoals = [...goals].sort((a, b) => new Date(b.created_at || "1970-01-01").getTime() - new Date(a.created_at || "1970-01-01").getTime());
   const filteredGoals = sortedGoals.filter(g => {
     if (activeTab === "all") return true;
-    if (activeTab === "active") return g.status === "ACTIVE" || g.status === "ACHIEVED"; // ACHIEVED implies funds still locked waiting for release
-    if (activeTab === "released") return g.status === "RELEASED" || g.status === "ARCHIVED" || g.status === "CANCELLED";
+    if (activeTab === "active") return g.status === "ACTIVE";
+    if (activeTab === "completed") return g.status === "ACHIEVED" || g.status === "RELEASED";
+      if (activeTab === "archived") return g.status === "ARCHIVED" || g.status === "CANCELLED";
     return true;
   });
 
@@ -235,8 +236,9 @@ export default function GoalsPage() {
       <div className="flex gap-2 border-b border-slate-100 pb-4">
          {[
            { id: "all", label: `Total Goals (${goals.length})` },
-           { id: "active", label: `Active (${goals.filter(g => g.status === "ACTIVE" || g.status === "ACHIEVED").length})` },
-           { id: "released", label: `Released/Archived (${goals.filter(g => g.status === "RELEASED" || g.status === "ARCHIVED" || g.status === "CANCELLED").length})` }
+           { id: "active", label: `Active (${goals.filter(g => g.status === "ACTIVE").length})` },
+           { id: "completed", label: `Completed (${goals.filter(g => g.status === "ACHIEVED" || g.status === "RELEASED").length})` },
+           { id: "archived", label: `Archived (${goals.filter(g => g.status === "ARCHIVED" || g.status === "CANCELLED").length})` }
          ].map(tab => (
            <button 
              key={tab.id}
@@ -563,6 +565,7 @@ export default function GoalsPage() {
     </div>
   );
 }
+
 
 
 
