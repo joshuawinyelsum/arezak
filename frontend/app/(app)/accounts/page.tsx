@@ -141,8 +141,8 @@ export default function AccountsPage() {
                         <ShieldCheck className="w-6 h-6 text-[#127951]" />
                     </div>
                     <div>
-                        <div className="text-sm font-medium mb-0.5 opacity-90">Protected Funds</div>
-                        <div className="text-sm opacity-70">Saved for obligations</div>
+                        <div className="text-sm font-medium mb-0.5 opacity-90">Protected</div>
+                        <div className="text-sm opacity-70">Money set aside</div>
                     </div>
                   </div>
                   <div className="text-xl font-bold text-[#0D6A45]">{formatMoney(account.reserved_balance.amount_pesewas)}</div>
@@ -156,7 +156,7 @@ export default function AccountsPage() {
                     </div>
                     <div>
                         <div className="text-sm font-medium mb-0.5 opacity-90">Goals</div>
-                        <div className="text-sm opacity-70">Locked towards targets</div>
+                        <div className="text-sm opacity-70">Set aside in goals</div>
                     </div>
                   </div>
                   <div className="text-xl font-bold text-[#A64A0F]">{formatMoney(account.locked_balance.amount_pesewas)}</div>
@@ -174,7 +174,7 @@ export default function AccountsPage() {
           <div>
               <h4 className="font-semibold text-slate-900 text-sm mb-1">Strict financial invariants</h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Your total financial state is rigorously divided. You cannot spend protected funds or locked goals. The system will enforce this automatically at the transaction level.
+                Your financial state is rigorously divided. You cannot spend protected funds. The system will enforce this automatically at the transaction level.
               </p>
           </div>
         </div>

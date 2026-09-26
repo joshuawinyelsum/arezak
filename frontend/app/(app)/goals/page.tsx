@@ -36,18 +36,8 @@ type Account = {
   total_balance: Money;
 };
 
-
-const getIconForName = (name: string) => {
-  const n = name.toLowerCase();
-  if (n.includes("laptop") || n.includes("tech") || n.includes("macbook")) return { icon: Laptop, color: "text-blue-500", bg: "bg-blue-50" };
-  if (n.includes("home") || n.includes("house")) return { icon: Home, color: "text-red-500", bg: "bg-red-50" };
-  if (n.includes("emergency") || n.includes("safe")) return { icon: Shield, color: "text-green-500", bg: "bg-green-50" };
-  if (n.includes("travel") || n.includes("vacation") || n.includes("flight")) return { icon: Plane, color: "text-orange-500", bg: "bg-orange-50" };
-  return { icon: Target, color: "text-slate-600", bg: "bg-slate-100" };
-};
-
 export default function GoalsPage() {
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("active");
   const [goals, setGoals] = useState<Goal[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,7 +45,7 @@ export default function GoalsPage() {
 
   // Modal State
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
-  const [modalMode, setModalMode] = useState<"contribute" | "release" | "edit" | "delete" | "archive" | null>(null);
+  const [modalMode, setModalMode] = useState<"contribute" | "release" | "edit" | "delete" | null>(null);
   const [amountStr, setAmountStr] = useState("");
   const [accountId, setAccountId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,7 +76,7 @@ export default function GoalsPage() {
     loadData();
   }, [loadData]);
 
-  const openModal = (goal: Goal, mode: "contribute" | "release" | "edit" | "delete" | "archive") => {
+  const openModal = (goal: Goal, mode: "contribute" | "release" | "edit" | "delete") => {
     setSelectedGoal(goal);
     setModalMode(mode);
     setAmountStr("");
@@ -115,7 +105,7 @@ export default function GoalsPage() {
     const amountPesewas = Math.round(amountFloat * 100);
 
     try {
-      const res = await apiFetch(`/goals/${selectedGoal.id}/contributions`, {
+      const res = await apiFetch(/goals/${selectedGoal.id}/contributions, {
         method: "POST",
         headers: {
           "Idempotency-Key": crypto.randomUUID()
@@ -144,7 +134,7 @@ export default function GoalsPage() {
     setModalError(null);
 
     try {
-      const res = await apiFetch(`/goals/${selectedGoal.id}${actionUrl}`, {
+      const res = await apiFetch(/goals/${selectedGoal.id}${actionUrl}, {
         method,
         headers: {
           "Idempotency-Key": crypto.randomUUID()
@@ -159,35 +149,7 @@ export default function GoalsPage() {
       await loadData();
       closeModal();
     } catch (err: any) {
-      setModalError(err.message || "An unexpected error occurred.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleRelease = async () => {
-    if (!selectedGoal || isSubmitting) return;
-
-    setIsSubmitting(true);
-    setModalError(null);
-
-    try {
-      const res = await apiFetch(`/goals/${selectedGoal.id}/release`, {
-        method: "POST",
-        headers: {
-          "Idempotency-Key": crypto.randomUUID()
-        }
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail?.message || err.detail || "Release failed.");
-      }
-
-      await loadData();
-      closeModal();
-    } catch (err: any) {
-      setModalError(err.message || "An unexpected error occurred.");
+      setModalError(err.message || "Action failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -197,216 +159,158 @@ export default function GoalsPage() {
     return (pesewas / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  // Process Tabs
   const sortedGoals = [...goals].sort((a, b) => new Date(b.created_at || "1970-01-01").getTime() - new Date(a.created_at || "1970-01-01").getTime());
-  const filteredGoals = sortedGoals.filter(g => {
-    if (activeTab === "all") return true;
-    if (activeTab === "active") return g.status === "ACTIVE";
-    if (activeTab === "completed") return g.status === "ACHIEVED" || g.status === "RELEASED";
-      if (activeTab === "archived") return g.status === "ARCHIVED" || g.status === "CANCELLED";
-    return true;
-  });
+  
+  const activeGoals = sortedGoals.filter(g => g.status === "ACTIVE" || g.status === "ACHIEVED");
+  const completedGoals = sortedGoals.filter(g => g.status === "RELEASED" || g.status === "CANCELLED" || g.status === "ARCHIVED");
+  
+  const filteredGoals = activeTab === "active" ? activeGoals : completedGoals;
 
-  const totalBalance = accounts.reduce((sum, acc) => sum + (acc.total_balance?.amount_pesewas || 0), 0);
-  const availableBalance = accounts.reduce((sum, acc) => sum + (acc.available_balance?.amount_pesewas || 0), 0);
-  const lockedBalance = accounts.reduce((sum, acc) => sum + (acc.locked_balance?.amount_pesewas || 0), 0);
+  const tabs = [
+     { id: "active", label: "Active goals (" + activeGoals.length + ")" },
+     { id: "completed", label: "Completed goals (" + completedGoals.length + ")" }
+  ];
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-5 animate-in fade-in duration-500 pb-12">
-      
-      {/* Header */}
-      <header className="flex justify-between items-center py-2">
-        <div className="flex items-center gap-3">
-           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-slate-100 transition-colors">
-             <ArrowLeft className="w-5 h-5 text-slate-700" />
-           </Link>
-           <h1 className="text-xl md:text-2xl font-bold text-slate-900">Goals</h1>
+    <div className="w-full max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12">
+      <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between md:mt-4">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+             <Link href="/" className="md:hidden text-slate-400 hover:text-slate-600 transition-colors">
+               <ArrowLeft className="w-5 h-5" />
+             </Link>
+             <h1 className="text-[22px] md:text-2xl font-bold text-slate-900 tracking-tight">Your goals</h1>
+          </div>
         </div>
-        <Link href="/goals/create" className="bg-brand text-white px-4 py-2 rounded-full text-xs font-semibold hover:bg-brand/90 transition-colors shadow-sm shadow-brand/20">
-           Create Goal
+        <Link 
+           href="/goals/create" 
+           className="flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-brand-hover shadow-sm transition-colors w-full md:w-auto justify-center"
+        >
+           + Create Goal
         </Link>
-      </header>
-
-      <div className="mb-6 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-        <p className="text-sm text-blue-800 font-medium leading-relaxed">
-          Goals allow you to intentionally lock money toward something you want to achieve.
-        </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-100 pb-4">
-         {[
-           { id: "all", label: `Total Goals (${goals.length})` },
-           { id: "active", label: `Active (${goals.filter(g => g.status === "ACTIVE").length})` },
-           { id: "completed", label: `Completed (${goals.filter(g => g.status === "ACHIEVED" || g.status === "RELEASED").length})` },
-           { id: "archived", label: `Archived (${goals.filter(g => g.status === "ARCHIVED" || g.status === "CANCELLED").length})` }
-         ].map(tab => (
-           <button 
-             key={tab.id}
-             onClick={() => setActiveTab(tab.id)}
-             className={cn(
-               "px-4 py-1.5 rounded-full text-xs font-semibold transition-colors",
-               activeTab === tab.id 
-                 ? "bg-brand text-white shadow-sm" 
-                 : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-             )}
-           >
-             {tab.label}
-           </button>
+      <div className="flex items-center gap-6 border-b border-slate-200 overflow-x-auto no-scrollbar">
+         {tabs.map(tab => (
+            <button 
+               key={tab.id}
+               onClick={() => setActiveTab(tab.id)}
+               className={cn(
+                  "py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
+                  activeTab === tab.id 
+                     ? "border-brand text-brand" 
+                     : "border-transparent text-slate-500 hover:text-slate-700"
+               )}
+            >
+               {tab.label}
+            </button>
          ))}
       </div>
 
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin mb-4" />
-          <p className="text-sm font-medium">Loading goals...</p>
-        </div>
-      )}
-
-      {!isLoading && error && (
-        <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center text-center">
-          <AlertCircle className="w-8 h-8 mb-2" />
-          <p className="font-medium">Failed to load goals</p>
-          <p className="text-sm mt-1 opacity-80">{error}</p>
-          <button 
-            onClick={() => loadData()}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {!isLoading && !error && filteredGoals.length === 0 && (
-        <div className="bg-slate-50 border border-slate-200 p-10 rounded-2xl flex flex-col items-center text-center mt-6">
-          <Target className="w-12 h-12 text-slate-300 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900">No goals yet</h3>
-          <p className="text-slate-500 text-sm mt-1 mb-6">You haven&apos;t created any goals in this category.</p>
-          <Link href="/goals/create" className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors">
-            Start saving today
-          </Link>
-        </div>
-      )}
-
-      {/* Goal List */}
-      {!isLoading && !error && filteredGoals.length > 0 && (
-        <div className="space-y-4">
+      {error ? (
+         <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center justify-center border border-red-100">
+            <AlertCircle className="w-8 h-8 mb-3" />
+            <div className="font-semibold">{error}</div>
+            <button onClick={loadData} className="mt-4 px-4 py-2 bg-white rounded-xl text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">Try Again</button>
+         </div>
+      ) : isLoading ? (
+         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <Loader2 className="w-8 h-8 animate-spin mb-4" />
+            <p className="text-sm font-medium">Loading goals...</p>
+         </div>
+      ) : filteredGoals.length === 0 ? (
+         <div className="bg-white border border-slate-200 rounded-[24px] p-12 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+               <Target className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">No goals yet</h3>
+            <p className="text-slate-500 max-w-sm mb-6">Create a goal to start protecting money for something that matters to you.</p>
+            <Link href="/goals/create" className="bg-brand text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-brand-hover transition-colors shadow-sm">Create a goal</Link>
+         </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
            {filteredGoals.map(goal => {
-              let color = "text-brand";
-              let bg = "bg-brand/10";
-              let legacyIcon = Target;
-              if (!goal.icon) {
-                const legacy = getIconForName(goal.name);
-                legacyIcon = legacy.icon;
-                color = legacy.color;
-                bg = legacy.bg;
-              }
-
               const percentage = goal.target_amount > 0 ? Math.floor((goal.current_amount / goal.target_amount) * 100) : 0;
               
               return (
-                <div key={goal.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:border-slate-300 transition-colors group flex flex-col">
-                   <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-4 flex-1">
-                         <div className={cn("w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0", bg, color)}>
-                            {goal.icon ? <Icon name={goal.icon} className="w-6 h-6" /> : React.createElement(legacyIcon, { className: "w-6 h-6" })}
-                         </div>
-                         <div className="flex-1">
-                            <h3 className="font-bold text-slate-900 text-[15px] flex items-center gap-2">
-                               <Link href={`/goals/${goal.id}`} className="hover:underline">{goal.name}</Link>
-                               {goal.status === "ACHIEVED" && <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Achieved</span>}
-                               {goal.status === "RELEASED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Released</span>}
-                               {goal.status === "ARCHIVED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Archived</span>}
-                            </h3>
-                            
-                            <div className="grid grid-cols-2 gap-2 mt-2">
-                              <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
-                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Locked</div>
-                                <div className="text-sm font-bold text-blue-500">GH₵ {formatPesewas(goal.locked_amount)}</div>
-                              </div>
-                              <div className="bg-slate-50 rounded-lg p-2 border border-slate-100">
-                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Remaining</div>
-                                <div className="text-sm font-bold text-slate-700">GH₵ {formatPesewas(Math.max(0, goal.target_amount - goal.current_amount))}</div>
-                              </div>
-                            </div>
+                <div key={goal.id} className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
+                     <div>
+                          <div className="flex items-center justify-between mb-5">
+                             <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center">
+                                   <Icon name={goal.icon || "Target"} className="w-5 h-5" />
+                                </div>
+                                <div>
+                                   <Link href={/goals/} className="font-bold text-slate-900 hover:text-brand transition-colors text-lg inline-flex items-center gap-1 group-hover:underline">
+                                      {goal.name}
+                                   </Link>
+                                </div>
+                             </div>
+                             
+                             <div>
+                                {goal.status === "ACTIVE" && <span className="bg-blue-50 text-blue-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Saving</span>}
+                                {goal.status === "ACHIEVED" && <span className="bg-green-50 text-green-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Target reached</span>}
+                                {(goal.status === "RELEASED" || goal.status === "ARCHIVED" || goal.status === "CANCELLED") && <span className="bg-slate-100 text-slate-500 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
+                             </div>
+                          </div>
 
-                            <div className="flex justify-between items-center text-xs text-brand font-medium mt-3 mb-1.5">
-                               <span>GH₵ {formatPesewas(goal.current_amount)} / GH₵ {formatPesewas(goal.target_amount)}</span>
-                               <span className="font-bold text-slate-900">{percentage}%</span>
-                            </div>
-                            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                               <div 
-                                 className={cn("h-full rounded-full transition-all duration-1000", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "bg-brand")}
-                                 style={{ width: `${Math.min(percentage, 100)}%` }}
-                               />
-                            </div>
-
-                            <div className="mt-4 pt-3 border-t border-slate-100">
-                               <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Unlock condition</div>
-                               <div className="text-xs font-semibold text-slate-600">
-                                 {goal.lock_type === "TARGET_REACHED" || !goal.lock_type ? "When target is reached" : 
-                                  goal.lock_type === "DATE_REACHED" && goal.unlock_date ? `Unlock date: ${new Date(goal.unlock_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : "When target is reached"}
-                               </div>
-                            </div>
-                         </div>
-                      </div>
-                   </div>
-
-                     {/* Actions Row */}
-                     <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                        <Link 
-                           href={`/goals/${goal.id}`}
-                           className="flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors"
-                        >
-                           View Goal
-                        </Link>
-                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <div className="flex justify-between items-end mb-2">
+                             <div>
+                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Protected</div>
+                                <div className="text-xl font-bold text-slate-900">GH₵{formatPesewas(goal.current_amount)}</div>
+                             </div>
+                             <div className="text-right">
+                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Target</div>
+                                <div className="text-sm font-semibold text-slate-600">GH₵{formatPesewas(goal.target_amount)}</div>
+                             </div>
+                          </div>
+                          
+                          <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden mb-2">
+                             <div 
+                                className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-green-500" : "bg-brand")}
+                                style={{ width: ${Math.min(percentage, 100)}% }}
+                             ></div>
+                          </div>
+                          <div className="text-xs text-slate-500 font-medium">{percentage}% protected</div>
+                     </div>
                      
-                        {goal.status === "ACTIVE" && (
-                           <>
-                             <button 
-                                onClick={() => openModal(goal, "edit")}
-                                className="flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors"
-                             >
-                                Edit
-                             </button>
+                     <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2">
+                          <Link 
+                             href={/goals/}
+                             className="flex-1 flex items-center justify-center gap-1.5 bg-slate-50 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors"
+                          >
+                             View details
+                          </Link>
+                          
+                          {goal.status === "ACTIVE" && (
                              <button 
                                 onClick={() => openModal(goal, "contribute")}
-                                className="flex items-center gap-1.5 bg-brand/10 text-brand px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-brand/20 transition-colors"
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-brand/10 text-brand py-2.5 rounded-xl text-sm font-semibold hover:bg-brand/20 transition-colors"
                              >
-                                <ArrowDownCircle className="w-4 h-4" /> Contribute
-                             </button>
-                             {goal.current_amount === 0 && (
-                               <button 
-                                  onClick={() => openModal(goal, "delete")}
-                                  className="flex items-center gap-1.5 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
-                               >
-                                  Delete
-                               </button>
-                             )}
-                           </>
-                        )}
-                        {goal.status === "ACHIEVED" && (
-                           <button 
-                              onClick={() => goal.is_eligible_for_release ? openModal(goal, "release") : undefined}
-                              disabled={!goal.is_eligible_for_release}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm ${
-                                goal.is_eligible_for_release 
-                                  ? "bg-green-500 text-white hover:bg-green-600" 
-                                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                              }`}
-                           >
-                              <ArrowUpCircle className="w-4 h-4" /> Release Funds
-                           </button>
-                        )}
-                      {(goal.status === "RELEASED" || goal.status === "CANCELLED") && (
-                         <button 
-                            onClick={() => openModal(goal, "archive")}
-                            className="flex items-center gap-1.5 bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-200 transition-colors"
-                         >
-                            Archive
+                                Add money
                              </button>
                           )}
-                          </div>
+                          
+                          {goal.status === "ACHIEVED" && (
+                             <button 
+                                onClick={() => openModal(goal, "release")}
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-green-50 text-green-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-100 transition-colors"
+                             >
+                                Move to available
+                             </button>
+                          )}
+
+                          {goal.status === "ACTIVE" && goal.current_amount === 0 && (
+                             <button 
+                                onClick={() => openModal(goal, "delete")}
+                                className="flex items-center justify-center gap-1.5 bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
+                                title="Delete goal"
+                             >
+                                <X className="w-4 h-4" />
+                             </button>
+                          )}
                      </div>
                 </div>
               );
@@ -420,11 +324,9 @@ export default function GoalsPage() {
           <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-slate-900">
-                   {modalMode === "contribute" && "Fund Goal"}
-                   {modalMode === "release" && "Release Funds"}
-                   
-                   {modalMode === "delete" && "Delete Goal"}
-                   {modalMode === "archive" && "Archive Goal"}
+                   {modalMode === "contribute" && "Add money"}
+                   {modalMode === "release" && "Move to available"}
+                   {modalMode === "delete" && "Delete goal"}
                 </h2>
               <button 
                 onClick={closeModal}
@@ -436,7 +338,8 @@ export default function GoalsPage() {
             </div>
 
             {modalError && (
-              <div className="bg-red-50 text-red-600 text-sm font-medium p-3 rounded-xl mb-4 text-center border border-red-100">
+              <div className="bg-red-50 text-red-600 text-sm font-medium p-3 rounded-xl mb-4 text-center border border-red-100 flex items-center justify-center gap-2">
+                <AlertCircle className="w-4 h-4" />
                 {modalError}
               </div>
             )}
@@ -445,7 +348,7 @@ export default function GoalsPage() {
                <form onSubmit={handleContribute} className="space-y-4">
                   <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
                      <p className="text-xs text-slate-500 mb-1">Target: GH₵{formatPesewas(selectedGoal.target_amount)}</p>
-                     <p className="text-lg font-bold text-brand">Current: GH₵{formatPesewas(selectedGoal.current_amount)}</p>
+                     <p className="text-lg font-bold text-brand">Protected: GH₵{formatPesewas(selectedGoal.current_amount)}</p>
                   </div>
 
                   <div>
@@ -484,9 +387,9 @@ export default function GoalsPage() {
                      className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-brand/90"
                   >
                      {isSubmitting ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
+                        <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</>
                      ) : (
-                        "Confirm Contribution"
+                        "Add money"
                      )}
                   </button>
                </form>
@@ -494,27 +397,26 @@ export default function GoalsPage() {
             
             {modalMode === "release" && (
                <div className="space-y-4">
-                  <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
-                     <Target className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                     <p className="text-sm font-medium text-green-800">You achieved this goal!</p>
-                     <p className="text-xs text-green-600 mt-1">GH₵{formatPesewas(selectedGoal.locked_amount)} is currently locked.</p>
-                  </div>
-                  
-                  <p className="text-sm text-slate-600 text-center">
-                     Releasing this goal will unlock the funds and return them to your available balance.
+                  <p className="text-sm text-slate-600">
+                     This will complete your <strong>{selectedGoal.name}</strong> goal and make <strong>GH₵{formatPesewas(selectedGoal.locked_amount)}</strong> available to spend.
                   </p>
 
-                  <button 
-                     onClick={() => handleAction("/release")}
-                     disabled={isSubmitting}
-                     className="w-full bg-green-500 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-green-600"
-                  >
-                     {isSubmitting ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Releasing...</>
-                     ) : (
-                        "Release Funds Now"
-                     )}
-                  </button>
+                  <div className="flex flex-col gap-2 mt-4">
+                     <button 
+                        onClick={() => handleAction("/release")}
+                        disabled={isSubmitting}
+                        className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-brand/90"
+                     >
+                        {isSubmitting ? "Moving..." : "Move to available"}
+                     </button>
+                     <button 
+                        onClick={closeModal}
+                        disabled={isSubmitting}
+                        className="w-full bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl py-3.5 transition-all hover:bg-slate-50"
+                     >
+                        Keep protected
+                     </button>
+                  </div>
                </div>
             )}
 
@@ -528,25 +430,11 @@ export default function GoalsPage() {
                      disabled={isSubmitting}
                      className="w-full bg-red-600 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm hover:bg-red-700"
                   >
-                     {isSubmitting ? "Deleting..." : "Yes, Delete Goal"}
+                     {isSubmitting ? "Deleting..." : "Delete goal"}
                   </button>
                </div>
             )}
 
-            {modalMode === "archive" && (
-               <div className="space-y-4">
-                  <p className="text-sm text-slate-600 text-center">
-                     Archive this goal? It will no longer appear in your active list.
-                  </p>
-                  <button 
-                     onClick={() => handleAction("/archive")}
-                     disabled={isSubmitting}
-                     className="w-full bg-slate-800 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 shadow-sm hover:bg-slate-900"
-                  >
-                     {isSubmitting ? "Archiving..." : "Archive Goal"}
-                  </button>
-               </div>
-            )}
           </div>
         </div>
       )}
@@ -565,20 +453,3 @@ export default function GoalsPage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
