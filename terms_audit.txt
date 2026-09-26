@@ -1,0 +1,127 @@
+frontend\app\(app)\page.tsx:162: const topGoal = data.goals.filter(g => g.status === "ACTIVE" || g.status === "ACHIEVED")[0] || null;
+frontend\app\(app)\page.tsx:197: {/* Top Row: Balance & Money Flow */}
+frontend\app\(app)\page.tsx:199: {/* Total Available Balance Card */}
+frontend\app\(app)\page.tsx:204: <span className="text-sm font-medium text-white/80">Total Available Balance ❖</span>
+frontend\app\(app)\page.tsx:231: {/* Available */}
+frontend\app\(app)\page.tsx:233: {/* Protected */}
+frontend\app\(app)\page.tsx:243: <span className="text-[10px] text-slate-500 font-medium leading-none mb-1">Total Assets</span>
+frontend\app\(app)\page.tsx:249: <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div><span className="text-slate-600 font-medium">Protected</span></div>
+frontend\app\(app)\page.tsx:257: <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div><span className="text-slate-600 font-medium">Available</span></div>
+frontend\app\(app)\page.tsx:269: <div className="text-xs font-semibold text-slate-900">Available</div>
+frontend\app\(app)\page.tsx:276: <div className="text-xs font-semibold text-slate-900">Protected</div>
+frontend\app\(app)\page.tsx:320: <div className="text-xs text-white/80 font-medium mb-1">Available Balance</div>
+frontend\app\(app)\page.tsx:322: <div className="text-[10px] text-white/60 mt-2">≈ {availPct}% of total</div>
+frontend\app\(app)\page.tsx:328: <div className="text-xs font-medium mb-1 opacity-80">Protected Funds</div>
+frontend\app\(app)\page.tsx:330: <div className="text-[10px] opacity-70 mt-2">≈ {protPct}% of total</div>
+frontend\app\(app)\page.tsx:336: <div className="text-xs font-medium mb-1 opacity-80">Goals (Locked)</div>
+frontend\app\(app)\page.tsx:338: <div className="text-[10px] opacity-70 mt-2">≈ {goalPct}% of total</div>
+frontend\app\(app)\page.tsx:393: <p className="text-sm font-medium text-slate-900">No active rules</p>
+frontend\app\(app)\page.tsx:407: No active goals found.
+frontend\app\(app)\accounts\page.tsx:123: {/* Available */}
+frontend\app\(app)\accounts\page.tsx:130: <div className="text-sm text-white/80 font-medium mb-0.5">Available Balance</div>
+frontend\app\(app)\accounts\page.tsx:137: {/* Protected */}
+frontend\app\(app)\accounts\page.tsx:144: <div className="text-sm font-medium mb-0.5 opacity-90">Protected Funds</div>
+frontend\app\(app)\accounts\page.tsx:159: <div className="text-sm opacity-70">Locked towards targets</div>
+frontend\app\(app)\accounts\page.tsx:177: Your total financial state is rigorously divided. You cannot spend protected funds or locked goals. The system will enforce this automatically at the transaction level.
+frontend\app\(app)\goals\page.tsx:23: status: string; // ACTIVE, ACHIEVED, RELEASED
+frontend\app\(app)\goals\page.tsx:58: const [modalMode, setModalMode] = useState<"contribute" | "release" | "edit" | "delete" | "archive" | null>(null);
+frontend\app\(app)\goals\page.tsx:89: const openModal = (goal: Goal, mode: "contribute" | "release" | "edit" | "delete" | "archive") => {
+frontend\app\(app)\goals\page.tsx:175: const res = await apiFetch(`/goals/${selectedGoal.id}/release`, {
+frontend\app\(app)\goals\page.tsx:184: throw new Error(err.detail?.message || err.detail || "Release failed.");
+frontend\app\(app)\goals\page.tsx:203: if (activeTab === "active") return g.status === "ACTIVE";
+frontend\app\(app)\goals\page.tsx:204: if (activeTab === "completed") return g.status === "ACHIEVED" || g.status === "RELEASED";
+frontend\app\(app)\goals\page.tsx:205: if (activeTab === "archived") return g.status === "ARCHIVED" || g.status === "CANCELLED";
+frontend\app\(app)\goals\page.tsx:238: { id: "all", label: `Total Goals (${goals.length})` },
+frontend\app\(app)\goals\page.tsx:239: { id: "active", label: `Active (${goals.filter(g => g.status === "ACTIVE").length})` },
+frontend\app\(app)\goals\page.tsx:240: { id: "completed", label: `Completed (${goals.filter(g => g.status === "ACHIEVED" || g.status === "RELEASED").length})` },
+frontend\app\(app)\goals\page.tsx:241: { id: "archived", label: `Archived (${goals.filter(g => g.status === "ARCHIVED" || g.status === "CANCELLED").length})` }
+frontend\app\(app)\goals\page.tsx:316: {goal.status === "ACHIEVED" && <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Achieved</span>}
+frontend\app\(app)\goals\page.tsx:318: {goal.status === "ARCHIVED" && <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Archived</span>}
+frontend\app\(app)\goals\page.tsx:323: <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Locked</div>
+frontend\app\(app)\goals\page.tsx:338: className={cn("h-full rounded-full transition-all duration-1000", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "bg-brand")}
+frontend\app\(app)\goals\page.tsx:364: {goal.status === "ACTIVE" && (
+frontend\app\(app)\goals\page.tsx:388: {goal.status === "ACHIEVED" && (
+frontend\app\(app)\goals\page.tsx:390: onClick={() => goal.is_eligible_for_release ? openModal(goal, "release") : undefined}
+frontend\app\(app)\goals\page.tsx:398: <ArrowUpCircle className="w-4 h-4" /> Release Funds
+frontend\app\(app)\goals\page.tsx:424: {modalMode === "release" && "Release Funds"}
+frontend\app\(app)\goals\page.tsx:461: <option key={acc.id} value={acc.id}>{acc.name} (GH₵{formatPesewas(acc.available_balance.amount_pesewas)} available)</option>
+frontend\app\(app)\goals\page.tsx:495: {modalMode === "release" && (
+frontend\app\(app)\goals\page.tsx:499: <p className="text-sm font-medium text-green-800">You achieved this goal!</p>
+frontend\app\(app)\goals\page.tsx:500: <p className="text-xs text-green-600 mt-1">GH₵{formatPesewas(selectedGoal.locked_amount)} is currently locked.</p>
+frontend\app\(app)\goals\page.tsx:504: Releasing this goal will unlock the funds and return them to your available balance.
+frontend\app\(app)\goals\page.tsx:508: onClick={() => handleAction("/release")}
+frontend\app\(app)\goals\page.tsx:515: "Release Funds Now"
+frontend\app\(app)\goals\page.tsx:539: Archive this goal? It will no longer appear in your active list.
+frontend\app\(app)\goals\create\page.tsx:153: className="w-full bg-brand text-white font-bold rounded-xl py-4 mt-4 transition-all shadow-sm hover:bg-brand/90 active:scale-[0.98]"
+frontend\app\(app)\goals\create\page.tsx:187: className="w-full bg-brand text-white font-bold rounded-xl py-4 mt-4 transition-all shadow-sm hover:bg-brand/90 active:scale-[0.98]"
+frontend\app\(app)\goals\create\page.tsx:198: <h2 className="text-2xl font-bold text-slate-900 mb-2">When can you release it?</h2>
+frontend\app\(app)\goals\create\page.tsx:267: className="w-full bg-brand text-white font-bold rounded-xl py-4 mt-4 transition-all shadow-sm hover:bg-brand/90 active:scale-[0.98]"
+frontend\app\(app)\goals\create\page.tsx:312: Money becomes locked only when you contribute to this Goal.
+frontend\app\(app)\goals\create\page.tsx:319: className="w-full bg-brand text-white font-bold rounded-xl py-4 mt-4 transition-all shadow-sm hover:bg-brand/90 active:scale-[0.98] disabled:opacity-70 flex justify-center items-center gap-2"
+frontend\app\(app)\goals\[id]\page.tsx:60: const [modalMode, setModalMode] = useState<"contribute" | "release" | "edit" | "cancel" | "delete" | "archive" | null>(null);
+frontend\app\(app)\goals\[id]\page.tsx:93: const openModal = (mode: "contribute" | "release" | "edit" | "cancel" | "delete" | "archive") => {
+frontend\app\(app)\goals\[id]\page.tsx:182: const res = await apiFetch(`/goals/${goal.id}/release`, {
+frontend\app\(app)\goals\[id]\page.tsx:191: throw new Error(err.detail?.message || err.detail || "Release failed.");
+frontend\app\(app)\goals\[id]\page.tsx:243: const isEligible = goal.is_eligible_for_release ?? (goal.status === "ACHIEVED");
+frontend\app\(app)\goals\[id]\page.tsx:265: {goal.status === "ACTIVE" && <span className="bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Active</span>}
+frontend\app\(app)\goals\[id]\page.tsx:266: {goal.status === "ACHIEVED" && <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Achieved</span>}
+frontend\app\(app)\goals\[id]\page.tsx:268: {goal.status === "ARCHIVED" && <span className="bg-slate-100 text-slate-600 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Archived</span>}
+frontend\app\(app)\goals\[id]\page.tsx:275: <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Locked Funds</div>
+frontend\app\(app)\goals\[id]\page.tsx:293: {isEligible && goal.status !== "RELEASED" && goal.status !== "ARCHIVED" && (
+frontend\app\(app)\goals\[id]\page.tsx:294: <div className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold">Eligible for Release</div>
+frontend\app\(app)\goals\[id]\page.tsx:309: className={cn("h-full rounded-full transition-all duration-1000", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "bg-brand")}
+frontend\app\(app)\goals\[id]\page.tsx:315: {goal.status === "ACHIEVED" && (
+frontend\app\(app)\goals\[id]\page.tsx:321: You can now release the funds back to your available balance. Once released, you will be able to archive this goal.
+frontend\app\(app)\goals\[id]\page.tsx:328: {goal.status === "ACTIVE" && (
+frontend\app\(app)\goals\[id]\page.tsx:339: {isEligible && goal.status !== "RELEASED" && goal.status !== "ARCHIVED" && (
+frontend\app\(app)\goals\[id]\page.tsx:341: onClick={() => openModal("release")}
+frontend\app\(app)\goals\[id]\page.tsx:344: <ArrowUpCircle className="w-5 h-5" /> Release Funds
+frontend\app\(app)\goals\[id]\page.tsx:352: {goal.status === "ACTIVE" && (
+frontend\app\(app)\goals\[id]\page.tsx:358: <button onClick={() => openModal("cancel")} className="text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors">Cancel Goal</button>
+frontend\app\(app)\goals\[id]\page.tsx:374: {modalMode === "release" && "Release Funds"}
+frontend\app\(app)\goals\[id]\page.tsx:375: {modalMode === "cancel" && "Cancel Goal"}
+frontend\app\(app)\goals\[id]\page.tsx:411: <option key={acc.id} value={acc.id}>{acc.name} (GH₵{formatPesewas(acc.available_balance.amount_pesewas)} available)</option>
+frontend\app\(app)\goals\[id]\page.tsx:444: {modalMode === "release" && (
+frontend\app\(app)\goals\[id]\page.tsx:447: You are about to release:
+frontend\app\(app)\goals\[id]\page.tsx:453: from this Goal. The money will become available to spend again. This will move the Goal from:
+frontend\app\(app)\goals\[id]\page.tsx:462: {isSubmitting ? "Releasing..." : `Release GH₵${formatPesewas(goal.locked_amount)}`}
+frontend\app\(app)\goals\[id]\page.tsx:467: {modalMode === "cancel" && (
+frontend\app\(app)\goals\[id]\page.tsx:470: Are you sure you want to cancel this goal? Any locked funds will be returned to your available balance.
+frontend\app\(app)\goals\[id]\page.tsx:473: onClick={() => handleAction("/cancel")}
+frontend\app\(app)\goals\[id]\page.tsx:477: {isSubmitting ? "Cancelling..." : "Cancel Goal & Return Funds"}
+frontend\app\(app)\goals\[id]\page.tsx:500: Archive this goal? It will no longer appear in your active list.
+frontend\app\(app)\rules\page.tsx:13: status: "active",
+frontend\app\(app)\rules\page.tsx:22: status: "active",
+frontend\app\(app)\rules\page.tsx:30: description: "Lock until balance ≥ GH₵5,000",
+frontend\app\(app)\rules\page.tsx:31: status: "active",
+frontend\app\(app)\rules\page.tsx:40: status: "active",
+frontend\app\(app)\rules\page.tsx:49: status: "active",
+frontend\app\(app)\rules\page.tsx:57: const [activeTab, setActiveTab] = useState("active");
+frontend\app\(app)\rules\page.tsx:78: { id: "active", label: "Active (5)" },
+frontend\app\(app)\rules\page.tsx:99: .filter(rule => (activeTab === "active" ? rule.status === "active" : rule.status === "inactive"))
+frontend\app\(app)\rules\page.tsx:118: {rules.filter(r => (activeTab === "active" ? r.status === "active" : r.status === "inactive")).length === 0 && (
+frontend\components\FundAccountModal.tsx:101: <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">Cancel</button>
+frontend\e2e\isolation.spec.ts:337: // Verify B's balance is unchanged
+frontend\e2e\phase2e-audit.spec.ts:69: await expect(page.getByText("Cancel Goal")).toBeVisible();
+frontend\e2e\phase2e-audit.spec.ts:71: // 7. Cancel Goal
+frontend\e2e\phase2e-audit.spec.ts:72: await page.getByText("Cancel Goal").first().click();
+frontend\e2e\phase2e-audit.spec.ts:74: page.waitForResponse(res => res.url().includes('/cancel')),
+frontend\e2e\phase2e-audit.spec.ts:75: page.getByRole('button', { name: 'Cancel Goal & Return Funds' }).evaluate(node => (node as HTMLButtonElement).click())
+frontend\e2e\step11-audit.spec.ts:32: await expect(page.getByText('GH₵ 0.00').first()).toBeVisible(); // Empty balance
+frontend\e2e\step11-audit.spec.ts:82: // Verify updated balance (1000 - 100 = 900)
+frontend\e2e\step11-audit.spec.ts:107: // Verify Accounts (Available: 900 - 200 = 700, Locked: 200)
+frontend\e2e\step11-audit.spec.ts:109: await expect(page.getByText('GH₵ 700.00').first()).toBeVisible(); // Available
+frontend\e2e\step11-audit.spec.ts:110: await expect(page.getByText('GH₵ 200.00').first()).toBeVisible(); // Locked
+frontend\e2e\step11-audit.spec.ts:123: // 9. TEST USER A — INSUFFICIENT AVAILABLE FUNDS
+frontend\e2e\step11-audit.spec.ts:127: await page.fill('input[placeholder="0.00"]', '800.00'); // Available is 700
+frontend\e2e\step11-audit.spec.ts:147: // Wait for Achieved badge
+frontend\e2e\step11-audit.spec.ts:148: await expect(page.getByText('Achieved').first()).toBeVisible();
+frontend\e2e\step11-audit.spec.ts:152: // Check available balance is now 700 - 300 = 400
+frontend\e2e\step11-audit.spec.ts:155: // 11. TEST USER A — RELEASE
+frontend\e2e\step11-audit.spec.ts:157: await page.getByRole('button', { name: 'Release Funds' }).evaluate(node => (node as HTMLButtonElement).click());
+frontend\e2e\step11-audit.spec.ts:158: await page.locator('button:has-text("Release Funds Now")').evaluate(node => (node as HTMLButtonElement).click());
+frontend\e2e\step11-audit.spec.ts:163: // Verify Available Balance recovered (400 + 500 = 900)
+frontend\e2e\step11-audit.spec.ts:167: // Check transactions to see release transaction exists (if it creates one)
+frontend\e2e\step11-audit.spec.ts:168: // Actually, release creates a ledger entry of type 'RELEASE' which doesn't affect transaction UI directly,
+frontend\e2e\step11-audit.spec.ts:169: // it just transfers locked to available.
+frontend\e2e\step11-audit.spec.ts:259: // Verify B's balance is intact

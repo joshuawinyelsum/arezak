@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { MoveMoneyModal } from "@/components/MoveMoneyModal";
 import { FundAccountModal } from "@/components/FundAccountModal";
 
 type Money = {
@@ -72,6 +73,7 @@ export default function Dashboard() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMoveMoneyOpen, setIsMoveMoneyOpen] = useState(false);
   const [data, setData] = useState<{ accounts: Account[], txs: Transaction[], goals: Goal[] } | null>(null);
   const [showFundModal, setShowFundModal] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
@@ -429,6 +431,14 @@ export default function Dashboard() {
         }} 
       />
 
+
+      <MoveMoneyModal 
+        isOpen={isMoveMoneyOpen} 
+        onClose={() => setIsMoveMoneyOpen(false)} 
+        onSuccess={() => window.location.reload()}
+        availableBalance={totalAvailable}
+        accounts={data?.accounts || []}
+      />
     </div>
   );
 }

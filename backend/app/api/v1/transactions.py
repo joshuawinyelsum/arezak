@@ -5,7 +5,7 @@ from typing import Annotated, List
 from datetime import datetime
 
 from app.api.deps import SessionDep, CurrentUser
-from app.services.transaction_service import process_income, process_expense
+from app.services.transaction_service import process_income, process_expense, process_outbound
 from app.models.transaction import Transaction
 from app.models.ledger_entry import LedgerEntry
 from app.rules.decision import ConstraintViolationException
@@ -22,6 +22,13 @@ class IncomeRequest(BaseModel):
     description: str | None = None
     funding_source: str | None = None
     note: str | None = None
+
+class OutboundRequest(BaseModel):
+    account_id: uuid.UUID
+    amount: Money
+    type: str # TRANSFER_OUT, SPEND, WITHDRAW
+    description: str | None = None
+    destination: str | None = None
 
 class ExpenseRequest(BaseModel):
     account_id: uuid.UUID
@@ -104,6 +111,43 @@ def add_income(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail={"code": "FINANCIAL_OPERATION_FAILED", "message": "Failed to process transaction."})
+
+@router.post("/outbound", response_model=TransactionResponse)
+def add_outbound(
+    request: OutboundRequest, 
+    db: SessionDep, 
+    current_user: CurrentUser,
+    idempotency_key: Annotated[str | None, Header()] = None
+):
+    try:
+        tx = process_outbound(
+            db=db,
+            user_id=current_user.id,
+            account_id=request.account_id,
+            amount_pesewas=request.amount.amount_pesewas,
+            currency=request.amount.currency,
+            tx_type=request.type,
+            description=request.description or "Outbound Transaction",
+            destination=request.destination,
+            idempotency_key=idempotency_key
+        )
+        db.commit()
+        db.refresh(tx)
+        return TransactionResponse.from_orm_transaction(tx)
+    except ConstraintViolationException as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "code": e.decision.code,
+                "message": e.decision.message,
+                "resource_type": e.decision.resource_type,
+                "resource_id": e.decision.resource_id
+            }
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail={"code": "FINANCIAL_OPERATION_FAILED", "message": str(e)})
 
 @router.post("/expense", response_model=TransactionResponse)
 def add_expense(

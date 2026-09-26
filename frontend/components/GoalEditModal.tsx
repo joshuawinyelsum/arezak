@@ -7,8 +7,7 @@ import { cn } from "@/lib/utils";
 
 export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
   const [name, setName] = useState("");
-  const [targetStr, setTargetStr] = useState("");
-  const [icon, setIcon] = useState("Target");
+    const [icon, setIcon] = useState("Target");
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +16,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
   useEffect(() => {
     if (isOpen && goal) {
       setName(goal.name || "");
-      setTargetStr((goal.target_amount / 100).toString());
+      
       setIcon(goal.icon || "Target");
       setError(null);
     }
@@ -31,11 +30,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
     setError(null);
     
     try {
-      const payload = {
-        name: name.trim(),
-        icon,
-        
-      };
+      const payload = { name, icon };
       
       const res = await apiFetch(`/goals/${goal.id}`, {
         method: "PATCH",
@@ -110,7 +105,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
               </label>
               <input 
                 type="number" 
-                value={targetStr} 
+                value={goal ? (goal.target_amount / 100).toString() : ""} 
                 disabled={true}
                 className="w-full bg-slate-100/50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed" 
               />

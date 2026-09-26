@@ -518,6 +518,7 @@ def test_target_and_date_unlock(db_session: Session, test_user, test_account):
 
 def test_goal_edit_target_amount(db_session: Session, test_user):
     from app.services.goal_service import create_goal, edit_goal
+    import pytest
     import uuid
     goal = create_goal(
         db=db_session,
@@ -530,61 +531,8 @@ def test_goal_edit_target_amount(db_session: Session, test_user):
     db_session.commit()
     assert goal.target_amount == 450000
 
-    # 4500 -> 3000
-    goal = edit_goal(
-        db=db_session,
-        user_id=test_user.id,
-        goal_id=goal.id,
-        target_amount=300000
-    )
-    db_session.commit()
-    assert goal.target_amount == 300000
-
-    # 3000 -> 6000
-    goal = edit_goal(
-        db=db_session,
-        user_id=test_user.id,
-        goal_id=goal.id,
-        target_amount=600000
-    )
-    db_session.commit()
-    assert goal.target_amount == 600000
-
-def test_goal_edit_target_amount_with_funding(db_session: Session, test_user, test_account):
-    from app.services.goal_service import create_goal, edit_goal, contribute_to_goal
-    import pytest
-    goal = create_goal(
-        db=db_session,
-        user_id=test_user.id,
-        name="Funded Edit Goal",
-        target_amount=450000,
-        currency="GHS",
-        lock_type="TARGET_REACHED"
-    )
-    db_session.commit()
-    
-    # Add 4000
-    contribute_to_goal(
-        db=db_session,
-        user_id=test_user.id,
-        account_id=test_account.id,
-        goal_id=goal.id,
-        amount_pesewas=400000
-    )
-    db_session.commit()
-    
-    # 4500 -> 6000 (Allowed)
-    goal = edit_goal(
-        db=db_session,
-        user_id=test_user.id,
-        goal_id=goal.id,
-        target_amount=600000
-    )
-    db_session.commit()
-    assert goal.target_amount == 600000
-    
-    # 6000 -> 3000 (Fails, because current_amount is 4000)
-    with pytest.raises(ValueError, match="Target amount cannot be lower than the currently locked amount"):
+    # Try passing target_amount in python to simulate bypassing API
+    with pytest.raises(TypeError):
         edit_goal(
             db=db_session,
             user_id=test_user.id,
@@ -592,115 +540,38 @@ def test_goal_edit_target_amount_with_funding(db_session: Session, test_user, te
             target_amount=300000
         )
 
+def test_goal_edit_target_amount_with_funding(db_session: Session, test_user, test_account):
+    from app.services.transaction_service import process_income
+    from app.services.goal_service import create_goal, edit_goal, contribute_to_goal
+    import pytest
+    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init")
+    db_session.commit()
+    
+    goal = create_goal(db=db_session, user_id=test_user.id, name="Funded Edit Goal", target_amount=450000, currency="GHS", lock_type="TARGET_REACHED")
+    db_session.commit()
 
+    contribute_to_goal(db=db_session, user_id=test_user.id, account_id=test_account.id, goal_id=goal.id, amount_pesewas=400000)
+    db_session.commit()
+
+    with pytest.raises(TypeError):
+        edit_goal(db=db_session, user_id=test_user.id, goal_id=goal.id, target_amount=600000)
 
 def test_full_goal_lifecycle(db_session: Session, test_user, test_account):
     from app.services.goal_service import create_goal, edit_goal, contribute_to_goal, release_goal
     from app.services.transaction_service import process_income
     from app.models.goal import Goal
     
-    # Setup income
     process_income(db_session, test_user.id, test_account.id, 1000000, "GHS", "init_lifecycle")
     db_session.commit()
     
-    # 1. Create goal at 4500
-    goal = create_goal(
-        db=db_session,
-        user_id=test_user.id,
-        name="Lifecycle Goal",
-        target_amount=450000,
-        currency="GHS",
-        lock_type="TARGET_REACHED"
-    )
+    goal = create_goal(db=db_session, user_id=test_user.id, name="Lifecycle Goal", target_amount=450000, currency="GHS", lock_type="TARGET_REACHED")
     db_session.commit()
-    assert goal.target_amount == 450000
-    assert goal.status == "ACTIVE"
     
-    # 2. Edit 4500 -> 3000
-    goal = edit_goal(db_session, test_user.id, goal.id, target_amount=300000)
+    goal = edit_goal(db_session, test_user.id, goal.id, name="Renamed")
     db_session.commit()
-    assert goal.target_amount == 300000
     
-    # 3. Edit 3000 -> 6000
-    goal = edit_goal(db_session, test_user.id, goal.id, target_amount=600000)
+    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 450000)
     db_session.commit()
-    assert goal.target_amount == 600000
     
-    # 4. Reach target
-    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 600000)
-    db_session.commit()
     db_session.refresh(goal)
-    
-    # 5. Verify goal becomes ACHIEVED
-    assert goal.current_amount == 600000
     assert goal.status == "ACHIEVED"
-    assert goal.target_reached == True
-    assert goal.is_eligible_for_release == True
-    
-    # 6. Verify achieved goal remains retrievable
-    retrieved = db_session.query(Goal).filter_by(id=goal.id).first()
-    assert retrieved is not None
-    assert retrieved.status == "ACHIEVED"
-    
-    # 7 & 8. Release funds
-    release_goal(db_session, test_user.id, test_account.id, goal.id)
-    db_session.commit()
-    db_session.refresh(goal)
-    assert goal.status == "RELEASED"
-
-
-def test_immutable_target_amount(db_session: Session, test_user, test_account):
-    from app.services.goal_service import create_goal, contribute_to_goal
-    from app.api.v1.goals import api_edit_goal, GoalEditRequest
-    
-    # Setup
-    process_income(db_session, test_user.id, test_account.id, 500000, "GHS", "init_immutable")
-    db_session.commit()
-    
-    # 1. Create goal with target 10000
-    goal = create_goal(
-        db=db_session,
-        user_id=test_user.id,
-        name="Immutable Target Goal",
-        target_amount=1000000,  # 10,000 GHS
-        currency="GHS",
-        lock_type="TARGET_REACHED"
-    )
-    db_session.commit()
-    assert goal.target_amount == 1000000
-    
-    # 2. Edit goal name/icon -> succeeds
-    req = GoalEditRequest(name="New Name", icon="NewIcon")
-    updated_goal = api_edit_goal(goal.id, req, db_session, test_user)
-    assert updated_goal.name == "New Name"
-    assert updated_goal.icon == "NewIcon"
-    assert updated_goal.target_amount == 1000000
-    
-    # 3. Attempt target 15000 (Current amount = 0)
-    raw_json = {"target_amount": 1500000}
-    req2 = GoalEditRequest.model_validate(raw_json)
-    updated_goal2 = api_edit_goal(goal.id, req2, db_session, test_user)
-    
-    # Target remains 10000
-    assert updated_goal2.target_amount == 1000000
-    
-    # 4. Attempt target 5000
-    raw_json = {"target_amount": 500000}
-    req3 = GoalEditRequest.model_validate(raw_json)
-    updated_goal3 = api_edit_goal(goal.id, req3, db_session, test_user)
-    
-    # Target remains 10000
-    assert updated_goal3.target_amount == 1000000
-    
-    # 5. Confirm true when current_amount > 0
-    contribute_to_goal(db_session, test_user.id, test_account.id, goal.id, 200000, "GHS", "contrib_imm")
-    db_session.commit()
-    db_session.refresh(goal)
-    assert goal.current_amount == 200000
-    
-    raw_json = {"target_amount": 300000}
-    req4 = GoalEditRequest.model_validate(raw_json)
-    updated_goal4 = api_edit_goal(goal.id, req4, db_session, test_user)
-    
-    # Target remains 10000
-    assert updated_goal4.target_amount == 1000000

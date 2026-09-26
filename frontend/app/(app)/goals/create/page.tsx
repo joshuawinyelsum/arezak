@@ -68,7 +68,7 @@ export default function CreateGoalPage() {
         target_amount: amountPesewas,
         currency: "GHS",
         lock_type: lockType,
-        unlock_date: (lockType === "DATE_REACHED" || lockType === "TARGET_AND_DATE") && unlockDate ? new Date(unlockDate).toISOString() : null,
+        unlock_date: (lockType === "DATE_REACHED" || lockType === "TARGET_AND_DATE") && unlockDate ? new Date(unlockDate + "T12:00:00Z").toISOString() : null,
       };
 
       const res = await apiFetch("/goals", {
