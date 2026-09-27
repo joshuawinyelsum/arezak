@@ -84,7 +84,7 @@ export function Vault({
               {fmt(totalProtected)}
             </div>
             <div className="text-[10px] text-white/40 mt-1">
-              In goals
+              Set aside
             </div>
           </div>
         </div>

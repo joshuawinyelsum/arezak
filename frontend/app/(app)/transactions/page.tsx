@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { FundAccountModal } from "@/components/FundAccountModal";
 import { TransactionActionModal } from "@/components/TransactionActionModal";
-import { mapTransaction } from "@/lib/transactions/mapper";
+import { mapTransaction, isCredit, isDebit } from "@/lib/transactions/mapper";
 
 
 interface Account {
@@ -107,8 +107,8 @@ export default function TransactionsPage() {
   const filteredGroups = Object.entries(groupedTransactions).map(([date, txs]) => {
     const filteredTxs = txs.filter(tx => {
       if (activeTab === "all") return true;
-      if (activeTab === "income") return tx.type === "INCOME" || tx.type === "GOAL_RELEASE";
-      if (activeTab === "expenses") return tx.type === "EXPENSE";
+      if (activeTab === "income") return isCredit(tx.type);
+      if (activeTab === "expenses") return isDebit(tx.type);
       return true;
     });
     return { date, txs: filteredTxs };
@@ -210,7 +210,12 @@ export default function TransactionsPage() {
                  <div className="space-y-1">
                     {group.txs.map(item => {
                        const { Icon, bg, color } = getIconForType(item.type);
-                       const isPositive = item.type === "INCOME" || item.type === "GOAL_RELEASE";
+                       const pres = mapTransaction(item.type);
+                       const isPositive = pres.direction === "credit";
+                       // Primary label: user's description if present, else mapped label
+                       const primaryLabel = item.description?.trim() || pres.label;
+                       // Subtitle: mapped label (when description is the title), plus note
+                       const subtitleLabel = item.description?.trim() ? pres.label : null;
                        
                        return (
                        <div key={item.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors group border border-transparent hover:border-slate-100">
@@ -218,20 +223,16 @@ export default function TransactionsPage() {
                              <div className={cn("w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform", bg, color)}>
                                 <Icon className="w-5 h-5" />
                              </div>
-                               <div>
-                                  <div className="font-semibold text-sm text-slate-900">{item.description || mapTransaction(item.type).label}</div>
+                               <div className="min-w-0">
+                                  <div className="font-semibold text-sm text-slate-900 truncate">{primaryLabel}</div>
                                   <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
-                                    <span>{mapTransaction(item.type).label}</span>
-                                    {item.note && (
-                                      <>
-                                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                                        <span>{item.note}</span>
-                                      </>
-                                    )}
+                                    {subtitleLabel && <span>{subtitleLabel}</span>}
+                                    {subtitleLabel && item.note && <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />}
+                                    {item.note && <span className="truncate">{item.note}</span>}
                                   </div>
                                </div>
                           </div>
-                            <div className="flex flex-col items-end gap-2">
+                            <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
                                <div className={cn(
                                   "font-semibold text-sm",
                                   isPositive ? "text-green-600" : "text-slate-900"

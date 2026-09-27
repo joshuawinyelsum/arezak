@@ -1,127 +1,176 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus, Wallet, PieChart, Shield, Lock, ShieldCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+/**
+ * Rules page — Arezak's financial automation layer.
+ *
+ * Rules are Arezak's core differentiator: money that gets automatically
+ * organised as it comes in.
+ *
+ * CURRENT STATE: The Rules API does not exist yet.
+ * There is no GET /rules endpoint. The AllocationRule model exists in the
+ * database but has no API surface for reading or creating rules.
+ *
+ * WHAT THIS PAGE MUST NOT DO:
+ *   - Show fake hardcoded rule data (destroys trust)
+ *   - Show a "Create rule" flow that doesn't connect to a backend
+ *   - Expose rule_id, trigger_type, action_type, or other internal fields
+ *
+ * WHAT THIS PAGE DOES:
+ *   - Shows an honest empty state that communicates the feature's value
+ *   - Architectures the page so it's ready to accept Rule[] from the API
+ *   - Shows a "Coming soon" indicator instead of pretending the feature is live
+ *
+ * MISSING BACKEND CONTRACTS (required before this page becomes functional):
+ *   - GET  /api/v1/rules              — list user's active rules
+ *   - POST /api/v1/rules              — create a new rule
+ *   - PUT  /api/v1/rules/{id}         — update a rule
+ *   - DELETE /api/v1/rules/{id}       — remove a rule
+ *   - GET  /api/v1/rules/templates    — available rule types/templates
+ *
+ * Rule user-facing model (NOT the DB model):
+ *   name:        "Protect school fees"
+ *   trigger:     "Every time money enters my account"
+ *   action:      "Protect 20% in my School goal"
+ *   is_active:   true
+ */
 
-const rules = [
+import React from "react";
+import { SlidersHorizontal, Zap, Shield, ArrowDownLeft } from "lucide-react";
+
+// Rule type — mirrors what the future API will return (not the backend DB schema)
+interface Rule {
+  id: string;
+  name: string;
+  summary: string; // human-readable one-liner e.g. "Protect 20% for School on every income"
+  is_active: boolean;
+}
+
+// Placeholder: empty until GET /rules API exists
+const API_RULES: Rule[] = [];
+
+// What rules will look like — shown as educational examples, clearly not functional
+const RULE_TEMPLATES = [
   {
-    id: 1,
-    title: "Paycheck Allocation",
-    description: "Every time I receive income",
-    status: "active",
-    icon: Wallet,
-    iconBg: "bg-blue-50",
-    iconColor: "text-blue-500"
+    icon: ArrowDownLeft,
+    bg: "bg-green-50",
+    color: "text-green-600",
+    name: "Income Allocation",
+    description: "Every time money enters, automatically protect a portion toward a goal.",
   },
   {
-    id: 2,
-    title: "50 / 30 / 20 Rule",
-    description: "Split income automatically",
-    status: "active",
-    icon: PieChart,
-    iconBg: "bg-slate-800",
-    iconColor: "text-slate-100"
-  },
-  {
-    id: 3,
-    title: "Emergency Lock",
-    description: "Lock until balance ≥ GH₵5,000",
-    status: "active",
     icon: Shield,
-    iconBg: "bg-slate-800",
-    iconColor: "text-slate-100"
+    bg: "bg-blue-50",
+    color: "text-blue-600",
+    name: "Spending Guard",
+    description: "Prevent spending below a minimum available balance.",
   },
   {
-    id: 4,
-    title: "Goal Lock",
-    description: "Lock until target date",
-    status: "active",
-    icon: Lock,
-    iconBg: "bg-slate-800",
-    iconColor: "text-slate-100"
+    icon: Zap,
+    bg: "bg-amber-50",
+    color: "text-amber-600",
+    name: "Auto-save",
+    description: "Protect a fixed amount on a schedule — weekly or monthly.",
   },
-  {
-    id: 5,
-    title: "Bill Protection",
-    description: "Protect essential obligations",
-    status: "active",
-    icon: ShieldCheck,
-    iconBg: "bg-slate-800",
-    iconColor: "text-slate-100"
-  }
 ];
 
 export default function RulesPage() {
-  const [activeTab, setActiveTab] = useState("active");
+  const rules = API_RULES; // Replace with useEffect + apiFetch when API exists
+  const activeRules = rules.filter((r) => r.is_active);
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-5 animate-in fade-in duration-500 pb-12">
-      
+
       {/* Header */}
       <header className="flex justify-between items-center py-2">
-        <div className="flex items-center gap-3">
-           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-slate-100 transition-colors">
-             <ArrowLeft className="w-5 h-5 text-slate-700" />
-           </Link>
-           <h1 className="text-xl md:text-2xl font-bold text-slate-900">Rules</h1>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">
+            Money Rules
+          </h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Automatic rules that organise your money.
+          </p>
         </div>
-        <button className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center hover:bg-brand/90 transition-colors shadow-sm shadow-brand/20">
-           <Plus className="w-5 h-5" />
+        {/* Create rule button — disabled until API exists */}
+        <button
+          disabled
+          className="px-4 py-2 bg-slate-100 text-slate-400 text-sm font-semibold rounded-xl cursor-not-allowed"
+          title="Rule creation coming soon"
+        >
+          + New Rule
         </button>
       </header>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-100 pb-4">
-         {[
-           { id: "active", label: "Active (5)" },
-           { id: "inactive", label: "Inactive (1)" }
-         ].map(tab => (
-           <button 
-             key={tab.id}
-             onClick={() => setActiveTab(tab.id)}
-             className={cn(
-               "px-4 py-1.5 rounded-full text-xs font-semibold transition-colors",
-               activeTab === tab.id 
-                 ? "bg-brand text-white shadow-sm" 
-                 : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
-             )}
-           >
-             {tab.label}
-           </button>
-         ))}
+      {/* API not yet available — honest banner */}
+      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-start gap-3">
+        <SlidersHorizontal className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-amber-900">Rules are coming soon</p>
+          <p className="text-xs text-amber-700 mt-0.5">
+            The rules engine is being built. When ready, you will be able to set
+            up automatic financial rules here.
+          </p>
+        </div>
       </div>
 
-      {/* Rule List */}
-      <div className="space-y-4">
-         {rules
-           .filter(rule => (activeTab === "active" ? rule.status === "active" : rule.status === "inactive"))
-           .map(rule => (
-            <div key={rule.id} className="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-sm hover:border-slate-300 transition-colors cursor-pointer group flex items-center justify-between">
-               <div className="flex items-center gap-4">
-                  <div className={cn("w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0", rule.iconBg, rule.iconColor)}>
-                     <rule.icon className="w-6 h-6" />
-                  </div>
-                  <div>
-                     <h3 className="font-bold text-slate-900 text-[15px]">{rule.title}</h3>
-                     <div className="text-[11px] text-slate-500 mt-1">{rule.description}</div>
-                  </div>
-               </div>
-               
-               <div className="text-xs font-bold text-green-500 uppercase tracking-wide">
-                  {rule.status}
-               </div>
+      {/* Active rules — empty for now, ready when API is wired */}
+      {activeRules.length > 0 ? (
+        <div className="space-y-3">
+          {activeRules.map((rule) => (
+            <div
+              key={rule.id}
+              className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between"
+            >
+              <div>
+                <p className="font-semibold text-slate-900 text-sm">{rule.name}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{rule.summary}</p>
+              </div>
+              <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
             </div>
-         ))}
-         
-         {rules.filter(r => (activeTab === "active" ? r.status === "active" : r.status === "inactive")).length === 0 && (
-            <div className="p-8 text-center text-slate-400 text-sm">
-               No {activeTab} rules found.
-            </div>
-         )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        /* Empty state — no rules yet */
+        <div className="bg-white border border-slate-100 rounded-[24px] p-8 flex flex-col items-center text-center shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+            <SlidersHorizontal className="w-7 h-7 text-slate-300" />
+          </div>
+          <h2 className="text-base font-semibold text-slate-900">No rules yet</h2>
+          <p className="text-sm text-slate-400 mt-1 max-w-xs">
+            Rules tell Arezak how to automatically organise your money every
+            time something happens — like income arriving.
+          </p>
+        </div>
+      )}
 
+      {/* Rule template previews — educational, clearly marked as preview */}
+      <div>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">
+          What you&apos;ll be able to do
+        </p>
+        <div className="space-y-2.5">
+          {RULE_TEMPLATES.map((template) => (
+            <div
+              key={template.name}
+              className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-4 opacity-60"
+            >
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${template.bg}`}
+              >
+                <template.icon className={`w-5 h-5 ${template.color}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm text-slate-900">{template.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5 truncate">
+                  {template.description}
+                </p>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ml-auto">
+                Soon
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

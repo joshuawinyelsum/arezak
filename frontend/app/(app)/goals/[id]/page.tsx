@@ -393,28 +393,97 @@ export default function GoalDetailPage() {
             )}
             
             {modalMode === "withdraw" && (
-               <div className="space-y-4">
-                  <p className="text-sm text-slate-600">
-                     GH₵{formatPesewas(goal.locked_amount)} will be withdrawn from your Goal.<br/><br/>Your Total Balance will not change.<br/>Your Available Balance will increase by GH₵{formatPesewas(goal.locked_amount)}.<br/>Your Goal balance will decrease by GH₵{formatPesewas(goal.locked_amount)}.
-                  </p>
+               <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!goal || isSubmitting || !accountId) return;
+                  const withdrawFloat = parseFloat(amountStr);
+                  if (isNaN(withdrawFloat) || withdrawFloat <= 0) {
+                    setModalError("Please enter a valid amount.");
+                    return;
+                  }
+                  const withdrawPesewas = Math.round(withdrawFloat * 100);
+                  if (withdrawPesewas > goal.current_amount) {
+                    setModalError(`Cannot withdraw more than GH₵${formatPesewas(goal.current_amount)} (current goal balance).`);
+                    return;
+                  }
+                  setIsSubmitting(true);
+                  setModalError(null);
+                  try {
+                    const res = await apiFetch(`/goals/${goal.id}/withdraw`, {
+                      method: "POST",
+                      headers: { "Idempotency-Key": crypto.randomUUID() },
+                      body: JSON.stringify({ amount_pesewas: withdrawPesewas, account_id: accountId })
+                    });
+                    if (!res.ok) {
+                      const err = await res.json();
+                      throw new Error(err.detail?.message || err.detail || "Withdrawal failed.");
+                    }
+                    await loadData();
+                    closeModal();
+                  } catch (err: any) {
+                    setModalError(err.message || "An unexpected error occurred.");
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+               }} className="space-y-4">
 
-                  <div className="flex flex-col gap-2 mt-4">
-                     <button 
-                        onClick={() => handleAction("/release")}
-                        disabled={isSubmitting}
-                        className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-brand/90"
-                     >
-                        {isSubmitting ? "Withdrawing..." : "Withdraw"}
-                     </button>
-                     <button 
-                        onClick={closeModal}
-                        disabled={isSubmitting}
-                        className="w-full bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl py-3.5 transition-all hover:bg-slate-50"
-                     >
-                        Keep protected
-                     </button>
+                  {/* Context — what this operation means */}
+                  <div className="bg-green-50 border border-green-100 rounded-xl p-3 text-xs text-green-800">
+                     <strong>Withdraw from Goal</strong> moves protected money back to your
+                     Available balance. Your <strong>Total Balance stays the same</strong>.
                   </div>
-               </div>
+
+                  <div>
+                     <div className="flex justify-between items-center mb-1.5">
+                        <label className="text-sm font-semibold text-slate-900">Amount to withdraw</label>
+                        <button type="button" onClick={() => setAmountStr((goal.current_amount / 100).toFixed(2))} className="text-xs text-brand font-medium hover:underline">
+                           Withdraw all
+                        </button>
+                     </div>
+                     <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">GH₵</span>
+                        <input
+                           type="number"
+                           inputMode="decimal"
+                           step="0.01"
+                           min="0.01"
+                           max={goal.current_amount / 100}
+                           value={amountStr}
+                           onChange={(e) => setAmountStr(e.target.value)}
+                           placeholder="0.00"
+                           disabled={isSubmitting}
+                           className="w-full pl-12 pr-4 p-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                           required
+                        />
+                     </div>
+                     <div className="text-xs text-slate-400 mt-1.5">Goal balance: GH₵{formatPesewas(goal.current_amount)}</div>
+                  </div>
+
+                  <div>
+                     <label className="block text-sm font-semibold text-slate-900 mb-1.5">Return to account</label>
+                     <select
+                        value={accountId}
+                        onChange={(e) => setAccountId(e.target.value)}
+                        disabled={isSubmitting || accounts.length === 0}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                     >
+                        {accounts.map(acc => (
+                           <option key={acc.id} value={acc.id}>{acc.name} (GH₵{formatPesewas(acc.available_balance.amount_pesewas)} available)</option>
+                        ))}
+                     </select>
+                  </div>
+
+                  <button
+                     type="submit"
+                     disabled={isSubmitting}
+                     className="w-full bg-green-600 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-green-700"
+                  >
+                     {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Withdrawing...</> : "Withdraw from Goal"}
+                  </button>
+                  <button type="button" onClick={closeModal} disabled={isSubmitting} className="w-full bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl py-3 transition-all hover:bg-slate-50">
+                     Keep protected
+                  </button>
+               </form>
             )}
 
             {modalMode === "delete" && (

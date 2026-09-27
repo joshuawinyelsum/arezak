@@ -87,7 +87,7 @@ export function MoneyActions({
   return (
     <div className="grid grid-cols-4 gap-2 md:gap-3">
       {actions.map((action) => {
-        const disabled = action.key === "fund" ? !hasAccount : false;
+        const disabled = !hasAccount;
         return (
           <button
             key={action.key}
