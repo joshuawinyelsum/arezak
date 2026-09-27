@@ -1,29 +1,48 @@
 "use client";
 
+/**
+ * Arezak Home — Phase 1 Foundation
+ *
+ * This is the composition layer for the Arezak dashboard.
+ * Business logic belongs in lib/ modules. This file composes
+ * pre-built sections into the page hierarchy.
+ *
+ * Information hierarchy (approved):
+ *   1. Vault          — Total Balance → Available + Protected
+ *   2. Actions        — Fund · Move Money (Phase 2 will expand these)
+ *   3. Goals          — Core Arezak control mechanism
+ *   4. Rules          — Financial automation (empty state for now)
+ *   5. Recent Activity — Human-readable transaction ledger
+ *
+ * Phase 1 scope: presentation layer only.
+ * No changes to: account calculations, goal accounting, ledger, constraint engine.
+ */
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
-  ArrowUpRight, 
-  ArrowRightLeft, 
-  Target, 
-  ShieldCheck, 
-  Wallet, 
-  ChevronRight,
-  Eye,
-  EyeOff,
-  Download,
-  Wifi,
-  Home as HomeIcon,
-  PieChart,
+import {
+  ArrowUpRight,
+  ShieldCheck,
+  Wallet,
   Loader2,
   AlertCircle,
-  Laptop
+  Target,
+  ArrowDownLeft,
+  ShoppingBag,
+  ArrowRightLeft,
+  CreditCard,
+  RefreshCw,
+  Minus,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { MoveMoneyModal } from "@/components/MoveMoneyModal";
 import { FundAccountModal } from "@/components/FundAccountModal";
+import { Vault } from "@/components/home/Vault";
+import { mapTransaction } from "@/lib/transactions/mapper";
+import { formatPesewas } from "@/lib/money/format";
+
+// ─── Domain types (mirrors backend API responses) ────────────────────────────
 
 type Money = {
   amount_pesewas: number;
@@ -57,35 +76,44 @@ type Goal = {
   status: string;
 };
 
-const getIconForName = (name: string, type: string) => {
-  const n = (name || type).toLowerCase();
-  if (n.includes("laptop") || n.includes("tech") || n.includes("macbook")) return { Icon: Laptop, color: "text-blue-500", bg: "bg-blue-50" };
-  if (n.includes("home") || n.includes("house")) return { Icon: HomeIcon, color: "text-red-500", bg: "bg-red-50" };
-  if (n.includes("emergency") || n.includes("safe")) return { Icon: ShieldCheck, color: "text-green-500", bg: "bg-green-50" };
-  if (n.includes("data") || n.includes("airtime") || n.includes("wifi")) return { Icon: Wifi, color: "text-orange-500", bg: "bg-orange-50" };
-  if (type === "INCOME" || type === "GOAL_RELEASE") return { Icon: Download, color: "text-green-500", bg: "bg-green-50" };
-  return { Icon: PieChart, color: "text-slate-500", bg: "bg-slate-50" };
+// ─── Icon map for transaction types ──────────────────────────────────────────
+// Driven by lib/transactions/mapper.ts iconName field.
+const ICON_MAP: Record<string, React.ElementType> = {
+  ArrowDownLeft,
+  ArrowUpRight,
+  ShoppingBag,
+  ArrowRightLeft,
+  Target,
+  ShieldCheck,
+  RefreshCw,
+  Minus,
+  CreditCard,
 };
 
-export default function Dashboard() {
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function Home() {
   const { user } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
-  
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isMoveMoneyOpen, setIsMoveMoneyOpen] = useState(false);
-  const [data, setData] = useState<{ accounts: Account[], txs: Transaction[], goals: Goal[] } | null>(null);
   const [showFundModal, setShowFundModal] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [data, setData] = useState<{
+    accounts: Account[];
+    txs: Transaction[];
+    goals: Goal[];
+  } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    const loadDashboardData = async () => {
+    const load = async () => {
       try {
         const [accRes, txRes, goalRes] = await Promise.all([
           apiFetch("/accounts"),
           apiFetch("/transactions"),
-          apiFetch("/goals")
+          apiFetch("/goals"),
         ]);
 
         if (!accRes.ok || !txRes.ok || !goalRes.ok) {
@@ -95,22 +123,24 @@ export default function Dashboard() {
         const [accounts, txs, goals] = await Promise.all([
           accRes.json(),
           txRes.json(),
-          goalRes.json()
+          goalRes.json(),
         ]);
 
-        if (isMounted) {
-          setData({ accounts, txs, goals });
-        }
-      } catch (err: any) {
-        if (isMounted) setError(err.message || "An error occurred");
+        if (isMounted) setData({ accounts, txs, goals });
+      } catch (err: unknown) {
+        if (isMounted)
+          setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         if (isMounted) setIsLoading(false);
       }
     };
-    loadDashboardData();
-    return () => { isMounted = false; };
-  }, [user]); // reload if user changes (logout/login)
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
+  // ── Loading state ────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="w-full h-[60vh] flex flex-col items-center justify-center text-slate-400">
@@ -120,333 +150,322 @@ export default function Dashboard() {
     );
   }
 
+  // ── Error state ──────────────────────────────────────────────────────────
   if (error || !data) {
     return (
       <div className="w-full h-[60vh] flex flex-col items-center justify-center text-slate-500">
         <AlertCircle className="w-10 h-10 text-red-400 mb-4" />
-        <p className="text-base font-semibold text-slate-900">Unable to load dashboard</p>
+        <p className="text-base font-semibold text-slate-900">
+          Unable to load dashboard
+        </p>
         <p className="text-sm mt-1">{error}</p>
-        <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+        >
           Retry
         </button>
       </div>
     );
   }
 
-  // Aggregation
+  // ── Balance aggregation ──────────────────────────────────────────────────
+  // INVARIANT: totalSum === totalAvailable + totalProtected
+  // Protected = locked_balance (goal-allocated) + reserved_balance (rule-reserved)
   let totalAvailable = 0;
   let totalProtected = 0;
-  
   let totalSum = 0;
 
-  data.accounts.forEach(acc => {
+  data.accounts.forEach((acc) => {
     totalAvailable += acc.available_balance.amount_pesewas;
-    totalProtected += acc.reserved_balance.amount_pesewas + acc.locked_balance.amount_pesewas;
-    
+    totalProtected +=
+      acc.locked_balance.amount_pesewas + acc.reserved_balance.amount_pesewas;
     totalSum += acc.total_balance.amount_pesewas;
   });
 
-  const formatMoney = (pesewas: number) => {
-    if (!showBalance) return "GH₵ ••••••••";
-    return `GH₵ ${(pesewas / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
+  // Formatter bound to showBalance toggle
+  const fmt = (pesewas: number) => formatPesewas(pesewas, !showBalance);
 
-  const getPercentage = (value: number) => {
-    if (totalSum === 0) return 0;
-    return Math.round((value / totalSum) * 100);
-  };
+  const firstName = user?.name?.split(" ")[0] ?? "there";
+  const activeGoals = data.goals.filter(
+    (g) => g.status === "ACTIVE" || g.status === "ACHIEVED"
+  );
 
-  const availPct = getPercentage(totalAvailable);
-  const protPct = getPercentage(totalProtected);
-
-  // Pick top goal to highlight
-  const topGoal = data.goals.filter(g => g.status === "ACTIVE" || g.status === "ACHIEVED")[0] || null;
-  const topGoalProgress = topGoal && topGoal.target_amount > 0 ? Math.floor((topGoal.current_amount / topGoal.target_amount) * 100) : 0;
-
-  // Recent transactions (top 3)
-  const recentTxs = data.txs.slice(0, 3);
-
-  const firstName = user?.name?.split(" ")[0] || "User";
-
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12">
-      
-        <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between md:mt-4">
-           <div>
-               <h1 className="text-[22px] md:text-2xl font-bold text-slate-900 tracking-tight">Good morning, {firstName} 👋</h1>
-               <p className="text-sm text-slate-500">Your money is working according to your rules.</p>
-           </div>
-           
-           {data.accounts.length > 0 && (
-             <button 
+    <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-16 pt-2 space-y-8">
+      {/* ── Page header ── */}
+      <header className="flex flex-col gap-1 md:mt-2">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          Good morning, {firstName} 👋
+        </h1>
+        <p className="text-sm text-slate-500">
+          Your money is working according to your rules.
+        </p>
+      </header>
+
+      {/* ── Main two-column grid ── */}
+      {/* Left: Vault + primary actions.  Right: ecosystem panels. */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* ╔══════════════════════════════╗
+            ║  LEFT — Vault & Actions      ║
+            ╚══════════════════════════════╝ */}
+        <div className="lg:col-span-7 flex flex-col gap-5">
+
+          {/* 1. Vault — Total Balance → Available + Protected */}
+          <Vault
+            totalSum={totalSum}
+            totalAvailable={totalAvailable}
+            totalProtected={totalProtected}
+            showBalance={showBalance}
+            onToggleBalance={() => setShowBalance((v) => !v)}
+            formatPesewas={fmt}
+          />
+
+          {/* 2. Primary actions — Phase 2 will break this into Fund/Send/Pay/Transfer */}
+          {/* Keeping two prominent buttons for Phase 1 checkpoint. */}
+          <div className="grid grid-cols-2 gap-3">
+            {data.accounts.length > 0 && (
+              <button
                 onClick={() => {
                   setSelectedAccountId(data.accounts[0].id);
                   setShowFundModal(true);
                 }}
-                className="flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-brand-hover shadow-sm transition-colors w-full md:w-auto justify-center"
-             >
-                + Fund Account
-             </button>
-           )}
-        </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-6">
-        
-        {/* Left Column (Main Stats) */}
-        <div className="md:col-span-8 flex flex-col gap-5 md:gap-6">
-          
-          {/* Top Row: Balance & Money Flow */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-             {/* Total Balance Card */}
-             <div className="rounded-[24px] bg-gradient-to-br from-brand to-[#1a37a5] text-white p-6 relative overflow-hidden shadow-lg shadow-brand/20">
-               <div className="relative z-10 flex flex-col h-full justify-between gap-8">
-                 <div>
-                   <div className="flex items-center justify-between mb-2">
-                     <span className="text-sm font-medium text-white/80">Total Balance</span>
-                     <button onClick={() => setShowBalance(!showBalance)} className="text-white/60 hover:text-white transition-colors">
-                       {showBalance ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                     </button>
-                   </div>
-                   <div className="text-[32px] font-bold tracking-tight mb-2">
-                     {formatMoney(totalSum)}
-                   </div>
-                     {/* Static trend removed, no backend trend API yet */}
-                   </div>
-                 
-                 <div className="grid grid-cols-2 gap-4 mt-4">
-                    <div>
-                       <div className="text-xs text-white/60 mb-1 uppercase tracking-wider font-semibold">Available</div>
-                       <div className="text-lg font-semibold">{formatMoney(totalAvailable)}</div>
-                    </div>
-                    <div>
-                       <div className="text-xs text-white/60 mb-1 uppercase tracking-wider font-semibold">Protected</div>
-                       <div className="text-lg font-semibold">{formatMoney(totalProtected)}</div>
-                    </div>
-                 </div>
-                 </div>
-               
-               <div className="absolute -bottom-16 -right-16 opacity-20 pointer-events-none mix-blend-overlay">
-                  <div className="w-64 h-64 border-[40px] border-white rounded-full"></div>
-               </div>
-             </div>
-
-             {/* Your Money Flow (Desktop only, mobile shows small icons) */}
-             <div className="hidden md:flex flex-col bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                   <h3 className="font-semibold text-slate-900">Your Money Flow</h3>
+                className="flex flex-col items-center justify-center gap-2 bg-white border border-slate-200 rounded-2xl p-5 hover:border-brand/30 hover:bg-brand/5 transition-all shadow-sm group"
+              >
+                <div className="w-11 h-11 rounded-full bg-brand/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Wallet className="w-5 h-5 text-brand" />
                 </div>
-                <div className="flex-1 flex items-center gap-6">
-                   <div className="relative w-28 h-28 flex-shrink-0">
-                      <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                         {totalSum > 0 ? (
-                           <>
-                             {/* Available */}
-                             <path className="text-blue-500" strokeWidth="4" stroke="currentColor" fill="none" strokeDasharray={`${availPct}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                             {/* Protected */}
-                             <path className="text-green-500" strokeWidth="4" stroke="currentColor" fill="none" strokeDasharray={`${protPct}, 100`} strokeDashoffset={`-${availPct}`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                           </>
-                         ) : (
-                           <path className="text-slate-100" strokeWidth="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                         )}
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                         <span className="text-[10px] text-slate-500 font-medium leading-none mb-1">Total Assets</span>
-                         <span className="font-bold text-slate-900 text-sm">{formatMoney(totalSum)}</span>
-                      </div>
-                   </div>
-                   <div className="flex-1 flex flex-col gap-3 justify-center">
-                      <div className="flex items-center justify-between text-xs">
-                         <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div><span className="text-slate-600 font-medium">Protected</span></div>
-                         <div className="flex items-center gap-2"><span className="text-slate-400">{protPct}%</span> <span className="font-semibold text-slate-900">{formatMoney(totalProtected)}</span></div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                         <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div><span className="text-slate-600 font-medium">Available</span></div>
-                         <div className="flex items-center gap-2"><span className="text-slate-400">{availPct}%</span> <span className="font-semibold text-slate-900">{formatMoney(totalAvailable)}</span></div>
-                      </div>
-                   </div>
-                </div>
-             </div>
-
-             {/* Mobile-only Stats Row */}
-             <div className="flex md:hidden items-center justify-between bg-white border border-slate-100 rounded-2xl p-4 shadow-sm gap-2">
-                  <div className="flex-1 flex flex-col items-center gap-2">
-                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center"><Wallet className="w-4 h-4"/></div>
-                     <div className="text-center">
-                        <div className="text-xs font-semibold text-slate-900">Available</div>
-                        <div className="text-[10px] text-slate-500">{formatMoney(totalAvailable)}</div>
-                     </div>
+                <div className="text-center">
+                  <div className="font-semibold text-sm text-slate-900">
+                    Fund
                   </div>
-                  <div className="flex-1 flex flex-col items-center gap-2 border-l border-slate-100">
-                     <div className="w-10 h-10 rounded-full bg-green-50 text-green-500 flex items-center justify-center"><ShieldCheck className="w-4 h-4"/></div>
-                     <div className="text-center">
-                        <div className="text-xs font-semibold text-slate-900">Protected</div>
-                        <div className="text-[10px] text-slate-500">{formatMoney(totalProtected)}</div>
-                     </div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">
+                    Add money
                   </div>
-               </div>
-          </div>
-
-          {/* Primary Action */}
-          <div className="flex flex-col gap-3">
-             <button 
-                onClick={() => setIsMoveMoneyOpen(true)}
-                className="w-full bg-brand text-white p-4 rounded-2xl flex items-center justify-between hover:bg-brand-hover transition-colors shadow-sm group"
-             >
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      <ArrowUpRight className="w-6 h-6" />
-                   </div>
-                   <div className="text-left">
-                      <div className="font-bold text-lg">Move Money</div>
-                      <div className="text-sm text-white/80">Send, pay, or transfer to wallet/bank</div>
-                   </div>
                 </div>
-             </button>
-          </div>
+              </button>
+            )}
 
-          {/* Accounts Section */}
-          <div className="hidden md:block bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm">
-             <div className="flex justify-between items-center mb-5">
-                <h3 className="font-semibold text-slate-900">Accounts Summary</h3>
-                <Link href="/accounts" className="text-xs text-brand font-medium hover:underline">View all</Link>
-             </div>
-             <div className="grid grid-cols-2 gap-4">
-                <div className="bg-brand text-white p-5 rounded-2xl flex flex-col justify-between h-36">
-                   <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"><Wallet className="w-4 h-4"/></div>
-                   <div>
-                     <div className="text-xs text-white/80 font-medium mb-1">Available Balance</div>
-                     <div className="text-xl font-bold">{formatMoney(totalAvailable)}</div>
-                     <div className="text-[10px] text-white/60 mt-2">≈ {availPct}% of total</div>
-                   </div>
-                </div>
-                <div className="bg-[#E6F8F0] border border-[#BDE8D6] text-[#0A5436] p-5 rounded-2xl flex flex-col justify-between h-36">
-                   <div className="w-8 h-8 rounded-full bg-[#CCEFDF] flex items-center justify-center"><ShieldCheck className="w-4 h-4 text-[#127951]"/></div>
-                   <div>
-                     <div className="text-xs font-medium mb-1 opacity-80">Protected</div>
-                     <div className="text-xl font-bold text-[#0D6A45]">{formatMoney(totalProtected)}</div>
-                     <div className="text-[10px] opacity-70 mt-2">≈ {protPct}% of total</div>
-                   </div>
-                </div>
-                
-             </div>
-          </div>
-
-          {/* Recent Transactions */}
-          <div className="bg-white border border-slate-200 rounded-[24px] p-5 md:p-6 shadow-sm">
-             <div className="flex justify-between items-center mb-5">
-                <h3 className="font-semibold text-slate-900 text-base md:text-lg">Recent Transactions</h3>
-                <Link href="/transactions" className="text-xs text-brand font-medium hover:underline">View all</Link>
-             </div>
-             {recentTxs.length === 0 ? (
-                <div className="text-center py-6 text-sm text-slate-500">
-                  No recent transactions
-                </div>
-             ) : (
-                <div className="space-y-5">
-                  {recentTxs.map(tx => {
-                     const isPositive = tx.type === "INCOME" || tx.type === "GOAL_RELEASE";
-                     const { Icon, color, bg } = getIconForName(tx.description || "", tx.type);
-                     return (
-                      <div key={tx.id} className="flex items-center justify-between group">
-                         <div className="flex items-center gap-3.5">
-                            <div className={cn("w-10 h-10 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform", bg)}>
-                               <Icon className={cn("w-4 h-4", color)} />
-                            </div>
-                            <div>
-                               <div className="font-semibold text-sm text-slate-900 capitalize">{tx.description || tx.type.toLowerCase()}</div>
-                               <div className="text-[11px] text-slate-500 mt-0.5">{new Date(tx.created_at).toLocaleDateString()} • {tx.type}</div>
-                            </div>
-                         </div>
-                         <div className={cn("font-semibold text-sm", isPositive ? "text-green-600" : "text-slate-700")}>
-                            {isPositive ? "+" : "-"} GH₵{(tx.amount.amount_pesewas / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                         </div>
-                      </div>
-                     );
-                  })}
-                </div>
-             )}
-          </div>
-
-        </div>
-
-        {/* Right Column (Side Panels) */}
-        <div className="md:col-span-4 flex flex-col gap-5 md:gap-6">
-           
-           {/* Next Automatic Actions */}
-           <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm hidden md:block">
-              <div className="flex justify-between items-center mb-5">
-                 <h3 className="font-semibold text-slate-900">Next Automatic Actions</h3>
-                 <Link href="/rules" className="text-xs text-brand font-medium hover:underline">View all</Link>
+            <button
+              onClick={() => setIsMoveMoneyOpen(true)}
+              className="flex flex-col items-center justify-center gap-2 bg-white border border-slate-200 rounded-2xl p-5 hover:border-brand/30 hover:bg-brand/5 transition-all shadow-sm group"
+            >
+              <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <ArrowUpRight className="w-5 h-5 text-slate-600" />
               </div>
+              <div className="text-center">
+                <div className="font-semibold text-sm text-slate-900">
+                  Move Money
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  Send · Pay · Transfer
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* 3. Goals — core Arezak control mechanism */}
+          <section className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="font-semibold text-slate-900">Your Goals</h2>
+              <Link
+                href="/goals"
+                className="text-xs text-brand font-medium hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+
+            {activeGoals.length === 0 ? (
               <div className="text-center py-8">
-                 <ShieldCheck className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                 <p className="text-sm font-medium text-slate-900">No active rules</p>
-                 <p className="text-xs text-slate-500 mt-1">Automate your finances with rules.</p>
+                <Target className="w-8 h-8 text-slate-200 mx-auto mb-3" />
+                <p className="text-sm font-medium text-slate-900">
+                  No goals yet
+                </p>
+                <p className="text-xs text-slate-400 mt-1 max-w-[220px] mx-auto">
+                  Create a goal to protect money for something that matters.
+                </p>
+                <Link
+                  href="/goals/create"
+                  className="inline-block mt-4 px-4 py-2 bg-brand text-white text-xs font-semibold rounded-xl hover:bg-brand-hover transition-colors"
+                >
+                  Create a goal
+                </Link>
               </div>
-           </div>
+            ) : (
+              <div className="space-y-5">
+                {activeGoals.slice(0, 3).map((goal) => {
+                  const progress =
+                    goal.target_amount > 0
+                      ? Math.min(
+                          Math.round(
+                            (goal.current_amount / goal.target_amount) * 100
+                          ),
+                          100
+                        )
+                      : 0;
+                  const isAchieved = goal.status === "ACHIEVED";
 
-           {/* Your Progress (Goals) */}
-           <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm hidden md:block">
-              <div className="flex justify-between items-center mb-5">
-                 <h3 className="font-semibold text-slate-900">Your Progress</h3>
-                 <Link href="/goals" className="text-xs text-brand font-medium hover:underline">View all</Link>
+                  return (
+                    <Link
+                      href={`/goals/${goal.id}`}
+                      key={goal.id}
+                      className="block group"
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="font-semibold text-sm text-slate-900 group-hover:text-brand transition-colors">
+                          {goal.name}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isAchieved && (
+                            <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                              Achieved
+                            </span>
+                          )}
+                          <span className="text-xs font-medium text-slate-500">
+                            {progress}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${
+                            isAchieved ? "bg-green-500" : "bg-brand"
+                          }`}
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <div className="mt-2 text-[11px] text-slate-400">
+                        {fmt(goal.current_amount)} of {fmt(goal.target_amount)}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-              
-              {!topGoal ? (
-                 <div className="text-center py-6 text-sm text-slate-500">
-                    No goals yet.<br/><span className="mt-1 block">Create a goal to start protecting money for something that matters to you.</span>
-                 </div>
-              ) : (
-                 <>
-                    <div className="flex items-center gap-5">
-                       <div className="relative w-20 h-20 shrink-0">
-                         <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-                            <path className="text-slate-100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <path className={cn("transition-all duration-1000", topGoalProgress === 100 ? "text-green-500" : "text-brand")} strokeWidth="3" strokeLinecap="round" stroke="currentColor" fill="none" strokeDasharray={`${Math.min(topGoalProgress, 100)}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                         </svg>
-                         <div className="absolute inset-0 flex items-center justify-center text-lg font-bold text-slate-900">
-                            {topGoalProgress}%
-                         </div>
-                       </div>
-                       <div>
-                          <div className="text-xs font-semibold text-brand mb-1">Goal Progress</div>
-                          <div className="font-semibold text-sm text-slate-900">{topGoal.name}</div>
-                          <div className="text-xs text-slate-500 mt-1">GH₵ {(topGoal.current_amount / 100).toLocaleString()} / {(topGoal.target_amount / 100).toLocaleString()}</div>
-                       </div>
-                    </div>
-                    
-                    <div className="mt-6 bg-[#F8FAFC] border border-slate-100 rounded-xl p-4 flex gap-3 items-start">
-                       <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                       </div>
-                       <div>
-                          <div className="text-xs font-semibold text-slate-900">You&apos;re on the right track!</div>
-                          <div className="text-[11px] text-slate-500 mt-1 leading-relaxed">Keep funding your goal to reach your target.</div>
-                       </div>
-                    </div>
-                 </>
-              )}
-           </div>
+            )}
+          </section>
+        </div>
 
+        {/* ╔══════════════════════════════╗
+            ║  RIGHT — Ecosystem panels    ║
+            ╚══════════════════════════════╝ */}
+        <div className="lg:col-span-5 flex flex-col gap-5">
+
+          {/* 4. Money Rules — financial automation (empty state for Phase 1) */}
+          <section className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="font-semibold text-slate-900">Money Rules</h2>
+              <Link
+                href="/rules"
+                className="text-xs text-brand font-medium hover:underline"
+              >
+                Manage
+              </Link>
+            </div>
+            <div className="text-center py-6">
+              <ShieldCheck className="w-8 h-8 text-slate-200 mx-auto mb-3" />
+              <p className="text-sm font-medium text-slate-900">
+                No active rules
+              </p>
+              <p className="text-xs text-slate-400 mt-1 max-w-[200px] mx-auto">
+                Automatically organise your money as it comes in.
+              </p>
+            </div>
+          </section>
+
+          {/* 5. Recent Activity — human-readable ledger via TransactionMapper */}
+          <section className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="font-semibold text-slate-900">Recent Activity</h2>
+              <Link
+                href="/transactions"
+                className="text-xs text-brand font-medium hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+
+            {data.txs.length === 0 ? (
+              <div className="text-center py-8 text-sm text-slate-400">
+                No recent transactions
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {data.txs.slice(0, 5).map((tx) => {
+                  const pres = mapTransaction(tx.type);
+                  const Icon = ICON_MAP[pres.iconName] ?? CreditCard;
+                  const isCredit = pres.direction === "credit";
+
+                  // User-facing label: prefer the description if meaningful
+                  const label =
+                    tx.description && tx.description.trim().length > 0
+                      ? tx.description
+                      : pres.label;
+
+                  return (
+                    <div
+                      key={tx.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${pres.bg}`}
+                        >
+                          <Icon className={`w-4 h-4 ${pres.color}`} />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {label}
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">
+                            {new Date(tx.created_at).toLocaleDateString(
+                              "en-GH",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`text-sm font-semibold ${
+                          isCredit ? "text-green-600" : "text-slate-700"
+                        }`}
+                      >
+                        {isCredit ? "+" : "−"}{" "}
+                        {formatPesewas(
+                          tx.amount.amount_pesewas,
+                          !showBalance
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
       </div>
-      
-      <FundAccountModal 
-        isOpen={showFundModal} 
-        onClose={() => setShowFundModal(false)} 
-        accountId={selectedAccountId} 
-        onSuccess={() => {
-          window.location.reload();
-        }} 
+
+      {/* ── Modals ── */}
+      <FundAccountModal
+        isOpen={showFundModal}
+        onClose={() => setShowFundModal(false)}
+        accountId={selectedAccountId}
+        onSuccess={() => window.location.reload()}
       />
 
-
-      <MoveMoneyModal 
-        isOpen={isMoveMoneyOpen} 
-        onClose={() => setIsMoveMoneyOpen(false)} 
+      <MoveMoneyModal
+        isOpen={isMoveMoneyOpen}
+        onClose={() => setIsMoveMoneyOpen(false)}
         onSuccess={() => window.location.reload()}
         availableBalance={totalAvailable}
-        accounts={data?.accounts || []}
+        accounts={data?.accounts ?? []}
       />
     </div>
   );
