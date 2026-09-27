@@ -2,8 +2,19 @@ import React, { useState } from "react";
 import { Loader2, X, AlertCircle, ArrowUpRight, ShoppingBag, Landmark, Info } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
-export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, accounts }: any) {
-  const [step, setStep] = useState<"menu" | "send" | "pay" | "withdraw">("menu");
+type ModalStep = "menu" | "send" | "pay" | "withdraw";
+
+interface MoveMoneyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  availableBalance: number;
+  accounts: Array<{ id: string; name: string; available_balance: { amount_pesewas: number } }>;
+  initialStep?: ModalStep;
+}
+
+export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, accounts, initialStep }: MoveMoneyModalProps) {
+  const [step, setStep] = useState<ModalStep>(initialStep ?? "menu");
   const [amountStr, setAmountStr] = useState("");
   const [destination, setDestination] = useState("");
   const [description, setDescription] = useState("");
@@ -14,7 +25,7 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
 
   React.useEffect(() => {
     if (isOpen) {
-      setStep("menu");
+      setStep(initialStep ?? "menu");
       setAmountStr("");
       setDestination("");
       setDescription("");
@@ -23,7 +34,7 @@ export function MoveMoneyModal({ isOpen, onClose, onSuccess, availableBalance, a
         setAccountId(accounts[0].id);
       }
     }
-  }, [isOpen, accounts]);
+  }, [isOpen, accounts, initialStep]);
 
   if (!isOpen) return null;
 

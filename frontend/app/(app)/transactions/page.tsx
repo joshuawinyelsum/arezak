@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Minus, ArrowLeftRight, X, AlertCircle, Loader2, PieChart, ShieldCheck, ArrowLeft, Wifi, Briefcase, Download } from "lucide-react";
+import { Plus, Minus, ArrowLeftRight, X, AlertCircle, Loader2, PieChart, ArrowLeft, ArrowDownLeft, ArrowUpRight, ShoppingBag, ArrowRightLeft, Target, ShieldCheck, RefreshCw, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { FundAccountModal } from "@/components/FundAccountModal";
 import { TransactionActionModal } from "@/components/TransactionActionModal";
+import { mapTransaction } from "@/lib/transactions/mapper";
+
 
 interface Account {
   id: string;
@@ -89,12 +91,18 @@ export default function TransactionsPage() {
     return acc;
   }, {} as Record<string, Transaction[]>);
 
-  const getIconForType = (type: string) => {
-    if (type === "INCOME") return { Icon: Briefcase, bg: "bg-green-50", color: "text-green-600" };
-    if (type === "EXPENSE") return { Icon: PieChart, bg: "bg-slate-100", color: "text-slate-600" };
-    if (type === "GOAL_RELEASE") return { Icon: Briefcase, bg: "bg-brand/10", color: "text-brand" };
-    return { Icon: Wifi, bg: "bg-slate-100", color: "text-slate-500" };
+  // Icon map keyed by mapper's iconName field
+  const ICON_MAP: Record<string, React.ElementType> = {
+    ArrowDownLeft, ArrowUpRight, ShoppingBag, ArrowRightLeft,
+    Target, ShieldCheck, RefreshCw, CreditCard, PieChart,
   };
+
+  const getIconForType = (type: string) => {
+    const pres = mapTransaction(type);
+    const Icon = ICON_MAP[pres.iconName] ?? CreditCard;
+    return { Icon, bg: pres.bg, color: pres.color };
+  };
+
 
   const filteredGroups = Object.entries(groupedTransactions).map(([date, txs]) => {
     const filteredTxs = txs.filter(tx => {
@@ -211,9 +219,9 @@ export default function TransactionsPage() {
                                 <Icon className="w-5 h-5" />
                              </div>
                                <div>
-                                  <div className="font-semibold text-sm text-slate-900 capitalize">{item.description || item.type.toLowerCase().replace("_", " ")}</div>
+                                  <div className="font-semibold text-sm text-slate-900">{item.description || mapTransaction(item.type).label}</div>
                                   <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
-                                    <span className="capitalize">{item.type.toLowerCase().replace("_", " ")}</span>
+                                    <span>{mapTransaction(item.type).label}</span>
                                     {item.note && (
                                       <>
                                         <span className="w-1 h-1 rounded-full bg-slate-300"></span>
