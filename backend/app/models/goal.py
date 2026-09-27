@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, ForeignKey, Boolean, Integer, DateTime
+from sqlalchemy import String, ForeignKey, Boolean, Integer, DateTime, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import BaseModel
@@ -17,10 +17,10 @@ class Goal(BaseModel):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     
-    target_amount: Mapped[int] = mapped_column(Integer, nullable=False) # pesewas
-    current_amount: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # pesewas (saved)
-    locked_amount: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # pesewas (protected)
-    currency: Mapped[str] = mapped_column(String(3), default="GHS", nullable=False)
+    target_amount: Mapped[int] = mapped_column(Integer, CheckConstraint("target_amount > 0", name="chk_goal_target_positive"), nullable=False) # pesewas
+    current_amount: Mapped[int] = mapped_column(Integer, CheckConstraint("current_amount >= 0", name="chk_goal_current_positive"), default=0, nullable=False) # pesewas (saved)
+    locked_amount: Mapped[int] = mapped_column(Integer, CheckConstraint("locked_amount >= 0", name="chk_goal_locked_positive"), default=0, nullable=False) # pesewas (protected)
+    currency: Mapped[str] = mapped_column(String(3), CheckConstraint("currency = 'GHS'", name="chk_goal_currency_ghs"), default="GHS", nullable=False)
     
     status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False) # ACTIVE, ACHIEVED
     

@@ -109,11 +109,22 @@ def contribute_to_goal(
     ledger_entry = LedgerEntry(
         account_id=account_id,
         transaction_id=transaction.id,
+        balance_type="AVAILABLE",
         amount=amount_pesewas,
         currency=currency,
         entry_type="DEBIT"
     )
     db.add(ledger_entry)
+
+    ledger_entry_locked = LedgerEntry(
+        account_id=account_id,
+        transaction_id=transaction.id,
+        balance_type="LOCKED",
+        amount=amount_pesewas,
+        currency=currency,
+        entry_type="CREDIT"
+    )
+    db.add(ledger_entry_locked)
     
     # Create GoalContribution record
     contribution = GoalContribution(
@@ -246,10 +257,21 @@ def withdraw_from_goal(
     ledger_entry = LedgerEntry(
         account_id=account_id,
         transaction_id=transaction.id,
+        balance_type="AVAILABLE",
         amount=amount_pesewas,
         currency=currency,
         entry_type="CREDIT"
     )
     db.add(ledger_entry)
+
+    ledger_entry_locked = LedgerEntry(
+        account_id=account_id,
+        transaction_id=transaction.id,
+        balance_type="LOCKED",
+        amount=amount_pesewas,
+        currency=currency,
+        entry_type="DEBIT"
+    )
+    db.add(ledger_entry_locked)
     
     return transaction

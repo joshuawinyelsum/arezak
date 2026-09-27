@@ -77,12 +77,24 @@ def process_income(
     ledger_entry = LedgerEntry(
         account_id=account.id,
         transaction_id=transaction.id,
+        balance_type="AVAILABLE",
         entry_type="CREDIT",
         amount=amount_pesewas,
         currency=currency,
         description=description
     )
     db.add(ledger_entry)
+
+    ledger_entry_ext = LedgerEntry(
+        account_id=account.id,
+        transaction_id=transaction.id,
+        balance_type="EXTERNAL",
+        entry_type="DEBIT",
+        amount=amount_pesewas,
+        currency=currency,
+        description="External Funding Source"
+    )
+    db.add(ledger_entry_ext)
 
     # 5. Audit Log
     record_audit(db, user_id, "TRANSACTION", transaction.id, "TRANSACTION_CREATED", "Income processed")
@@ -137,12 +149,24 @@ def process_expense(db: Session, user_id: uuid.UUID, account_id: uuid.UUID, amou
     ledger_entry = LedgerEntry(
         account_id=account.id,
         transaction_id=transaction.id,
+        balance_type="AVAILABLE",
         entry_type="DEBIT",
         amount=amount_pesewas,
         currency=currency,
         description=description
     )
     db.add(ledger_entry)
+
+    ledger_entry_ext = LedgerEntry(
+        account_id=account.id,
+        transaction_id=transaction.id,
+        balance_type="EXTERNAL",
+        entry_type="CREDIT",
+        amount=amount_pesewas,
+        currency=currency,
+        description="External Payment Destination"
+    )
+    db.add(ledger_entry_ext)
 
     # 5. Audit Log
     record_audit(db, user_id, "TRANSACTION", transaction.id, "TRANSACTION_CREATED", "Expense processed")
@@ -193,12 +217,24 @@ def process_outbound(db: Session, user_id: uuid.UUID, account_id: uuid.UUID, amo
     ledger_entry = LedgerEntry(
         account_id=account.id,
         transaction_id=transaction.id,
+        balance_type="AVAILABLE",
         entry_type="DEBIT",
         amount=amount_pesewas,
         currency=currency,
         description=description
     )
     db.add(ledger_entry)
+
+    ledger_entry_ext = LedgerEntry(
+        account_id=account.id,
+        transaction_id=transaction.id,
+        balance_type="EXTERNAL",
+        entry_type="CREDIT",
+        amount=amount_pesewas,
+        currency=currency,
+        description="External Outbound Destination"
+    )
+    db.add(ledger_entry_ext)
 
     record_audit(db, user_id, "TRANSACTION", transaction.id, f"{tx_type}_CREATED", "Outbound transaction processed")
     return transaction
@@ -320,6 +356,7 @@ def correct_transaction(
     reversal_entry = LedgerEntry(
         account_id=tx.account_id,
         transaction_id=reversal_tx.id,
+        balance_type='AVAILABLE',
         entry_type='DEBIT' if tx.type == 'INCOME' else 'CREDIT',
         amount=tx.amount,
         currency=tx.currency,
@@ -327,15 +364,38 @@ def correct_transaction(
     )
     db.add(reversal_entry)
 
+    reversal_entry_ext = LedgerEntry(
+        account_id=tx.account_id,
+        transaction_id=reversal_tx.id,
+        balance_type='EXTERNAL',
+        entry_type='CREDIT' if tx.type == 'INCOME' else 'DEBIT',
+        amount=tx.amount,
+        currency=tx.currency,
+        description=f'External reversal for {tx.id}'
+    )
+    db.add(reversal_entry_ext)
+
     replacement_entry = LedgerEntry(
         account_id=tx.account_id,
         transaction_id=replacement_tx.id,
+        balance_type='AVAILABLE',
         entry_type='CREDIT' if tx.type == 'INCOME' else 'DEBIT',
         amount=new_amount_pesewas,
         currency=new_currency,
         description=tx.description
     )
     db.add(replacement_entry)
+
+    replacement_entry_ext = LedgerEntry(
+        account_id=tx.account_id,
+        transaction_id=replacement_tx.id,
+        balance_type='EXTERNAL',
+        entry_type='DEBIT' if tx.type == 'INCOME' else 'CREDIT',
+        amount=new_amount_pesewas,
+        currency=new_currency,
+        description='External correction'
+    )
+    db.add(replacement_entry_ext)
 
     record_audit(db, user_id, 'TRANSACTION', tx.id, 'TRANSACTION_CORRECTED', 'Transaction corrected via reversal')
 

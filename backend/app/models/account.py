@@ -15,14 +15,14 @@ class Account(BaseModel):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False) # e.g. MAIN, BANK, CASH
-    currency: Mapped[str] = mapped_column(String(3), default="GHS", nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), CheckConstraint("currency = 'GHS'", name="chk_account_currency_ghs"), default="GHS", nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False)
 
     # Authoritative balances cached for fast reads. Must be updated within same transaction as ledger mutations.
     # By invariant: total_balance = available_balance + reserved_balance + locked_balance
     available_balance: Mapped[int] = mapped_column(Integer, CheckConstraint("available_balance >= 0", name="chk_positive_available"), default=0, nullable=False) # in pesewas
-    reserved_balance: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    locked_balance: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reserved_balance: Mapped[int] = mapped_column(Integer, CheckConstraint("reserved_balance >= 0", name="chk_positive_reserved"), default=0, nullable=False)
+    locked_balance: Mapped[int] = mapped_column(Integer, CheckConstraint("locked_balance >= 0", name="chk_positive_locked"), default=0, nullable=False)
 
     @property
     def total_balance(self) -> int:

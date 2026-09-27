@@ -36,8 +36,8 @@ class Transaction(BaseModel):
     account_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=True, index=True)
     
     type: Mapped[TransactionType] = mapped_column(Enum(TransactionType, name="transaction_type_enum"), nullable=False)
-    amount: Mapped[int] = mapped_column(Integer, nullable=False) # absolute pesewas amount
-    currency: Mapped[str] = mapped_column(String(3), default="GHS", nullable=False)
+    amount: Mapped[int] = mapped_column(Integer, CheckConstraint("amount > 0", name="chk_transaction_amount_positive"), nullable=False) # absolute pesewas amount
+    currency: Mapped[str] = mapped_column(String(3), CheckConstraint("currency = 'GHS'", name="chk_transaction_currency_ghs"), default="GHS", nullable=False)
     
     source_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     destination_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)

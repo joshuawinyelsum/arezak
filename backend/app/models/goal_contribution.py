@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import ForeignKey, Integer, String, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import BaseModel
@@ -19,8 +19,8 @@ class GoalContribution(BaseModel):
     # We keep a reference to the main transaction that moved the money
     transaction_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("transactions.id"), nullable=False, unique=True)
     
-    amount: Mapped[int] = mapped_column(Integer, nullable=False) # pesewas
-    currency: Mapped[str] = mapped_column(String(3), default="GHS", nullable=False)
+    amount: Mapped[int] = mapped_column(Integer, CheckConstraint("amount > 0", name="chk_goal_contrib_amount_positive"), nullable=False) # pesewas
+    currency: Mapped[str] = mapped_column(String(3), CheckConstraint("currency = 'GHS'", name="chk_goal_contrib_currency_ghs"), default="GHS", nullable=False)
     
     # Reference for idempotency tracking of the contribution explicitly
     reference: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
