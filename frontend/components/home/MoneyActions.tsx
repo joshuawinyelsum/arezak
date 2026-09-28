@@ -6,8 +6,8 @@
  * Actions are user INTENTIONS, not backend endpoints.
  * The user sees what they want to do; the modal handles the technical flow.
  *
- * Fund    → money entering Arezak
  * Send    → money to another person
+ * Fund    → money entering Arezak
  * Pay     → merchant / bill / service
  * Withdraw → money leaving Arezak (unavailable until a destination provider is connected)
  *
@@ -17,10 +17,10 @@
 
 import React from "react";
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  ShoppingBag,
-  Landmark,
+  Banknote,
+  CreditCard,
+  HandCoins,
+  WalletCards,
 } from "lucide-react";
 
 interface MoneyActionsProps {
@@ -33,40 +33,28 @@ interface MoneyActionsProps {
 
 const actions = [
   {
-    key: "fund" as const,
-    label: "Fund",
-    description: "Add money",
-    icon: ArrowDownLeft,
-    bg: "bg-green-50",
-    color: "text-green-600",
-    ringHover: "hover:ring-green-200",
-  },
-  {
     key: "send" as const,
     label: "Send",
     description: "To someone",
-    icon: ArrowUpRight,
-    bg: "bg-blue-50",
-    color: "text-blue-600",
-    ringHover: "hover:ring-blue-200",
+    icon: HandCoins,
+  },
+  {
+    key: "fund" as const,
+    label: "Fund",
+    description: "Add money",
+    icon: WalletCards,
   },
   {
     key: "pay" as const,
     label: "Pay",
     description: "Bills & services",
-    icon: ShoppingBag,
-    bg: "bg-orange-50",
-    color: "text-orange-600",
-    ringHover: "hover:ring-orange-200",
+    icon: CreditCard,
   },
   {
     key: "withdraw" as const,
     label: "Withdraw",
-    description: "To wallet/bank",
-    icon: Landmark,
-    bg: "bg-purple-50",
-    color: "text-purple-600",
-    ringHover: "hover:ring-purple-200",
+    description: "Cash out",
+    icon: Banknote,
   },
 ];
 
@@ -85,7 +73,7 @@ export function MoneyActions({
   };
 
   return (
-    <div className="grid grid-cols-4 gap-2 md:gap-3">
+    <div className="grid grid-cols-2 gap-2 min-[390px]:grid-cols-4 md:gap-3">
       {actions.map((action) => {
         const disabled = !hasAccount;
         return (
@@ -93,18 +81,15 @@ export function MoneyActions({
             key={action.key}
             onClick={handlers[action.key]}
             disabled={disabled}
-            className={`flex flex-col items-center justify-center gap-2 p-3 md:p-4 bg-white border border-slate-200 rounded-2xl transition-all group ring-2 ring-transparent ${action.ringHover} hover:border-transparent hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+            aria-label={`${action.label}: ${action.description}`}
+            className="group flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-28"
           >
-            <div
-              className={`w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center ${action.bg} group-hover:scale-105 transition-transform`}
-            >
-              <action.icon className={`w-5 h-5 ${action.color}`} />
-            </div>
+            <action.icon className="h-5 w-5 text-brand" strokeWidth={1.8} aria-hidden="true" />
             <div className="text-center">
               <div className="font-semibold text-[13px] text-slate-900">
                 {action.label}
               </div>
-              <div className="text-[10px] text-slate-400 mt-0.5 hidden md:block">
+              <div className="mt-0.5 hidden text-xs text-slate-500 sm:block">
                 {action.description}
               </div>
             </div>

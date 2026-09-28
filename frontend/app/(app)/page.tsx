@@ -8,9 +8,9 @@
  *
  * Information hierarchy (locked):
  *   1. Vault          — Total Balance → Available + Protected
- *   2. MoneyActions   — Fund · Send · Pay · Withdraw
- *   3. GoalsPreview   — Core Arezak control mechanism
- *   4. RulesPreview   — Financial automation layer
+ *   2. MoneyActions   — Send · Fund · Pay · Withdraw
+ *   3. QuickPay       — Shortcuts into the Pay flow
+ *   4. GoalsPreview   — Actual protected goal balances and progress
  *   5. RecentActivity — Human-readable transaction ledger
  *
  * Financial invariant preserved: Total = Available + Protected
@@ -29,7 +29,7 @@ import { apiFetch } from "@/lib/api";
 import { Vault } from "@/components/home/Vault";
 import { MoneyActions } from "@/components/home/MoneyActions";
 import { GoalsPreview } from "@/components/home/GoalsPreview";
-import { RulesPreview } from "@/components/home/RulesPreview";
+import { QuickPay, PayShortcut } from "@/components/home/QuickPay";
 import { RecentTransactions } from "@/components/home/RecentTransactions";
 import { FundFlow } from "@/components/finance/fund/FundFlow";
 import { SendFlow } from "@/components/finance/send/SendFlow";
@@ -84,6 +84,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const [activeFlow, setActiveFlow] = useState<ActiveFlow>(null);
+  const [payService, setPayService] = useState<PayShortcut | null>(null);
 
   const [data, setData] = useState<{
     accounts: Account[];
@@ -171,8 +172,8 @@ export default function Home() {
     <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-4 space-y-5">
       {/* ── Greeting ── */}
       <header className="pt-1">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-          Good morning, {firstName} 👋
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+          Good morning, {firstName}
         </h1>
         <p className="text-sm text-slate-400 mt-0.5">
           Here&apos;s your money summary.
@@ -184,10 +185,7 @@ export default function Home() {
       {/*   Desktop (lg): two columns — left primary, right ecosystem       */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-        {/* ╔══════════════════════════════════════╗
-            ║  LEFT — Vault + Actions + Pay&Buy    ║
-            ║  + Goals (mobile order)              ║
-            ╚══════════════════════════════════════╝ */}
+        {/* Primary balance, actions, quick payment access, and goals. */}
         <div className="lg:col-span-7 flex flex-col gap-5">
 
           {/* 1. VAULT — Total Balance → Available + Protected */}
@@ -200,14 +198,16 @@ export default function Home() {
             formatPesewas={fmt}
           />
 
-          {/* 2. MONEY ACTIONS — Fund · Send · Pay · Withdraw */}
+          {/* 2. MONEY ACTIONS — Send · Fund · Pay · Withdraw */}
           <MoneyActions
             hasAccount={data.accounts.length > 0}
             onFund={() => setActiveFlow("fund")}
             onSend={() => setActiveFlow("send")}
-            onPay={() => setActiveFlow("pay")}
+            onPay={() => { setPayService(null); setActiveFlow("pay"); }}
             onWithdraw={() => setActiveFlow("withdraw")}
           />
+
+          <QuickPay onSelect={(service) => { setPayService(service); setActiveFlow("pay"); }} />
 
           {/* 3. GOALS — visible on mobile here (moves to right col on desktop) */}
           <div className="lg:hidden">
@@ -216,9 +216,7 @@ export default function Home() {
 
         </div>
 
-        {/* ╔══════════════════════════════════════╗
-            ║  RIGHT — Goals · Rules · Activity    ║
-            ╚══════════════════════════════════════╝ */}
+        {/* Goals and transaction history provide real account context. */}
         <div className="lg:col-span-5 flex flex-col gap-5">
 
           {/* Goals — desktop only (mobile version above) */}
@@ -226,11 +224,7 @@ export default function Home() {
             <GoalsPreview goals={data.goals} formatPesewas={fmt} />
           </div>
 
-          {/* 4. RULES PREVIEW */}
-          {/* Rules API doesn't exist yet — empty state communicates capability */}
-          <RulesPreview rules={[]} />
-
-          {/* 5. RECENT TRANSACTIONS — human-readable via TransactionMapper */}
+          {/* Recent meaningful activity from the transaction API. */}
           <RecentTransactions
             transactions={data.txs}
             showBalance={showBalance}
@@ -239,9 +233,9 @@ export default function Home() {
         </div>
       </div>
 
-      {activeFlow === "fund" && <FundFlow accounts={data.accounts} onClose={() => setActiveFlow(null)} />}
+      {activeFlow === "fund" && <FundFlow onClose={() => setActiveFlow(null)} />}
       {activeFlow === "send" && <SendFlow accounts={data.accounts} onClose={() => setActiveFlow(null)} />}
-      {activeFlow === "pay" && <PayFlow onClose={() => setActiveFlow(null)} />}
+      {activeFlow === "pay" && <PayFlow initialService={payService ?? undefined} onClose={() => { setPayService(null); setActiveFlow(null); }} />}
       {activeFlow === "withdraw" && <WithdrawFlow accounts={data.accounts} onClose={() => setActiveFlow(null)} />}
     </div>
   );

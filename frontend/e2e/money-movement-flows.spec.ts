@@ -56,34 +56,55 @@ test.describe("Home financial flows", () => {
     await expect(dialog.getByLabel("Amount")).toHaveValue("12.50");
   });
 
-  test("Fund asks for source and previews without claiming a deposit", async ({ page }) => {
+  test("Fund lists mobile, bank, and card sources without collecting unsupported payment details", async ({ page }) => {
     await mockDashboard(page);
     await page.getByRole("button", { name: /Fund/ }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByText("Where is the money coming from?")).toBeVisible();
     await dialog.getByRole("button", { name: /^Bank account/ }).click();
-    await dialog.getByRole("button", { name: "Continue" }).click();
-    await dialog.getByLabel("Bank name").fill("Example Bank");
-    await dialog.getByLabel("Account number").fill("0001234567");
-    await dialog.getByRole("button", { name: "Continue" }).click();
-    await dialog.getByLabel("Amount").fill("50.00");
-    await dialog.getByRole("button", { name: "Review funding" }).click();
-    await expect(dialog.getByText("Example Bank · 0001234567")).toBeVisible();
-    await expect(dialog.getByText("Not submitted", { exact: true })).toBeVisible();
-    await expect(dialog.getByText(/no Arezak balance will change/)).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Funding unavailable" })).toBeDisabled();
+    await expect(dialog.getByText("Bank account funding is coming soon")).toBeVisible();
+    await expect(dialog.getByLabel("Account number")).toHaveCount(0);
+    await dialog.getByRole("button", { name: "Choose another source" }).click();
+    await dialog.getByRole("button", { name: /Choose a mobile money network/ }).click();
+    for (const network of [/MTN MoMo/, /Telecel Cash/, /AT Money \(AirtelTigo\)/]) {
+      await expect(dialog.getByRole("button", { name: network })).toBeVisible();
+    }
+    await dialog.getByRole("button", { name: /MTN MoMo/ }).last().click();
+    await expect(dialog.getByText("MTN MoMo funding is coming soon")).toBeVisible();
+    await expect(dialog.getByLabel("Sending mobile number")).toHaveCount(0);
+    await expect(dialog.getByText(/your Arezak balance will not change/)).toBeVisible();
   });
 
-  test("Pay lists only unavailable service categories", async ({ page }) => {
+  test("Pay opens service availability and Quick Pay shortcuts enter the same Pay flow", async ({ page }) => {
     await mockDashboard(page);
     await page.getByRole("button", { name: /Pay/ }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByText("What would you like to pay for?")).toBeVisible();
     for (const service of ["Airtime", "Data", "Bills", "Merchant"]) {
-      await expect(dialog.getByRole("button", { name: new RegExp(`^${service}`) })).toBeDisabled();
+      await expect(dialog.getByRole("button", { name: new RegExp(`^${service}`) })).toBeVisible();
     }
-    await expect(dialog.getByText(/No airtime, data, bill, or merchant payment provider is connected/)).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Payments coming soon" })).toBeDisabled();
+    await dialog.getByRole("button", { name: /^Data/ }).click();
+    await expect(dialog.getByText("This service is not connected yet")).toBeVisible();
+    await dialog.getByRole("button", { name: "View all payment services" }).click();
+    await dialog.getByRole("button", { name: "Close flow" }).click();
+
+    await page.getByRole("button", { name: "Data, coming soon" }).click();
+    const quickPayDialog = page.getByRole("dialog");
+    await expect(quickPayDialog.getByText("This service is not connected yet")).toBeVisible();
+    await expect(quickPayDialog.getByText("Data", { exact: true })).toBeVisible();
+  });
+
+  test("primary navigation keeps five labeled destinations", async ({ page }) => {
+    await mockDashboard(page);
+    const primaryNav = page.locator('nav[aria-label="Primary navigation"]:visible');
+    const mobileViewport = (page.viewportSize()?.width ?? 1024) < 768;
+    const destinations = mobileViewport ? ["Home", "Goals", "Rules", "Transactions", "More"] : ["Home", "Goals", "Rules", "Transactions"];
+    for (const destination of destinations) {
+      await expect(primaryNav.getByRole("link", { name: destination })).toBeVisible();
+    }
+    await expect(primaryNav.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    if (!mobileViewport) await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
   });
 
   test("Withdraw validates available funds and shows fee limitations at review", async ({ page }) => {

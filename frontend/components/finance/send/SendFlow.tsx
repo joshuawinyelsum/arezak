@@ -8,7 +8,7 @@ import { GhanaPhoneField, NetworkSelector } from "../DestinationSelector";
 import { SourceSelector } from "../SourceSelector";
 import { ReviewTransaction } from "../ReviewTransaction";
 import { formatGhs, normalizeGhanaPhone, parsePesewas } from "../money";
-import { GhanaRail, MoneyAccount } from "../types";
+import { GhanaRail, ghanaRailLabel, MoneyAccount } from "../types";
 
 type SendStep = "recipient" | "network" | "details" | "amount" | "review";
 type RecipientType = "arezak" | "mobile";
@@ -111,7 +111,7 @@ export function SendFlow({
         <ReviewTransaction
           rows={[
             { label: "Recipient", value: reviewRecipient, strong: true },
-            ...(recipientType === "mobile" ? [{ label: "Network", value: rail ?? "Not selected" }] : [{ label: "Recipient type", value: "Arezak user" }]),
+            ...(recipientType === "mobile" ? [{ label: "Network", value: ghanaRailLabel(rail) }] : [{ label: "Recipient type", value: "Arezak user" }]),
             { label: "From", value: account?.name ?? "Arezak account" },
             { label: "Amount", value: pesewas ? formatGhs(pesewas) : "—", strong: true },
             { label: "Fee", value: "Unavailable" },
@@ -149,7 +149,7 @@ export function SendFlow({
             <section className="space-y-5">
               <div>
                 <h3 className="text-xl font-bold text-slate-900">Recipient details</h3>
-                <p className="mt-1 text-sm text-slate-600">{recipientType === "mobile" ? `Receiving on ${rail ?? "the selected network"}.` : "No recipient search service is available yet."}</p>
+                <p className="mt-1 text-sm text-slate-600">{recipientType === "mobile" ? `Receiving on ${ghanaRailLabel(rail)}.` : "No recipient search service is available yet."}</p>
               </div>
               {recipientType === "mobile" ? (
                 <GhanaPhoneField value={recipient} onChange={setRecipient} label="Recipient mobile number" />

@@ -36,7 +36,7 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
   );
 
   return (
-    <section className="bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm">
+    <section className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-semibold text-slate-900">Your Goals</h2>
         <Link

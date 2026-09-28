@@ -1,29 +1,55 @@
 "use client";
 
-import React from "react";
-import { ChoiceCard, FlowButton, FlowNotice } from "../FlowControls";
+import React, { useState } from "react";
+import { FlowButton, FlowNotice } from "../FlowControls";
 import { FlowFooter } from "../FlowFooter";
 import { FinancialFlowShell } from "../FinancialFlowShell";
+import type { PayShortcut } from "../../home/QuickPay";
 
-export function PayFlow({ onClose }: { onClose: () => void }) {
+const paymentServices: { id: PayShortcut; label: string; detail: string }[] = [
+  { id: "airtime", label: "Airtime", detail: "Top up your number or someone else’s." },
+  { id: "data", label: "Data", detail: "Choose a bundle and recipient number." },
+  { id: "bills", label: "Bills", detail: "Pay a utility or service bill." },
+  { id: "merchant", label: "Merchant", detail: "Pay a supported merchant." },
+];
+
+export function PayFlow({ onClose, initialService }: { onClose: () => void; initialService?: PayShortcut }) {
+  const [selected, setSelected] = useState<PayShortcut | null>(initialService ?? null);
+  const selectedService = paymentServices.find((item) => item.id === selected);
+
   return (
     <FinancialFlowShell
-      title="Pay for a service"
-      stepLabel="Choose a payment type"
+      title="Pay"
+      stepLabel={selectedService ? `${selectedService.label} · Unavailable` : "Payment services"}
+      onBack={selectedService ? () => setSelected(null) : undefined}
       onClose={onClose}
-      footer={<FlowFooter><FlowButton disabled>Payments coming soon</FlowButton></FlowFooter>}
+      footer={<FlowFooter><FlowButton disabled>{selectedService ? `${selectedService.label} coming soon` : "Payments coming soon"}</FlowButton></FlowFooter>}
     >
-      <section className="space-y-3">
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-slate-900">What would you like to pay for?</h3>
-          <p className="mt-1 text-sm text-slate-600">Choose a service. We’ll collect only the details that service needs once it is connected.</p>
-        </div>
-        <ChoiceCard title="Airtime" description="Top up a mobile number" badge="Coming soon" disabled />
-        <ChoiceCard title="Data" description="Choose a bundle for a mobile number" badge="Coming soon" disabled />
-        <ChoiceCard title="Bills" description="Pay utilities and other bills" badge="Coming soon" disabled />
-        <ChoiceCard title="Merchant" description="Pay a supported merchant" badge="Coming soon" disabled />
-        <FlowNotice>No airtime, data, bill, or merchant payment provider is connected yet. No payment can be submitted.</FlowNotice>
-      </section>
+      {selectedService ? (
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{selectedService.label}</p>
+            <h3 className="mt-2 text-xl font-bold text-slate-900">This service is not connected yet</h3>
+            <p className="mt-1 text-sm text-slate-600">{selectedService.detail}</p>
+          </div>
+          <FlowNotice>No provider is connected for this payment. No payment details are collected and no transaction will be submitted.</FlowNotice>
+          <button type="button" onClick={() => setSelected(null)} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-brand hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">View all payment services</button>
+        </section>
+      ) : (
+        <section className="space-y-1">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold text-slate-900">What would you like to pay for?</h3>
+            <p className="mt-1 text-sm text-slate-600">Choose a service to see its current availability.</p>
+          </div>
+          {paymentServices.map((service) => (
+            <button key={service.id} type="button" onClick={() => setSelected(service.id)} className="flex min-h-16 w-full items-center justify-between gap-4 rounded-lg border-b border-slate-100 px-3 text-left hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+              <span><span className="block font-semibold text-slate-900">{service.label}</span><span className="mt-0.5 block text-sm text-slate-500">{service.detail}</span></span>
+              <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">Coming soon</span>
+            </button>
+          ))}
+          <p className="pt-3 text-sm text-slate-600">Airtime, data, bills, and merchant payments are unavailable until a provider is connected.</p>
+        </section>
+      )}
     </FinancialFlowShell>
   );
 }

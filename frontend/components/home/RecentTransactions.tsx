@@ -61,7 +61,7 @@ export function RecentTransactions({
   const recent = transactions.slice(0, 5);
 
   return (
-    <section className="bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm">
+    <section className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-semibold text-slate-900">Recent Transactions</h2>
         <Link
@@ -109,9 +109,9 @@ export function RecentTransactions({
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${pres.bg}`}
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100"
                   >
-                    <Icon className={`w-4 h-4 ${pres.color}`} />
+                    <Icon className="h-4 w-4 text-slate-600" strokeWidth={1.8} aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-slate-900 truncate">

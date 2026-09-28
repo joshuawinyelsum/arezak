@@ -8,7 +8,7 @@ import { BankDetailsFields, GhanaPhoneField, NetworkSelector } from "../Destinat
 import { SourceSelector } from "../SourceSelector";
 import { ReviewTransaction } from "../ReviewTransaction";
 import { formatGhs, normalizeGhanaPhone, parsePesewas } from "../money";
-import { GhanaRail, MoneyAccount } from "../types";
+import { GhanaRail, ghanaRailLabel, MoneyAccount } from "../types";
 
 type WithdrawStep = "destination" | "network" | "details" | "amount" | "review";
 type Destination = "mobile" | "bank";
@@ -66,7 +66,7 @@ export function WithdrawFlow({ accounts, onClose }: { accounts: MoneyAccount[]; 
     }
   };
 
-  const destinationLabel = destination === "mobile" ? `${rail ? rail.replaceAll("_", " ") : "Mobile money"} · ${normalizeGhanaPhone(phone) ?? phone}` : `${bank} · ${bankAccount}`;
+  const destinationLabel = destination === "mobile" ? `${ghanaRailLabel(rail)} · ${normalizeGhanaPhone(phone) ?? phone}` : `${bank} · ${bankAccount}`;
   const labels: Record<WithdrawStep, string> = { destination: "1 · Destination", network: "2 · Network", details: destination === "mobile" ? "3 · Mobile number" : "2 · Bank details", amount: destination === "mobile" ? "4 · Amount" : "3 · Amount", review: "Review · Not submitted" };
 
   return (

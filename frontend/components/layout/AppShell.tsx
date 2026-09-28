@@ -18,12 +18,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
-  Home,
+  House,
   Target,
   SlidersHorizontal,
-  Receipt,
-  MoreHorizontal,
-  Bell,
+  ReceiptText,
+  Ellipsis,
   ChevronDown,
   Settings,
   LogOut,
@@ -38,19 +37,19 @@ function cn(...inputs: ClassValue[]) {
 
 // Desktop sidebar navigation — primary destinations only
 const desktopNavItems = [
-  { name: "Home", href: "/", icon: Home },
+  { name: "Home", href: "/", icon: House },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "Rules", href: "/rules", icon: SlidersHorizontal },
-  { name: "Transactions", href: "/transactions", icon: Receipt },
+  { name: "Transactions", href: "/transactions", icon: ReceiptText },
 ];
 
 // Mobile bottom navigation — exactly five, Home leftmost
 const mobileNavItems = [
-  { name: "Home", href: "/", icon: Home },
+  { name: "Home", href: "/", icon: House },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "Rules", href: "/rules", icon: SlidersHorizontal },
-  { name: "Transactions", href: "/transactions", icon: Receipt },
-  { name: "More", href: "/settings", icon: MoreHorizontal },
+  { name: "Transactions", href: "/transactions", icon: ReceiptText },
+  { name: "More", href: "/settings", icon: Ellipsis },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -64,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       : pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <div className="flex h-screen w-full bg-[#f8fafc] text-slate-900 overflow-hidden font-sans">
+    <div className="flex h-screen w-full overflow-hidden bg-background font-sans text-slate-900">
       {/* ── Desktop Sidebar ── */}
       <aside className="hidden md:flex flex-col w-[240px] bg-white border-r border-slate-100 h-full flex-shrink-0">
         {/* Logo */}
@@ -82,15 +81,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Primary nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <nav aria-label="Primary navigation" className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
           {desktopNavItems.map((item) => {
             const active = isActiveRoute(item.href);
             return (
               <Link
                 key={item.name}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-sm",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
                   active
                     ? "bg-brand/8 text-brand font-semibold"
                     : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
@@ -98,10 +98,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <item.icon
                   className={cn(
-                    "w-[18px] h-[18px]",
-                    active ? "text-brand" : "text-slate-400"
+                    "h-[18px] w-[18px]",
+                    active ? "text-brand" : "text-slate-500"
                   )}
-                  strokeWidth={active ? 2.5 : 2}
+                  strokeWidth={1.9}
+                  aria-hidden="true"
                 />
                 {item.name}
               </Link>
@@ -131,19 +132,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
 
-        {/* Brand tagline */}
-        <div className="px-4 pb-6">
-          <div className="rounded-2xl bg-gradient-to-br from-[#1A2E7A] to-[#0D173D] p-4 text-white relative overflow-hidden shadow-md">
-            <div className="relative z-10">
-              <p className="text-xs font-semibold leading-snug text-white/90">
-                Discipline today,
-                <br />
-                Freedom tomorrow.
-              </p>
-            </div>
-            <div className="absolute top-0 right-0 w-24 h-24 bg-brand/30 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none" />
-          </div>
-        </div>
       </aside>
 
       {/* ── Main Content Area ── */}
@@ -151,14 +139,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Desktop Header */}
         <header className="hidden md:flex h-16 px-8 items-center justify-end border-b border-slate-100 bg-white flex-shrink-0">
           <div className="flex items-center gap-4">
-            <button
-              className="relative text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-xl hover:bg-slate-50"
-              aria-label="Notifications"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            </button>
-
             {/* User menu */}
             <div className="relative">
               <button
@@ -222,49 +202,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             />
             <span className="font-bold text-base tracking-tight">AREZAK</span>
           </div>
-          <button
-            className="relative text-slate-400 p-2 -mr-1"
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
-          </button>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-5 md:px-8 md:py-6 pb-28 md:pb-8 relative">
+        <main className="relative flex-1 overflow-y-auto overflow-x-hidden p-5 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:px-8 md:py-6 md:pb-8">
           {children}
         </main>
 
         {/* ── Mobile Bottom Navigation ── */}
         {/* Exactly 5 destinations. Home is leftmost. No action buttons. */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center z-50 shadow-[0_-2px_12px_rgba(0,0,0,0.05)] h-[72px] px-1">
+        <nav aria-label="Primary navigation" className="fixed bottom-0 left-0 right-0 z-50 flex h-[calc(72px+env(safe-area-inset-bottom,0px))] items-center justify-around border-t border-slate-200 bg-white px-1 pb-[env(safe-area-inset-bottom,0px)] md:hidden">
           {mobileNavItems.map((item) => {
             const active = isActiveRoute(item.href);
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className="flex flex-col items-center justify-center gap-1 w-14 h-14 rounded-xl"
+                aria-current={active ? "page" : undefined}
+                className="flex h-14 w-14 flex-col items-center justify-center gap-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
-                <div
-                  className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-full transition-all",
-                    active ? "bg-brand/10" : ""
-                  )}
-                >
-                  <item.icon
-                    className={cn(
-                      "w-5 h-5 transition-all",
-                      active ? "text-brand" : "text-slate-400"
-                    )}
-                    strokeWidth={active ? 2.5 : 2}
-                  />
-                </div>
+                <item.icon
+                  className={cn("h-5 w-5 transition-colors", active ? "text-brand" : "text-slate-500")}
+                  strokeWidth={1.9}
+                  aria-hidden="true"
+                />
                 <span
                   className={cn(
                     "text-[10px] font-medium leading-none",
-                    active ? "text-brand" : "text-slate-400"
+                    active ? "text-brand" : "text-slate-500"
                   )}
                 >
                   {item.name}
