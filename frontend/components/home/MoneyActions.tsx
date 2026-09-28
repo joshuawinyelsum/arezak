@@ -9,7 +9,7 @@
  * Fund    → money entering Arezak
  * Send    → money to another person
  * Pay     → merchant / bill / service
- * Withdraw → money leaving Arezak (labeled as simulation until provider rails exist)
+ * Withdraw → money leaving Arezak (unavailable until a destination provider is connected)
  *
  * "Goal → Withdraw" (Protected → Available) is a DIFFERENT concept and lives
  * on the Goal detail page, not here.

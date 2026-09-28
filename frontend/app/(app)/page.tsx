@@ -9,10 +9,9 @@
  * Information hierarchy (locked):
  *   1. Vault          — Total Balance → Available + Protected
  *   2. MoneyActions   — Fund · Send · Pay · Withdraw
- *   3. PayAndBuy      — Everyday services (coming soon)
- *   4. GoalsPreview   — Core Arezak control mechanism
- *   5. RulesPreview   — Financial automation layer
- *   6. RecentActivity — Human-readable transaction ledger
+ *   3. GoalsPreview   — Core Arezak control mechanism
+ *   4. RulesPreview   — Financial automation layer
+ *   5. RecentActivity — Human-readable transaction ledger
  *
  * Financial invariant preserved: Total = Available + Protected
  * Available = available_balance
@@ -29,14 +28,13 @@ import { apiFetch } from "@/lib/api";
 // Home section components
 import { Vault } from "@/components/home/Vault";
 import { MoneyActions } from "@/components/home/MoneyActions";
-import { PayAndBuy } from "@/components/home/PayAndBuy";
 import { GoalsPreview } from "@/components/home/GoalsPreview";
 import { RulesPreview } from "@/components/home/RulesPreview";
 import { RecentTransactions } from "@/components/home/RecentTransactions";
-
-// Modal components (existing, functional)
-import { MoveMoneyModal } from "@/components/MoveMoneyModal";
-import { FundAccountModal } from "@/components/FundAccountModal";
+import { FundFlow } from "@/components/finance/fund/FundFlow";
+import { SendFlow } from "@/components/finance/send/SendFlow";
+import { PayFlow } from "@/components/finance/pay/PayFlow";
+import { WithdrawFlow } from "@/components/finance/withdraw/WithdrawFlow";
 
 // Shared utilities
 import { formatPesewas } from "@/lib/money/format";
@@ -77,7 +75,7 @@ type Goal = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-type ModalStep = "menu" | "send" | "pay" | "withdraw";
+type ActiveFlow = "fund" | "send" | "pay" | "withdraw" | null;
 
 export default function Home() {
   const { user } = useAuth();
@@ -85,11 +83,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal state — which action was tapped, and which account
-  const [showFundModal, setShowFundModal] = useState(false);
-  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
-  const [showMoveModal, setShowMoveModal] = useState(false);
-  const [moveModalStep, setMoveModalStep] = useState<ModalStep>("menu");
+  const [activeFlow, setActiveFlow] = useState<ActiveFlow>(null);
 
   const [data, setData] = useState<{
     accounts: Account[];
@@ -172,21 +166,6 @@ export default function Home() {
   const fmt = (pesewas: number) => formatPesewas(pesewas, !showBalance);
 
   const firstName = user?.name?.split(" ")[0] ?? "there";
-  const firstAccountId = data.accounts[0]?.id ?? "";
-
-  // ── Action handlers ───────────────────────────────────────────────────────
-  const handleFund = () => {
-    setSelectedAccountId(firstAccountId);
-    setShowFundModal(true);
-  };
-
-  const openMoveModal = (step: ModalStep) => {
-    setMoveModalStep(step);
-    setShowMoveModal(true);
-  };
-
-  const handleRefresh = () => window.location.reload();
-
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-4 space-y-5">
@@ -224,16 +203,13 @@ export default function Home() {
           {/* 2. MONEY ACTIONS — Fund · Send · Pay · Withdraw */}
           <MoneyActions
             hasAccount={data.accounts.length > 0}
-            onFund={handleFund}
-            onSend={() => openMoveModal("send")}
-            onPay={() => openMoveModal("pay")}
-            onWithdraw={() => openMoveModal("withdraw")}
+            onFund={() => setActiveFlow("fund")}
+            onSend={() => setActiveFlow("send")}
+            onPay={() => setActiveFlow("pay")}
+            onWithdraw={() => setActiveFlow("withdraw")}
           />
 
-          {/* 3. PAY & BUY — Everyday services (coming soon) */}
-          <PayAndBuy />
-
-          {/* 4. GOALS — visible on mobile here (moves to right col on desktop) */}
+          {/* 3. GOALS — visible on mobile here (moves to right col on desktop) */}
           <div className="lg:hidden">
             <GoalsPreview goals={data.goals} formatPesewas={fmt} />
           </div>
@@ -250,11 +226,11 @@ export default function Home() {
             <GoalsPreview goals={data.goals} formatPesewas={fmt} />
           </div>
 
-          {/* 5. RULES PREVIEW */}
+          {/* 4. RULES PREVIEW */}
           {/* Rules API doesn't exist yet — empty state communicates capability */}
           <RulesPreview rules={[]} />
 
-          {/* 6. RECENT TRANSACTIONS — human-readable via TransactionMapper */}
+          {/* 5. RECENT TRANSACTIONS — human-readable via TransactionMapper */}
           <RecentTransactions
             transactions={data.txs}
             showBalance={showBalance}
@@ -263,22 +239,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Modals ── */}
-      <FundAccountModal
-        isOpen={showFundModal}
-        onClose={() => setShowFundModal(false)}
-        accountId={selectedAccountId}
-        onSuccess={handleRefresh}
-      />
-
-      <MoveMoneyModal
-        isOpen={showMoveModal}
-        onClose={() => setShowMoveModal(false)}
-        onSuccess={handleRefresh}
-        availableBalance={totalAvailable}
-        accounts={data.accounts}
-        initialStep={moveModalStep}
-      />
+      {activeFlow === "fund" && <FundFlow accounts={data.accounts} onClose={() => setActiveFlow(null)} />}
+      {activeFlow === "send" && <SendFlow accounts={data.accounts} onClose={() => setActiveFlow(null)} />}
+      {activeFlow === "pay" && <PayFlow onClose={() => setActiveFlow(null)} />}
+      {activeFlow === "withdraw" && <WithdrawFlow accounts={data.accounts} onClose={() => setActiveFlow(null)} />}
     </div>
   );
 }
