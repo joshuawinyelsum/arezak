@@ -20,7 +20,7 @@ import Image from "next/image";
 import {
   House,
   Target,
-  SlidersHorizontal,
+  ListChecks,
   ReceiptText,
   Ellipsis,
   ChevronDown,
@@ -39,7 +39,7 @@ function cn(...inputs: ClassValue[]) {
 const desktopNavItems = [
   { name: "Home", href: "/", icon: House },
   { name: "Goals", href: "/goals", icon: Target },
-  { name: "Rules", href: "/rules", icon: SlidersHorizontal },
+  { name: "Rules", href: "/rules", icon: ListChecks },
   { name: "Transactions", href: "/transactions", icon: ReceiptText },
 ];
 
@@ -47,7 +47,7 @@ const desktopNavItems = [
 const mobileNavItems = [
   { name: "Home", href: "/", icon: House },
   { name: "Goals", href: "/goals", icon: Target },
-  { name: "Rules", href: "/rules", icon: SlidersHorizontal },
+  { name: "Rules", href: "/rules", icon: ListChecks },
   { name: "Transactions", href: "/transactions", icon: ReceiptText },
   { name: "More", href: "/settings", icon: Ellipsis },
 ];

@@ -149,6 +149,9 @@ class Transaction(BaseModel):
     # Legacy untyped FKs kept for backward compat; prefer destination_type/address for new code
     source_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     destination_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    recipient_account_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("accounts.id"), nullable=True, index=True
+    )
 
     # ── Fees ────────────────────────────────────────────────────────────────
     fee_amount: Mapped[int] = mapped_column(Integer, default=0, nullable=False)  # pesewas

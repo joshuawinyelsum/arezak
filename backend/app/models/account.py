@@ -4,6 +4,15 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import BaseModel
 import typing
+import secrets
+
+def generate_account_number() -> str:
+    """Generate a non-sequential, customer-facing GHS account identifier."""
+    return str(secrets.randbelow(900_000_000_000) + 100_000_000_000)
+
+def generate_qr_token() -> str:
+    """Opaque stable token used by the receiving QR; it contains no PII or DB id."""
+    return secrets.token_urlsafe(24)
 
 if typing.TYPE_CHECKING:
     from app.models.user import User
@@ -15,6 +24,8 @@ class Account(BaseModel):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False) # e.g. MAIN, BANK, CASH
+    account_number: Mapped[str] = mapped_column(String(12), unique=True, index=True, nullable=False, default=generate_account_number)
+    qr_token: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False, default=generate_qr_token)
     currency: Mapped[str] = mapped_column(String(3), CheckConstraint("currency = 'GHS'", name="chk_account_currency_ghs"), default="GHS", nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False)
 

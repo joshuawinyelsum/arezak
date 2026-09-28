@@ -46,6 +46,7 @@ interface Transaction {
   amount: { amount_pesewas: number; currency: string };
   status: string;
   description?: string;
+  direction?: "INCOMING" | "OUTGOING";
   created_at: string;
 }
 
@@ -89,7 +90,7 @@ export function RecentTransactions({
           {recent.map((tx) => {
             const pres = mapTransaction(tx.type);
             const Icon = ICON_MAP[pres.iconName] ?? CreditCard;
-            const isCredit = pres.direction === "credit";
+            const isCredit = pres.direction === "credit" || tx.direction === "INCOMING";
 
             // Prefer a meaningful user description; fall back to the mapped label
             const label =

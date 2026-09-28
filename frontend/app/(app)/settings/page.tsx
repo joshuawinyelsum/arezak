@@ -29,7 +29,9 @@ import {
   LogOut,
   User,
   Palette,
+  WalletCards,
 } from "lucide-react";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
 const settingsGroups = [
@@ -93,6 +95,7 @@ export default function SettingsPage() {
           <p className="text-sm text-slate-400 mt-0.5 truncate">
             {user?.email ?? ""}
           </p>
+          {user?.handle && <p className="text-sm text-slate-500 mt-0.5 truncate">@{user.handle.replace(/^@/, "")}</p>}
         </div>
         {/* Profile editing is a future capability */}
         <div className="ml-auto shrink-0">
@@ -102,6 +105,22 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+            <WalletCards className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-slate-900">Your Arezak account</h2>
+            <p className="mt-1 text-sm text-slate-500">Account number, handle, and receiving QR</p>
+          </div>
+          <Link href="/receive" className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            View
+            <ChevronRight className="ml-1 h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
 
       {/* Settings groups */}
       {settingsGroups.map((group) => (

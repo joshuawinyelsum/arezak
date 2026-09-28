@@ -29,6 +29,13 @@ The commit of transaction state, reservation, provider attempt, and outbox row
 uses one SQLAlchemy database transaction. The worker processes committed outbox
 rows separately. There is no broker dependency.
 
+Internal Arezak-to-Arezak transfers now use `TRANSFER` transactions and the
+canonical recipient account ID resolved by the identity service. They are
+posted synchronously as a balanced debit/credit across the two Arezak accounts
+under the existing Rules Engine decision. They do not enter the provider hub;
+external `SEND` remains provider-routed. See
+[`identity-and-recipient-discovery.md`](identity-and-recipient-discovery.md).
+
 ## Provider boundary, capabilities, and routing
 
 `ProviderInterface` accepts a `ProviderMovementRequest`, returns a

@@ -14,6 +14,7 @@ class Money(BaseModel):
 
 class AccountResponse(BaseModel):
     id: uuid.UUID
+    account_number: str
     name: str
     status: str
     available_balance: Money
@@ -25,6 +26,7 @@ class AccountResponse(BaseModel):
     def from_orm_account(cls, account: Account):
         return cls(
             id=account.id,
+            account_number=account.account_number,
             name=account.name,
             status=account.status,
             available_balance=Money(amount_pesewas=account.available_balance, currency=account.currency),

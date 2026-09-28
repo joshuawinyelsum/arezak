@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 from app.api.deps import SessionDep, CurrentUser
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.user import User
-from app.models.account import Account
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import LoginRequest, MessageResponse
 from app.core.config import settings
+from app.services.recipient_identity import normalize_handle
+from app.services.account_identity import create_account
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -19,10 +20,20 @@ def register(user_in: UserCreate, db: SessionDep):
             status_code=400,
             detail="A user with this email already exists."
         )
+
+    handle = None
+    if user_in.handle:
+        try:
+            handle = normalize_handle(user_in.handle)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        if db.query(User).filter(User.handle == handle).first():
+            raise HTTPException(status_code=409, detail="That handle is already in use.")
     
     user = User(
         email=user_in.email,
         name=user_in.name,
+        handle=handle,
         password_hash=get_password_hash(user_in.password),
         currency=user_in.currency or "GHS",
         timezone=user_in.timezone or "UTC"
@@ -31,12 +42,7 @@ def register(user_in: UserCreate, db: SessionDep):
     db.flush() # flush to get user ID
     
     # Create default main account for the user
-    main_account = Account(
-        user_id=user.id,
-        name="Main Account",
-        type="MAIN"
-    )
-    db.add(main_account)
+    create_account(db, user_id=user.id, name="Main Account", account_type="MAIN")
     
     db.commit()
     db.refresh(user)

@@ -48,12 +48,48 @@ test.describe("Home financial flows", () => {
     await expect(dialog.getByText("+233241234567")).toBeVisible();
     await expect(dialog.getByText("GH₵12.50")).toBeVisible();
     await expect(dialog.getByText("Not submitted", { exact: true })).toBeVisible();
-    await expect(dialog.getByText(/No MTN, Telecel, or AirtelTigo provider is connected/)).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Live sending unavailable" })).toBeDisabled();
+    await expect(dialog.getByText(/No mobile-money provider is connected/)).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "External sending unavailable" })).toBeDisabled();
     expect(operationsRequests).toHaveLength(0);
 
     await dialog.getByRole("button", { name: "Go back" }).click();
     await expect(dialog.getByLabel("Amount")).toHaveValue("12.50");
+  });
+
+  test("Arezak Send resolves and confirms identity before amount, then posts one internal transfer", async ({ page }) => {
+    await mockDashboard(page);
+    await page.route("**/api/v1/identity/resolve", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ display_name: "Ama Recipient", handle: "@ama", account_number: "123456789012", masked_phone_number: "+23324•••67", recipient_type: "AREZAK_USER" }),
+    }));
+    const requests: string[] = [];
+    await page.route("**/api/v1/operations/internal-transfer", async (route) => {
+      requests.push(route.request().url());
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ transaction_id: "transfer-1", type: "TRANSFER", status: "COMPLETED" }),
+      });
+    });
+
+    await page.getByRole("button", { name: /Send/ }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: /^Arezak user/ }).click();
+    await dialog.getByRole("button", { name: "Continue" }).click();
+    await dialog.getByLabel("Account number, @handle, verified phone, or QR value").fill("@ama");
+    await dialog.getByRole("button", { name: "Continue" }).click();
+    await expect(dialog.getByText("Is this the right person?")).toBeVisible();
+    await expect(dialog.getByText("Ama Recipient")).toBeVisible();
+    await expect(dialog.getByLabel("Amount")).toHaveCount(0);
+    await dialog.getByRole("button", { name: "Yes, continue" }).click();
+    await dialog.getByLabel("Amount").fill("40.00");
+    await dialog.getByRole("button", { name: "Continue" }).click();
+    await expect(dialog.getByText("Ready to send", { exact: true })).toBeVisible();
+    expect(requests).toHaveLength(0);
+    await dialog.getByRole("button", { name: "Send GH₵40.00" }).click();
+    await expect(dialog.getByText("Money sent to Ama Recipient")).toBeVisible();
+    expect(requests).toHaveLength(1);
   });
 
   test("Fund lists mobile, bank, and card sources without collecting unsupported payment details", async ({ page }) => {
@@ -90,9 +126,31 @@ test.describe("Home financial flows", () => {
     await dialog.getByRole("button", { name: "Close flow" }).click();
 
     await page.getByRole("button", { name: "Data, coming soon" }).click();
+    const cards = page.locator("section[aria-labelledby='quick-pay-title'] button");
+    await expect(cards).toHaveCount(4);
+    const bounds = await Promise.all([0, 1, 2, 3].map((index) => cards.nth(index).boundingBox()));
+    expect(bounds.every((box) => box && box.width > box.height)).toBeTruthy();
     const quickPayDialog = page.getByRole("dialog");
     await expect(quickPayDialog.getByText("This service is not connected yet")).toBeVisible();
     await expect(quickPayDialog.getByText("Data", { exact: true })).toBeVisible();
+  });
+
+  test("Receive shows account number and an opaque receiving QR from the identity API", async ({ page }) => {
+    await mockDashboard(page);
+    await page.route("**/api/v1/identity/me", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        display_name: "Flow Tester", handle: "@flowtester", email: "flow@example.test", phone_number: null, phone_verified: false,
+        accounts: [{ account_id: "internal-account-id", account_name: "Main Account", account_number: "123456789012", qr_payload: "arezak://receive/opaque-token" }],
+      }),
+    }));
+    await page.goto("/receive");
+    await expect(page.getByRole("heading", { name: "Receive money" })).toBeVisible();
+    await expect(page.getByText("123456789012")).toBeVisible();
+    await expect(page.getByText("@flowtester")).toBeVisible();
+    await expect(page.getByRole("img", { name: "Arezak receiving QR code" })).toBeVisible();
+    await expect(page.getByText(/does not contain your balance or personal contact details/)).toBeVisible();
   });
 
   test("primary navigation keeps five labeled destinations", async ({ page }) => {

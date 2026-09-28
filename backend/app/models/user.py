@@ -1,4 +1,4 @@
-from sqlalchemy import String
+from sqlalchemy import String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import BaseModel
 import typing
@@ -14,6 +14,9 @@ class User(BaseModel):
     
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    handle: Mapped[str | None] = mapped_column(String(30), unique=True, index=True, nullable=True)
+    phone_number: Mapped[str | None] = mapped_column(String(20), unique=True, index=True, nullable=True)
+    phone_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     currency: Mapped[str] = mapped_column(String(10), default="GHS", nullable=False)
     timezone: Mapped[str] = mapped_column(String(100), default="UTC", nullable=False)

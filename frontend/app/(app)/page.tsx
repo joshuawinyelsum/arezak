@@ -61,6 +61,7 @@ type Transaction = {
   amount: Money;
   status: string;
   description?: string;
+  direction?: "INCOMING" | "OUTGOING";
   created_at: string;
 };
 

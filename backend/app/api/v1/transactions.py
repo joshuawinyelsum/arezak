@@ -3,10 +3,12 @@ from pydantic import BaseModel
 import uuid
 from typing import Annotated, List
 from datetime import datetime
+from sqlalchemy import or_
 
 from app.api.deps import SessionDep, CurrentUser
 from app.services.transaction_service import process_income, process_expense, process_outbound
-from app.models.transaction import Transaction
+from app.models.transaction import Transaction, TransactionType
+from app.models.account import Account
 from app.models.ledger_entry import LedgerEntry
 from app.rules.decision import ConstraintViolationException
 
@@ -43,18 +45,21 @@ class TransactionResponse(BaseModel):
     description: str | None = None
     funding_source: str | None = None
     note: str | None = None
+    direction: str | None = None
     created_at: datetime
 
     @classmethod
-    def from_orm_transaction(cls, tx: Transaction):
+    def from_orm_transaction(cls, tx: Transaction, *, incoming: bool = False):
         return cls(
             id=tx.id,
             type=tx.type,
             amount=Money(amount_pesewas=tx.amount, currency=tx.currency),
             status=tx.status,
-            description=tx.description,
+            description=("Received from Arezak user" if incoming else "Sent to Arezak user")
+                if tx.type == TransactionType.TRANSFER else tx.description,
             funding_source=tx.funding_source,
             note=tx.note,
+            direction="INCOMING" if incoming else "OUTGOING" if tx.type == TransactionType.TRANSFER else None,
             created_at=tx.created_at
         )
 
@@ -178,15 +183,33 @@ def add_expense(
 
 @router.get("", response_model=List[TransactionResponse])
 def get_transactions(db: SessionDep, current_user: CurrentUser):
-    transactions = db.query(Transaction).filter(Transaction.user_id == current_user.id).order_by(Transaction.created_at.desc()).limit(100).all()
-    return [TransactionResponse.from_orm_transaction(tx) for tx in transactions]
+    account_ids = [row[0] for row in db.query(Account.id).filter(Account.user_id == current_user.id).all()]
+    incoming_clause = Transaction.recipient_account_id.in_(account_ids) if account_ids else False
+    transactions = db.query(Transaction).filter(
+        or_(Transaction.user_id == current_user.id, incoming_clause)
+    ).order_by(Transaction.created_at.desc()).limit(100).all()
+    return [
+        TransactionResponse.from_orm_transaction(
+            tx,
+            incoming=tx.type == TransactionType.TRANSFER and tx.recipient_account_id in account_ids,
+        )
+        for tx in transactions
+    ]
 
 @router.get("/{transaction_id}/ledger", response_model=List[LedgerResponse])
 def get_transaction_ledger(transaction_id: uuid.UUID, db: SessionDep, current_user: CurrentUser):
-    tx = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.user_id == current_user.id).first()
+    account_ids = [row[0] for row in db.query(Account.id).filter(Account.user_id == current_user.id).all()]
+    tx = db.query(Transaction).filter(
+        Transaction.id == transaction_id,
+        or_(Transaction.user_id == current_user.id, Transaction.recipient_account_id.in_(account_ids) if account_ids else False),
+    ).first()
     if not tx:
         raise HTTPException(status_code=404, detail={"code": "TRANSACTION_NOT_FOUND", "message": "Transaction not found."})
-    return [LedgerResponse.from_orm_ledger(entry) for entry in tx.ledger_entries]
+    return [entry_response for entry_response in (
+        LedgerResponse.from_orm_ledger(entry)
+        for entry in tx.ledger_entries
+        if entry.account_id in account_ids
+    )]
 
 
 class TransactionMetadataUpdate(BaseModel):

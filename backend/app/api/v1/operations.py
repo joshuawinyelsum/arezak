@@ -33,6 +33,8 @@ from app.services.financial_operations import (
     initiate_pay,
     initiate_withdraw,
 )
+from app.services.internal_transfer import initiate_internal_transfer
+from app.services.recipient_identity import InvalidRecipientIdentifier, RecipientNotFound, resolve_recipient
 
 router = APIRouter(prefix="/operations", tags=["financial-operations"])
 
@@ -127,6 +129,11 @@ def _handle_error(e: Exception) -> HTTPException:
         return HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "INVALID_DESTINATION_OR_RAIL", "message": str(e)},
+        )
+    if isinstance(e, ValueError):
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_OPERATION", "message": str(e)},
         )
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -243,6 +250,8 @@ def api_send(
 ):
     """Send money to another person or account."""
     try:
+        if request.destination_type == DestinationType.AREZAK_USER.value:
+            raise ValueError("Use the Arezak recipient transfer flow for internal recipients.")
         tx = initiate_send(
             db=db,
             user_id=current_user.id,
@@ -261,6 +270,49 @@ def api_send(
     except Exception as e:
         db.rollback()
         raise _handle_error(e)
+
+
+class InternalTransferRequest(BaseModel):
+    account_id: uuid.UUID
+    recipient_identifier: str = Field(min_length=1, max_length=255)
+    amount: Money
+    note: str | None = Field(default=None, max_length=500)
+
+
+@router.post("/internal-transfer", response_model=OperationResponse, status_code=status.HTTP_201_CREATED)
+def api_internal_transfer(
+    request: InternalTransferRequest,
+    db: SessionDep,
+    current_user: CurrentUser,
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+):
+    """Resolve a receiving identifier, then transfer to its canonical account."""
+    try:
+        if not idempotency_key:
+            raise ValueError("An Idempotency-Key header is required for Arezak transfers.")
+        identity = resolve_recipient(db, request.recipient_identifier)
+        tx = initiate_internal_transfer(
+            db,
+            user_id=current_user.id,
+            source_account_id=request.account_id,
+            recipient_account_id=identity.account_id,
+            amount_pesewas=request.amount.amount_pesewas,
+            currency=request.amount.currency,
+            idempotency_key=idempotency_key,
+            note=request.note,
+        )
+        db.commit()
+        db.refresh(tx)
+        return OperationResponse.from_tx(tx)
+    except InvalidRecipientIdentifier as exc:
+        db.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RecipientNotFound as exc:
+        db.rollback()
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        db.rollback()
+        raise _handle_error(exc)
 
 
 # ─── PAY ─────────────────────────────────────────────────────────────────────

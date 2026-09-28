@@ -19,14 +19,14 @@ export function QuickPay({ onSelect }: { onSelect: (service: PayShortcut) => voi
         <h2 id="quick-pay-title" className="text-base font-semibold text-slate-900">Quick pay</h2>
         <span className="text-xs font-medium text-slate-500">Services coming soon</span>
       </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         {shortcuts.map(({ id, label, icon: Icon, description }) => (
           <button
             key={id}
             type="button"
             onClick={() => onSelect(id)}
             aria-label={`${label}, coming soon`}
-            className="flex min-h-14 items-center gap-2.5 rounded-lg px-2 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="flex min-h-[76px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-left transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             <Icon className="h-5 w-5 shrink-0 text-brand" strokeWidth={1.8} aria-hidden="true" />
             <span className="min-w-0"><span className="block text-sm font-semibold text-slate-800">{label}</span><span className="block truncate text-xs text-slate-500">{description}</span></span>

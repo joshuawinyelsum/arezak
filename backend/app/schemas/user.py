@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 # Shared properties
 class UserBase(BaseModel):
     email: EmailStr
     name: str
+    handle: str | None = Field(default=None, min_length=3, max_length=30)
     currency: str | None = "GHS"
     timezone: str | None = "UTC"
 
