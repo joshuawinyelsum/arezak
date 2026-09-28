@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
     
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development") # development, staging, production
+    # External movements are sandboxed only by explicit development/test config.
+    MONEY_MOVEMENT_MODE: str = os.getenv(
+        "MONEY_MOVEMENT_MODE",
+        "sandbox" if os.getenv("ENVIRONMENT", "development").casefold() in {"development", "test"} else "production",
+    )
     
     # PostgreSQL is now the standard across all environments (including local)
     DB_DIALECT: str = os.getenv("DB_DIALECT", "postgresql") 

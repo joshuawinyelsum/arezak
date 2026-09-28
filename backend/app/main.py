@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import get_db
 from app.core.config import settings
-from app.api.v1 import auth, transactions, accounts, goals
+from app.api.v1 import auth, transactions, accounts, goals, operations, webhooks
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -15,6 +15,8 @@ app = FastAPI(
 async def csrf_protect(request: Request, call_next):
     # Only protect state-changing methods
     if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        if request.url.path.startswith(f"{settings.API_V1_STR}/webhooks/"):
+            return await call_next(request)
         # We require a custom header to ensure the request was made via fetch/XHR (which triggers CORS preflight)
         # This prevents simple form submissions from malicious sites (which bypass preflight)
         if not request.headers.get("x-requested-with"):
@@ -34,9 +36,12 @@ app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(transactions.router, prefix=settings.API_V1_STR)
 app.include_router(accounts.router, prefix=settings.API_V1_STR)
 app.include_router(goals.router, prefix=settings.API_V1_STR)
+app.include_router(operations.router, prefix=settings.API_V1_STR)
+app.include_router(webhooks.router, prefix=settings.API_V1_STR)
 
 @app.get("/version")
 def version_check():
+
     return {"version": "goal-contract-v2", "commit": "abcecf2e26e98ef4f10ae2d96b2afc4cf31ccb93"}
 
 @app.get("/health")

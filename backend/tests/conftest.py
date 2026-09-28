@@ -87,3 +87,39 @@ def client():
     app.dependency_overrides.clear()
 
 
+
+
+import uuid
+from app.models.user import User
+from app.models.account import Account
+
+@pytest.fixture
+def test_user(db_session: Session):
+    user = User(
+        id=uuid.uuid4(),
+        email=f"test_{uuid.uuid4()}@example.com",
+        name="Test User",
+        password_hash="hash",
+        currency="GHS"
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+@pytest.fixture
+def test_account(db_session: Session, test_user):
+    account = Account(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        name="Main Account",
+        type="MAIN",
+        currency="GHS",
+        available_balance=0,
+        reserved_balance=0,
+        locked_balance=0
+    )
+    db_session.add(account)
+    db_session.commit()
+    db_session.refresh(account)
+    return account

@@ -3,9 +3,17 @@ from app.rules.context import EvaluationContext
 from app.rules.decision import ConstraintDecision
 from app.rules.codes import DecisionCode
 
+# All operation types that require a sufficient available balance
+_DEBIT_OPERATIONS = frozenset([
+    "SPEND", "WITHDRAW", "TRANSFER_OUT", "GOAL_CONTRIBUTION",
+    # Block 2 domain operations
+    "SEND", "PAY",
+    # Note: FUND is a credit operation — it does NOT require available balance check
+])
+
 class BalanceConstraint(BaseConstraint):
     def evaluate(self, context: EvaluationContext) -> ConstraintDecision:
-        if context.operation_type not in ["SPEND", "WITHDRAW", "TRANSFER_OUT", "GOAL_CONTRIBUTION"]:
+        if context.operation_type not in _DEBIT_OPERATIONS:
             return ConstraintDecision.allow()
             
         account = context.account

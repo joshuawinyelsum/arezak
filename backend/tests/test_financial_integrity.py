@@ -48,7 +48,7 @@ def test_correction_atomicity(db_session: Session, test_user):
     db_session.refresh(account)
     # verify NO new ledger entries
     ledgers = db_session.query(LedgerEntry).filter_by(account_id=account.id).all()
-    assert len(ledgers) == 2
+    assert len(ledgers) == 4  # Income and expense each have balanced pairs.
     transactions = db_session.query(Transaction).filter_by(account_id=account.id).all()
     assert len(transactions) == 2
     assert account.available_balance == 0

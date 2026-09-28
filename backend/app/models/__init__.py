@@ -14,6 +14,13 @@ from app.models.notification import Notification
 
 from app.models.ledger_entry import LedgerEntry
 
+# Block 3: Money Movement Hub
+from app.models.money_rail import MoneyRail, ProviderCapability, ProviderRecord
+from app.models.provider_attempt import ProviderAttempt
+from app.models.webhook_event import WebhookEvent
+from app.models.outbox_event import OutboxEvent
+from app.models.reconciliation_record import ReconciliationRecord
+
 __all__ = [
     "Base",
     "User",
@@ -24,9 +31,18 @@ __all__ = [
     "GoalContribution",
     "Transaction",
     "LedgerEntry",
+    # Block 3
+    "MoneyRail",
+    "ProviderCapability",
+    "ProviderRecord",
+    "ProviderAttempt",
+    "WebhookEvent",
+    "OutboxEvent",
+    "ReconciliationRecord",
+    # Unchanged
     "Debt",
     "DebtPayment",
     "Obligation",
     "AuditLog",
-    "Notification"
+    "Notification",
 ]

@@ -44,10 +44,12 @@ def test_income_increases_balance_and_creates_ledger(db_session: Session):
     db_session.refresh(account)
     assert account.available_balance == 50000
     
-    assert len(account.ledger_entries) == 1
-    assert account.ledger_entries[0].entry_type == "CREDIT"
-    assert account.ledger_entries[0].amount == 50000
-    assert account.ledger_entries[0].currency == "GHS"
+    entries = db_session.query(LedgerEntry).filter_by(transaction_id=tx.id).all()
+    assert len(entries) == 2
+    assert {(entry.entry_type, entry.balance_type) for entry in entries} == {
+        ("CREDIT", "AVAILABLE"), ("DEBIT", "EXTERNAL")
+    }
+    assert all(entry.amount == 50000 and entry.currency == "GHS" for entry in entries)
 
 def test_idempotency_prevents_duplicates(db_session: Session):
     user = create_test_user(db_session)
@@ -83,7 +85,7 @@ def test_multiple_transactions_atomicity(db_session: Session):
     
     db_session.refresh(account)
     assert account.available_balance == 25000
-    assert len(account.ledger_entries) == 3
+    assert len(account.ledger_entries) == 6  # Two balanced entries per transaction.
 
 
 def test_concurrency():
