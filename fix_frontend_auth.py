@@ -1,4 +1,4 @@
-"use client";
+social_auth_content = """\"\"\"use client\"\"\";
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +23,7 @@ export function SocialAuth() {
   const [loading, setLoading] = useState<string | null>(null);
   
   const isGoogleConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const isAppleConfigured = !!process.env.NEXT_PUBLIC_APPLE_CLIENT_ID || (typeof window !== 'undefined' && (window as any).MOCK_APPLE_CONFIGURED);
+  const isAppleConfigured = !!process.env.NEXT_PUBLIC_APPLE_CLIENT_ID;
 
   const handleGoogleSuccess = async (credential: string) => {
     setError("");
@@ -214,3 +214,7 @@ export function SocialAuth() {
     </div>
   );
 }
+"""
+
+with open("frontend/components/SocialAuth.tsx", "w", encoding="utf-8") as f:
+    f.write(social_auth_content.replace('"""use client""";', '"use client";'))

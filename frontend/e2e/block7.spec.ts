@@ -28,8 +28,6 @@ test.describe('Block 7 - Complete Test Suite', () => {
   });
 
   test('SOCIAL AUTH: Configuration errors if missing', async ({ page }) => {
-    // Force environment variables not to exist in the browser context by intercepting
-    // We already know it should render the unconfigured button.
     await page.goto('/login');
     const googleBtn = page.getByRole('button', { name: /Continue with Google/i });
     await googleBtn.click();
@@ -38,6 +36,70 @@ test.describe('Block 7 - Complete Test Suite', () => {
     const appleBtn = page.getByRole('button', { name: /Continue with Apple/i });
     await appleBtn.click();
     await expect(page.getByText(/Apple authentication is not configured in this environment/i)).toBeVisible();
+  });
+
+  test('APPLE: Secure State Verification and API payload', async ({ page }) => {
+    // Mock Apple config
+    await page.route('**/api/v1/auth/social', async route => {
+      const body = JSON.parse(route.request().postData()!);
+      expect(body.provider).toBe('apple');
+      expect(body.token).toBe('mock_id_token');
+      expect(body.code).toBe('mock_code');
+      expect(body.nonce).toBeTruthy(); // Should have passed the raw nonce
+      await route.fulfill({ status: 200, json: { message: "Success", user: { id: "u1", status: "authenticated" } } });
+    });
+    
+    await page.route('**/api/v1/auth/me', async route => {
+        await route.fulfill({ status: 401, json: { detail: "Not authenticated" } });
+    });
+    
+    // Set up mock window.AppleID object before page load
+    await page.addInitScript(() => {
+      (window as any).MOCK_APPLE_CONFIGURED = true;
+      
+      window.AppleID = {
+        auth: {
+          init: () => {},
+          signIn: async (options: any) => {
+             // Mock returned response with matching state
+             return {
+                authorization: {
+                   state: options.state,
+                   id_token: "mock_id_token",
+                   code: "mock_code"
+                },
+                user: {
+                   name: { firstName: "Apple", lastName: "User" },
+                   email: "apple@example.com"
+                }
+             };
+          }
+        }
+      };
+    });
+    
+    await page.goto('/login');
+    const appleBtn = page.getByRole('button', { name: /Continue with Apple/i });
+    await expect(appleBtn).toBeVisible();
+    await appleBtn.click();
+    
+    // We expect it to succeed and call /auth/social (intercepted above)
+    // To verify mismatched state rejection:
+    await page.evaluate(() => {
+      (window as any).AppleID.auth.signIn = async (options: any) => {
+         return {
+            authorization: {
+               state: "mismatched_state_attacker",
+               id_token: "mock_id_token"
+            }
+         };
+      };
+    });
+    
+    // The button is still on the screen because we stayed on /login
+    await appleBtn.click();
+    
+    await expect(page.getByText(/State verification failed/i)).toBeVisible();
   });
 
   test('ONBOARDING & HANDLE: Validation and Routing', async ({ page }) => {

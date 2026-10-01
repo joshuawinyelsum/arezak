@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Force include staging if not present
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000") + ",https://arezak-staging.vercel.app"
     
+    GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID")
+    APPLE_CLIENT_ID: str | None = os.getenv("APPLE_CLIENT_ID")
+    
     @property
     def DATABASE_URL(self) -> str:
         env_db_url = os.getenv("DATABASE_URL")

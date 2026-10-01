@@ -22,7 +22,7 @@ interface AuthContextValue {
   status: AuthStatus;
   login: (credentials: any) => Promise<void>;
   register: (data: any) => Promise<void>;
-  socialLogin: (provider: string, token: string) => Promise<void>;
+  socialLogin: (provider: string, token: string, extraData?: any) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -82,16 +82,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const socialLogin = async (provider: string, token: string) => {
+  const socialLogin = async (provider: string, token: string, extraData: any = {}) => {
+    const prevStatus = status;
     setStatus("loading");
     try {
       await apiFetch("/auth/social", {
         method: "POST",
-        body: JSON.stringify({ provider, token }),
+        body: JSON.stringify({ provider, token, ...extraData }),
       });
       await refreshUser();
     } catch (error) {
-      setStatus("unauthenticated");
+      setStatus(prevStatus);
       throw error;
     }
   };

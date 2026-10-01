@@ -117,7 +117,7 @@ def social_auth(req: SocialAuthRequest, db: SessionDep, response: Response):
         if req.provider.lower() == "google":
             identity_data = validate_google_token(req.token)
         elif req.provider.lower() == "apple":
-            identity_data = validate_apple_token(req.token)
+            identity_data = validate_apple_token(req.token, expected_nonce=req.nonce, first_name=req.first_name, last_name=req.last_name)
         else:
             raise ValueError("Unsupported provider")
     except Exception as e:

@@ -40,7 +40,7 @@ def validate_google_token(token: str) -> ValidatedProviderIdentity:
     except ValueError as e:
         raise ValueError("Invalid Google token.") from e
 
-def validate_apple_token(token: str) -> ValidatedProviderIdentity:
+def validate_apple_token(token: str, expected_nonce: str | None = None, first_name: str | None = None, last_name: str | None = None) -> ValidatedProviderIdentity:
     """Validate Apple ID token server-side."""
     if not settings.APPLE_CLIENT_ID:
         logger.error("Apple authentication attempted but APPLE_CLIENT_ID is not configured.")
@@ -67,11 +67,14 @@ def validate_apple_token(token: str) -> ValidatedProviderIdentity:
             options={"verify_exp": True}
         )
         
+        if expected_nonce and data.get("nonce") != expected_nonce:
+            raise ValueError("Invalid Apple token nonce.")
+
         return ValidatedProviderIdentity(
             provider_user_id=data["sub"],
             email=data.get("email"),
-            first_name=None, # Apple only provides name on first auth in a separate payload, not the JWT
-            last_name=None
+            first_name=first_name,
+            last_name=last_name
         )
     except Exception as e:
         raise ValueError("Invalid Apple token.") from e

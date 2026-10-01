@@ -17,3 +17,8 @@ class VerifyPhoneRequest(BaseModel):
 class SocialAuthRequest(BaseModel):
     provider: str
     token: str
+    code: str | None = None
+    state: str | None = None
+    nonce: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
