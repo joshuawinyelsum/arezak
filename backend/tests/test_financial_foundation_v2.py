@@ -54,7 +54,7 @@ from app.services.transaction_service import (
 def _user(db: Session, suffix: str = "") -> User:
     u = User(
         email=f"ff_{suffix}_{uuid.uuid4()}@example.com",
-        name="Test User",
+        first_name="Test", last_name="User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}",
         password_hash="hashed",
     )
     db.add(u)

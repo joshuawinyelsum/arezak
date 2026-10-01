@@ -38,16 +38,16 @@ def test_csrf_protection_with_header(client: TestClient):
 
 def test_get_request_bypasses_csrf(client: TestClient):
     # Test that GET requests don't need the header
-    response = client.get(f"{settings.API_V1_STR}/auth/me")
+    response = client.get(f"{settings.API_V1_STR}/identity/me")
     # Will fail auth, but NOT fail CSRF
     assert response.status_code == 401
 
-def test_registration_and_login_success(client: TestClient):
+def test_registration_and_login_success(client: TestClient, db_session):
     uid = str(uuid.uuid4())
     # Register A
     register_response = client.post(
         f"{settings.API_V1_STR}/auth/register",
-        json={"email": f"user_a_{uid}@example.com", "password": "passwordA123", "name": "User A"},
+        json={"email": f"user_a_{uid}@example.com", "password": "passwordA123", "first_name": "Test", "last_name": "User A", "phone_number": "+233240000001", "handle": "hdla"},
         headers={"x-requested-with": "XMLHttpRequest"}
     )
     assert register_response.status_code == 201
@@ -55,7 +55,7 @@ def test_registration_and_login_success(client: TestClient):
     # Register duplicate
     dup_response = client.post(
         f"{settings.API_V1_STR}/auth/register",
-        json={"email": f"user_a_{uid}@example.com", "password": "passwordA123", "name": "User A Dup"},
+        json={"email": f"user_a_{uid}@example.com", "password": "passwordA123", "first_name": "Test", "last_name": "User A Dup", "phone_number": "+233240000003", "handle": "hdlc"},
         headers={"x-requested-with": "XMLHttpRequest"}
     )
     assert dup_response.status_code == 400
@@ -71,23 +71,53 @@ def test_registration_and_login_success(client: TestClient):
     # Check cookie
     cookies = login_response.cookies
     assert "access_token" in cookies
+
+    # Verify phone to get full session
+    from tests.conftest import TestingSessionLocal
+    from app.models.phone_verification import PhoneVerificationAttempt
+    from app.core.security import get_password_hash
+    from datetime import datetime, timedelta, timezone
+
+    if True:
+        db = db_session
+        attempt = PhoneVerificationAttempt(
+            phone_number="+233240000001",
+            otp_hash=get_password_hash("123456"),
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
+            attempts=0,
+            verified=False
+        )
+        db.add(attempt)
+        db.commit()
+
+    verify_res = client.post(
+        f"{settings.API_V1_STR}/auth/verify-phone",
+        json={"phone_number": "+233240000001", "otp": "123456"},
+        cookies=cookies,
+        headers={"x-requested-with": "XMLHttpRequest"}
+    )
+    assert verify_res.status_code == 200
+    cookies = verify_res.cookies
     
     # Check /me
     me_response = client.get(
-        f"{settings.API_V1_STR}/auth/me",
+        f"{settings.API_V1_STR}/identity/me",
         cookies={"access_token": cookies.get("access_token")}
     )
     assert me_response.status_code == 200
     assert me_response.json()["email"] == f"user_a_{uid}@example.com"
 
-def test_user_isolation(client: TestClient):
+def test_user_isolation(client: TestClient, db_session):
+    from datetime import datetime, timedelta, timezone
+    from app.core.security import get_password_hash
+    from app.models.phone_verification import PhoneVerificationAttempt
     uid_a = str(uuid.uuid4())
     uid_b = str(uuid.uuid4())
     
     # Setup User A
     client.post(
         f"{settings.API_V1_STR}/auth/register",
-        json={"email": f"iso_a_{uid_a}@example.com", "password": "pass", "name": "A"},
+        json={"email": f"iso_a_{uid_a}@example.com", "password": "pass", "first_name": "Test", "last_name": "A", "phone_number": "+233240000004", "handle": "hdld"},
         headers={"x-requested-with": "XMLHttpRequest"}
     )
     login_a = client.post(
@@ -100,7 +130,7 @@ def test_user_isolation(client: TestClient):
     # Setup User B
     client.post(
         f"{settings.API_V1_STR}/auth/register",
-        json={"email": f"iso_b_{uid_b}@example.com", "password": "pass", "name": "B"},
+        json={"email": f"iso_b_{uid_b}@example.com", "password": "pass", "first_name": "Test", "last_name": "B", "phone_number": "+233240000005", "handle": "hdle"},
         headers={"x-requested-with": "XMLHttpRequest"}
     )
     login_b = client.post(
@@ -109,6 +139,18 @@ def test_user_isolation(client: TestClient):
         headers={"x-requested-with": "XMLHttpRequest"}
     )
     cookies_b = login_b.cookies
+
+    if True:
+        db = db_session
+        a1 = PhoneVerificationAttempt(phone_number="+233240000004", otp_hash=get_password_hash("111111"), expires_at=datetime.now(timezone.utc) + timedelta(minutes=5), attempts=0, verified=False)
+        a2 = PhoneVerificationAttempt(phone_number="+233240000005", otp_hash=get_password_hash("222222"), expires_at=datetime.now(timezone.utc) + timedelta(minutes=5), attempts=0, verified=False)
+        db.add_all([a1, a2])
+        db.commit()
+    
+    ca = client.post(f"{settings.API_V1_STR}/auth/verify-phone", json={"phone_number": "+233240000004", "otp": "111111"}, cookies=cookies_a, headers={"x-requested-with": "XMLHttpRequest"}).cookies
+    cb = client.post(f"{settings.API_V1_STR}/auth/verify-phone", json={"phone_number": "+233240000005", "otp": "222222"}, cookies=cookies_b, headers={"x-requested-with": "XMLHttpRequest"}).cookies
+    cookies_a = ca
+    cookies_b = cb
     
     # Get A's account
     acc_a_resp = client.get(f"{settings.API_V1_STR}/accounts", cookies={"access_token": cookies_a.get("access_token")})

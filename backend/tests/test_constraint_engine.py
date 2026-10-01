@@ -13,7 +13,7 @@ def setup_test_data(db_session: Session):
     user = User(
         id=user_id,
         email=f"{user_id}@test.com",
-        name="Test User",
+        first_name="Test", last_name="User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}",
         password_hash="hash",
         currency="GHS",
         timezone="UTC"

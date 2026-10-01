@@ -11,6 +11,8 @@ from app.models.debt_payment import DebtPayment
 from app.models.obligation import Obligation
 from app.models.audit_log import AuditLog
 from app.models.notification import Notification
+from app.models.provider_identity import ProviderIdentity
+from app.models.phone_verification import PhoneVerificationAttempt
 
 from app.models.ledger_entry import LedgerEntry
 
@@ -45,4 +47,6 @@ __all__ = [
     "Obligation",
     "AuditLog",
     "Notification",
+    "ProviderIdentity",
+    "PhoneVerificationAttempt",
 ]

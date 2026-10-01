@@ -167,7 +167,7 @@ export default function Home() {
 
   const fmt = (pesewas: number) => formatPesewas(pesewas, !showBalance);
 
-  const firstName = user?.name?.split(" ")[0] ?? "there";
+  const firstName = user?.first_name?.split(" ")[0] ?? "there";
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-4 space-y-5">

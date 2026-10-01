@@ -16,7 +16,7 @@ from app.rules import ConstraintViolationException
 def test_user(db_session: Session):
     user = User(
         email=f"test_{uuid.uuid4()}@example.com",
-        name="Test User",
+        first_name="Test", last_name="User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}",
         password_hash="password",
         currency="GHS"
     )
@@ -209,7 +209,7 @@ def test_fund_account_and_idempotency(db_session: Session, test_user):
         process_income(db_session, test_user.id, account.id, 0)
         
 def test_cross_user_isolation(db_session: Session, test_user):
-    user_b = User(email=f"b_{uuid.uuid4()}@example.com", name="User B", password_hash="pass", currency="GHS")
+    user_b = User(email=f"b_{uuid.uuid4()}@example.com", first_name="Test", last_name="User B", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}", password_hash="pass", currency="GHS")
     db_session.add(user_b)
     db_session.commit()
     db_session.refresh(user_b)

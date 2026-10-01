@@ -39,6 +39,8 @@ def get_current_user(
             detail="Invalid authentication credentials",
         )
         
+    if payload.get("scp") == "onboarding":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Complete onboarding first")
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(
@@ -46,7 +48,8 @@ def get_current_user(
             detail="Invalid authentication credentials",
         )
         
-    user = db.query(User).filter(User.id == user_id).first()
+    import uuid
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
@@ -54,3 +57,23 @@ def get_current_user(
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
+
+def get_onboarding_user(
+    db: SessionDep,
+    token: str | None = Depends(get_token_from_cookie)
+) -> User:
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+    import uuid
+    user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+OnboardingUser = Annotated[User, Depends(get_onboarding_user)]

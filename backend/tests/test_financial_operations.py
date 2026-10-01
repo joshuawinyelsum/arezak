@@ -1,3 +1,4 @@
+from tests.conftest import engine
 import pytest
 import uuid
 from sqlalchemy.orm import Session
@@ -266,6 +267,7 @@ def test_idempotency_strict_rejection(db_session: Session, test_user, test_accou
     assert "Idempotency key reused with different parameters" in exc.value.decision.message
 
 
+@pytest.mark.skipif(engine.dialect.name == "sqlite", reason="Concurrency tests require PostgreSQL")
 def test_concurrency_protection():
     """
     Test that two concurrent spends against the same account cannot both succeed
@@ -285,7 +287,7 @@ def test_concurrency_protection():
     a_id = uuid.uuid4()
     
     with SessionLocal() as db:
-        user = User(id=u_id, email=f"conc_{u_id}@example.com", name="Conc User", password_hash="hash", currency="GHS")
+        user = User(id=u_id, email=f"conc_{u_id}@example.com", first_name="Test", last_name="Conc User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}", password_hash="hash", currency="GHS")
         account = Account(id=a_id, user_id=u_id, name="Conc Account", type="MAIN", currency="GHS", available_balance=0, reserved_balance=0, locked_balance=0)
         db.add(user)
         db.add(account)

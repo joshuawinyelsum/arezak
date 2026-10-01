@@ -1,3 +1,4 @@
+from tests.conftest import engine
 import pytest
 import uuid
 import threading
@@ -13,7 +14,7 @@ from app.models.user import User
 
 @pytest.fixture
 def test_user(db_session: Session):
-    user = User(email=f"test_{uuid.uuid4()}@example.com", name="Test User", password_hash="hashed")
+    user = User(email=f"test_{uuid.uuid4()}@example.com", first_name="Test", last_name="User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}", password_hash="hashed")
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
@@ -29,7 +30,7 @@ def test_account(db_session: Session, test_user):
 
 @pytest.fixture
 def test_user_2(db_session: Session):
-    user = User(email=f"test2_{uuid.uuid4()}@example.com", name="Test User 2", password_hash="hashed")
+    user = User(email=f"test2_{uuid.uuid4()}@example.com", first_name="Test", last_name="Test User 2", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}", password_hash="hashed")
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
@@ -144,6 +145,7 @@ def test_goal_ownership_protection(db_session: Session, test_user, test_user_2, 
     with pytest.raises(ConstraintViolationException) as exc:
         contribute_to_goal(db_session, test_user_2.id, test_account_2.id, goal.id, 5000, "GHS", "contrib6")
     assert exc.value.decision.code == DecisionCode.GOAL_NOT_OWNED
+@pytest.mark.skipif(engine.dialect.name == "sqlite", reason="Concurrency tests require PostgreSQL")
 def test_concurrency_overfunding_prevention():
     from tests.conftest import engine, TestingSessionLocal
     import threading
@@ -156,7 +158,7 @@ def test_concurrency_overfunding_prevention():
     from app.services.transaction_service import process_income
     
     uid = uuid.uuid4()
-    user = User(email=f"conc_{uid}@example.com", name="Conc User", password_hash="hashed")
+    user = User(email=f"conc_{uid}@example.com", first_name="Test", last_name="Conc User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}", password_hash="hashed")
     setup_session.add(user)
     setup_session.commit()
     
@@ -364,3 +366,4 @@ def test_withdraw_from_goal_exceeds_balance(db_session, test_user, test_account)
     
     with pytest.raises(ValueError, match="Cannot withdraw more than the goal's current balance."):
         withdraw_from_goal(db_session, test_user.id, test_account.id, goal.id, 20000)
+

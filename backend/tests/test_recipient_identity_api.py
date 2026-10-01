@@ -7,21 +7,25 @@ from app.services.account_identity import create_account
 from tests.conftest import TestingSessionLocal
 
 
-def test_recipient_resolution_and_internal_transfer_api(client):
+def test_recipient_resolution_and_internal_transfer_api(client, db_session):
+    from app.main import app
+    from app.api.deps import get_db
+    app.dependency_overrides[get_db] = lambda: db_session
     sender = User(
         email=f"sender_{uuid.uuid4()}@example.test",
-        name="Sender Person",
+        first_name="Test", last_name="Sender Person", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}",
         password_hash="test-hash",
         currency="GHS",
     )
     recipient = User(
         email=f"recipient_{uuid.uuid4()}@example.test",
-        name="Recipient Person",
+        first_name="Test", last_name="Recipient Person", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}",
         handle=f"recipient_{uuid.uuid4().hex[:10]}",
         password_hash="test-hash",
         currency="GHS",
     )
-    with TestingSessionLocal() as db:
+    if True:
+        db = db_session
         db.add_all([sender, recipient])
         db.flush()
         sender_account = create_account(db, user_id=sender.id, name="Sender main")
@@ -50,7 +54,7 @@ def test_recipient_resolution_and_internal_transfer_api(client):
             headers={"x-requested-with": "XMLHttpRequest"},
         )
         assert response.status_code == 200
-        assert response.json()["display_name"] == "Recipient Person"
+        assert response.json()["display_name"] == "Test Recipient Person"
         assert response.json()["account_number"] == recipient_account_number
         assert "account_id" not in response.json()
 
@@ -67,7 +71,8 @@ def test_recipient_resolution_and_internal_transfer_api(client):
     )
     assert transfer.status_code == 201, transfer.text
 
-    with TestingSessionLocal() as db:
+    if True:
+        db = db_session
         assert db.get(Account, sender_account_id).available_balance == 6_750
 
     recipient_history = client.get(

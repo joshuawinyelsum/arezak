@@ -146,11 +146,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="flex items-center gap-2.5 hover:bg-slate-50 p-1.5 rounded-xl pr-3 transition-colors focus:outline-none"
               >
                 <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0 text-brand font-bold text-sm">
-                  {user?.name?.charAt(0) ?? "U"}
+                  {(user?.first_name || 'U').charAt(0) ?? "U"}
                 </div>
                 <div className="flex flex-col text-left">
                   <span className="text-sm font-semibold leading-none text-slate-900">
-                    {user?.name ?? "User"}
+                    {`${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}
                   </span>
                   <span className="text-xs text-slate-400 mt-0.5 leading-none">
                     {user?.email ?? ""}

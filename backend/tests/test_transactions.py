@@ -12,7 +12,7 @@ from tests.conftest import engine, TestingSessionLocal
 
 @pytest.fixture
 def test_user(db_session: Session):
-    user = User(email=f"test_{uuid.uuid4()}@example.com", name="Test User", password_hash="hashed")
+    user = User(email=f"test_{uuid.uuid4()}@example.com", first_name="Test", last_name="User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}", password_hash="hashed")
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
@@ -69,10 +69,11 @@ def test_outbound_duplicate_idempotency_key(db_session: Session, test_user, test
     db_session.refresh(test_account)
     assert test_account.available_balance == 450000 # Deducted only once!
 
+@pytest.mark.skipif(engine.dialect.name == "sqlite", reason="Concurrency tests require PostgreSQL")
 def test_outbound_concurrent_requests():
     setup_session = TestingSessionLocal()
     uid = uuid.uuid4()
-    user = User(email=f"conc_{uid}@example.com", name="Conc User", password_hash="hashed")
+    user = User(email=f"conc_{uid}@example.com", first_name="Test", last_name="Conc User", phone_number=f"+233{uuid.uuid4().int % 1000000000:09d}", password_hash="hashed")
     setup_session.add(user)
     setup_session.commit()
 

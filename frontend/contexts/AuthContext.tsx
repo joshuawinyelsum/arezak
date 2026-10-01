@@ -3,15 +3,18 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 
-export type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "error";
+export type AuthStatus = "loading" | "authenticated" | "onboarding" | "unauthenticated" | "error";
 
 export interface User {
   id: string;
   email: string;
-  name: string;
-  handle?: string | null;
-  currency: string;
-  timezone: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string | null;
+  phone_verified: boolean;
+  profile_photo_url: string | null;
+  handle: string | null;
+  status: "onboarding" | "authenticated";
 }
 
 interface AuthContextValue {
@@ -19,6 +22,7 @@ interface AuthContextValue {
   status: AuthStatus;
   login: (credentials: any) => Promise<void>;
   register: (data: any) => Promise<void>;
+  socialLogin: (provider: string, token: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -34,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await apiFetch("/auth/me");
       const userData = await res.json();
       setUser(userData);
-      setStatus("authenticated");
+      setStatus(userData.status);
     } catch (err: any) {
       if (err.message?.includes("401") || err.message?.includes("403")) {
         setUser(null);
@@ -67,15 +71,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (data: any) => {
     setStatus("loading");
     try {
-      // Register
       await apiFetch("/auth/register", {
         method: "POST",
         body: JSON.stringify(data),
       });
-      // Registration does not auto-login in backend, so we log in immediately
-      await apiFetch("/auth/login", {
+      await refreshUser();
+    } catch (error) {
+      setStatus("unauthenticated");
+      throw error;
+    }
+  };
+
+  const socialLogin = async (provider: string, token: string) => {
+    setStatus("loading");
+    try {
+      await apiFetch("/auth/social", {
         method: "POST",
-        body: JSON.stringify({ email: data.email, password: data.password }),
+        body: JSON.stringify({ provider, token }),
       });
       await refreshUser();
     } catch (error) {
@@ -87,16 +99,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await apiFetch("/auth/logout", { method: "POST" });
-    } catch (err) {
-      // Proceed to clear state even if backend logout fails (e.g., already expired)
-    } finally {
+    } catch (err) {} finally {
       setUser(null);
       setStatus("unauthenticated");
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, status, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, status, login, register, socialLogin, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -109,4 +119,3 @@ export function useAuth() {
   }
   return context;
 }
-

@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { SocialAuth } from "@/components/SocialAuth";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,7 +14,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  
+  const { login, status, user } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/");
+    } else if (status === "onboarding") {
+      router.push("/verify-phone");
+    }
+  }, [status, router]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +112,11 @@ export default function LoginPage() {
             </button>
          </form>
 
+         
+         <SocialAuth />
+
          <p className="text-center text-sm text-slate-500 mt-8">
+
             Don&apos;t have an account? <Link href="/register" className="text-brand font-semibold hover:underline">Create one</Link>
          </p>
       </div>

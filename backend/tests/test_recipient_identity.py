@@ -14,13 +14,14 @@ from app.api.v1.transactions import get_transactions, get_transaction_ledger
 
 
 def _other_user(db_session, *, handle=None, phone=None, verified=False):
+    actual_phone = phone if phone is not None else f"0000{uuid.uuid4().hex[:6]}"
     user = User(
         email=f"recipient_{uuid.uuid4()}@example.com",
-        name="Ama Recipient",
+        first_name="Ama", last_name="Recipient",
         password_hash="test-hash",
         currency="GHS",
         handle=handle,
-        phone_number=phone,
+        phone_number=actual_phone,
         phone_verified=verified,
     )
     db_session.add(user)

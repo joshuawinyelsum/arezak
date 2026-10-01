@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response, UploadFile, File
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import CurrentUser, SessionDep, OnboardingUser
 from app.models.account import Account
 from app.models.user import User
 from app.services.recipient_identity import (
@@ -31,6 +31,7 @@ class MyIdentityResponse(BaseModel):
     display_name: str
     handle: str | None
     email: str
+    profile_photo_url: str | None = None
     phone_number: str | None
     phone_verified: bool
     accounts: list[ReceivingAccount]
@@ -48,6 +49,11 @@ class RecipientLookupResponse(BaseModel):
     recipient_type: str = "AREZAK_USER"
 
 
+class ProfileUpdateRequest(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1, max_length=255)
+    last_name: str | None = Field(default=None, min_length=1, max_length=255)
+    profile_photo_url: str | None = Field(default=None, max_length=1024)
+
 class HandleUpdateRequest(BaseModel):
     handle: str = Field(min_length=3, max_length=31)
 
@@ -59,6 +65,7 @@ def get_my_identity(db: SessionDep, current_user: CurrentUser):
         display_name=current_user.name,
         handle=f"@{current_user.handle}" if current_user.handle else None,
         email=current_user.email,
+        profile_photo_url=current_user.profile_photo_url,
         # Do not publish phone numbers until an explicit verification flow exists.
         phone_number=current_user.phone_number if current_user.phone_verified else None,
         phone_verified=current_user.phone_verified,
@@ -88,15 +95,101 @@ def lookup_recipient(request: RecipientLookupRequest, db: SessionDep, current_us
 
 
 @router.patch("/handle", response_model=MyIdentityResponse)
-def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: CurrentUser):
+def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: OnboardingUser, response: Response):
     try:
         current_user.handle = normalize_handle(request.handle)
     except InvalidRecipientIdentifier as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     try:
         db.commit()
     except IntegrityError as exc:
         db.rollback()
         raise HTTPException(status_code=409, detail="That handle is already in use.") from exc
     db.refresh(current_user)
+    
+    if current_user.phone_verified and not current_user.accounts:
+        from app.services.account_identity import create_account
+        create_account(db, user_id=current_user.id, name="Main Account", account_type="MAIN")
+        db.commit()
+        db.refresh(current_user)
+        
+    if current_user.phone_verified and current_user.handle:
+        from app.api.v1.auth import _set_auth_cookie
+        _set_auth_cookie(response, str(current_user.id), is_onboarding=False)
+        
     return get_my_identity(db, current_user)
+
+
+
+@router.patch("/profile", response_model=MyIdentityResponse)
+def update_profile(request: ProfileUpdateRequest, db: SessionDep, current_user: CurrentUser):
+    if request.first_name is not None:
+        current_user.first_name = request.first_name
+    if request.last_name is not None:
+        current_user.last_name = request.last_name
+    if request.profile_photo_url is not None:
+        current_user.profile_photo_url = request.profile_photo_url
+        
+    db.commit()
+    db.refresh(current_user)
+    return get_my_identity(db, current_user)
+
+
+@router.put("/profile/photo", response_model=MyIdentityResponse)
+def upload_photo(db: SessionDep, current_user: CurrentUser, file: UploadFile = File(...)):
+    from app.services.storage import storage_service, StorageConfigurationError
+    try:
+        url = storage_service.upload_profile_photo(current_user.id, file)
+        current_user.profile_photo_url = url
+        db.commit()
+        db.refresh(current_user)
+        return get_my_identity(db, current_user)
+    except StorageConfigurationError as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+@router.delete("/profile/photo", response_model=MyIdentityResponse)
+def remove_photo(db: SessionDep, current_user: CurrentUser):
+    from app.services.storage import storage_service
+    if current_user.profile_photo_url:
+        storage_service.delete_profile_photo(current_user.profile_photo_url)
+        current_user.profile_photo_url = None
+        db.commit()
+        db.refresh(current_user)
+    return get_my_identity(db, current_user)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+class SecurityStatusResponse(BaseModel):
+    has_password: bool
+    connected_providers: list[str]
+    phone_verified: bool
+    email_verified: bool
+
+@router.get("/security", response_model=SecurityStatusResponse)
+def get_security_status(db: SessionDep, current_user: CurrentUser):
+    from app.models.provider_identity import ProviderIdentity
+    providers = db.query(ProviderIdentity).filter_by(user_id=current_user.id).all()
+    
+    return SecurityStatusResponse(
+        has_password=bool(current_user.password_hash),
+        connected_providers=[p.provider for p in providers],
+        phone_verified=current_user.phone_verified,
+        email_verified=current_user.email_verified
+    )
+
+@router.post("/change-password", response_model=MessageResponse)
+def change_password(request: ChangePasswordRequest, db: SessionDep, current_user: CurrentUser):
+    from app.core.security import verify_password, get_password_hash
+    
+    if current_user.password_hash and not verify_password(request.current_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+        
+    current_user.password_hash = get_password_hash(request.new_password)
+    db.commit()
+    return {"message": "Password updated successfully"}
