@@ -1,4 +1,4 @@
-"use client";
+setup_handle_content = """\"\"\"use client\"\"\";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -108,3 +108,7 @@ export default function SetupHandlePage() {
     </div>
   );
 }
+"""
+
+with open("frontend/app/(onboarding)/setup-handle/page.tsx", "w", encoding="utf-8") as f:
+    f.write(setup_handle_content.replace('"""use client""";', '"use client";'))

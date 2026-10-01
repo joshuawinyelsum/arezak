@@ -1,4 +1,4 @@
-"use client";
+social_auth_content = """\"\"\"use client\"\"\";
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -175,3 +175,7 @@ export function SocialAuth() {
     </div>
   );
 }
+"""
+
+with open("frontend/components/SocialAuth.tsx", "w", encoding="utf-8") as f:
+    f.write(social_auth_content.replace('"""use client""";', '"use client";'))

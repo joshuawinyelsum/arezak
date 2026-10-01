@@ -22,6 +22,8 @@ export default function VerifyPhonePage() {
       router.push("/login");
     } else if (status === "authenticated") {
       router.push("/");
+    } else if (status === "onboarding" && user?.phone_verified) {
+      router.push("/setup-handle");
     }
   }, [status, router]);
 

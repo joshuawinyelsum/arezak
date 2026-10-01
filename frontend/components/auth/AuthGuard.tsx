@@ -6,16 +6,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { status } = useAuth();
+  const { user, status } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     } else if (status === "onboarding") {
-      router.push("/verify-phone");
+      if (user?.phone_verified) {
+        router.push("/setup-handle");
+      } else {
+        router.push("/verify-phone");
+      }
     }
-  }, [status, router]);
+  }, [status, router, user?.phone_verified]);
 
   if (status === "loading") {
     return (

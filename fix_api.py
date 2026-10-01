@@ -1,4 +1,4 @@
-export const API_BASE_URL = "/api/v1";
+api_content = """export const API_BASE_URL = "/api/v1";
 
 export class ApiError extends Error {
   status: number;
@@ -43,3 +43,7 @@ export async function apiFetch(
 
   return response;
 }
+"""
+
+with open("frontend/lib/api.ts", "w", encoding="utf-8") as f:
+    f.write(api_content)

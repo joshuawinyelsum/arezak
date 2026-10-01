@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, Camera, UploadCloud, Trash2, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -56,7 +56,7 @@ export default function ProfilePage() {
         // Just in case it resolved to us (though we caught exact match above)
         setHandleStatus("unavailable");
       } catch (err: any) {
-        if (err.message?.includes("404")) {
+        if (err instanceof ApiError && err.status === 404) {
           // Not found means it's available!
           setHandleStatus("available");
         } else {
@@ -96,7 +96,7 @@ export default function ProfilePage() {
       await refreshUser();
       setSuccess("Profile updated successfully");
     } catch (err: any) {
-      if (err.message?.includes("409")) {
+      if (err instanceof ApiError && err.status === 409) {
         setError("That handle is already in use.");
       } else {
         setError("Failed to update profile.");
@@ -133,7 +133,7 @@ export default function ProfilePage() {
       await refreshUser();
       setSuccess("Photo updated");
     } catch (err: any) {
-      if (err.message?.includes("501")) {
+      if (err instanceof ApiError && err.status === 501) {
         setError("Cloud storage is not configured on this server.");
       } else {
         setError("Failed to upload photo.");
