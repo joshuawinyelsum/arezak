@@ -138,7 +138,7 @@ export default function SecurityPage() {
             <MonitorSmartphone className="w-4 h-4 text-slate-400" /> Devices & Sessions
           </h2>
           <div className="bg-white border border-slate-200 rounded-[20px] shadow-sm p-4">
-             <p className="text-sm text-slate-500 mb-4">You are currently signed in on this device. Backend multi-session revocation is not yet available.</p>
+             <p className="text-sm text-slate-500 mb-4">Session management is not yet implemented in Arezak. Active sessions cannot be listed or revoked remotely at this time.</p>
              <button onClick={() => logout()} className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-xl transition-colors">
                <LogOut className="w-4 h-4" /> Sign out of this device
              </button>

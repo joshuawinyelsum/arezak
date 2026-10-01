@@ -66,7 +66,7 @@ export default function LoginPage() {
                <input 
                  id="email"
                  type="email" 
-                 placeholder="name@example.com"
+                 placeholder="name@domain.com"
                  required
                  value={email}
                  onChange={(e) => setEmail(e.target.value)}
@@ -117,7 +117,7 @@ export default function LoginPage() {
 
          <p className="text-center text-sm text-slate-500 mt-8">
 
-            Don&apos;t have an account? <Link href="/register" className="text-brand font-semibold hover:underline">Create one</Link>
+            Don&apos;t have an account? <Link href="/register" className="text-brand font-semibold hover:underline">Sign up</Link>
          </p>
       </div>
       

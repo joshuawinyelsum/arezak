@@ -58,7 +58,7 @@ export default function NotificationsPage() {
       </div>
       
       <p className="text-xs text-center text-slate-400 mt-6 px-4">
-        These preferences are saved locally on this device. Push notifications will require permission from your browser or operating system.
+        These preferences are saved locally on this device. Account-level synchronization and push delivery are not yet implemented.
       </p>
     </div>
   );

@@ -12,24 +12,26 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
+    } else if (status === "onboarding") {
+      router.push("/verify-phone");
     }
   }, [status, router]);
 
   if (status === "loading") {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-brand" />
       </div>
     );
   }
 
   if (status === "error") {
     return (
-      <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
-        <p className="text-slate-600">Failed to authenticate. Please check your connection.</p>
+      <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-slate-50">
+        <p className="text-slate-600 font-medium">Failed to authenticate. Please check your connection.</p>
         <button 
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-slate-900 text-white rounded-md"
+          className="px-6 py-2.5 bg-slate-900 font-semibold text-white rounded-xl hover:bg-slate-800 transition-colors"
         >
           Retry
         </button>
@@ -41,7 +43,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Prevent flash while redirecting
-  return null;
+  // Prevent flash while redirecting (for unauthenticated or onboarding)
+  return <div className="h-screen w-full bg-slate-50" />;
 }
-

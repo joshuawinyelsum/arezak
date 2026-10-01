@@ -161,6 +161,9 @@ def remove_photo(db: SessionDep, current_user: CurrentUser):
     return get_my_identity(db, current_user)
 
 
+class MessageResponse(BaseModel):
+    message: str
+
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8)

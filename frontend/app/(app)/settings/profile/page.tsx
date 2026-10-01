@@ -1,33 +1,87 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronLeft, Camera, UploadCloud, Trash2, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { ChevronLeft, Camera, Loader2, UploadCloud, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
-  const { user, refreshUser } = useAuth();
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user, refreshUser } = useAuth();
   
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [firstName, setFirstName] = useState(user?.first_name || "");
   const [lastName, setLastName] = useState(user?.last_name || "");
-  const [handle, setHandle] = useState(user?.handle || "");
+  const [handle, setHandle] = useState(user?.handle ? user.handle.replace(/^@/, '') : "");
+  
   const [loading, setLoading] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
+  // Handle availability state
+  const [handleStatus, setHandleStatus] = useState<"idle" | "checking" | "available" | "unavailable" | "invalid">("idle");
+  
+  // Debounced handle check
+  useEffect(() => {
+    if (!handle) {
+      setHandleStatus("invalid");
+      return;
+    }
+    
+    // Unchanged handle
+    if (user?.handle && handle.toLowerCase() === user.handle.replace(/^@/, '').toLowerCase()) {
+      setHandleStatus("available");
+      return;
+    }
+    
+    if (handle.length < 3) {
+      setHandleStatus("invalid");
+      return;
+    }
+
+    setHandleStatus("checking");
+    
+    const timeoutId = setTimeout(async () => {
+      try {
+        const res = await apiFetch("/identity/resolve", {
+          method: "POST",
+          body: JSON.stringify({ identifier: `@${handle.toLowerCase()}` })
+        });
+        
+        // If it resolved successfully, someone owns it
+        const data = await res.json();
+        // Just in case it resolved to us (though we caught exact match above)
+        setHandleStatus("unavailable");
+      } catch (err: any) {
+        if (err.message?.includes("404")) {
+          // Not found means it's available!
+          setHandleStatus("available");
+        } else {
+          setHandleStatus("idle");
+        }
+      }
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
+  }, [handle, user?.handle]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (handleStatus === "unavailable" || handleStatus === "invalid") {
+      setError("Please choose a valid and available handle.");
+      return;
+    }
+    
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      if (handle !== user?.handle) {
+      if (user?.handle && handle.toLowerCase() !== user.handle.replace(/^@/, '').toLowerCase()) {
         await apiFetch("/identity/handle", {
           method: "PATCH",
           body: JSON.stringify({ handle }),
@@ -91,10 +145,10 @@ export default function ProfilePage() {
 
   const handleRemovePhoto = async () => {
     setPhotoLoading(true);
+    setError("");
     try {
-      await apiFetch("/identity/profile", {
-        method: "PATCH",
-        body: JSON.stringify({ profile_photo_url: null }),
+      await apiFetch("/identity/profile/photo", {
+        method: "DELETE"
       });
       await refreshUser();
       setSuccess("Photo removed");
@@ -131,7 +185,7 @@ export default function ProfilePage() {
               <span className="text-3xl font-bold text-brand">{initials}</span>
             )}
             {!photoLoading && (
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                 <Camera className="w-8 h-8 text-white" />
               </div>
             )}
@@ -140,11 +194,11 @@ export default function ProfilePage() {
         </div>
         
         <div className="flex gap-3">
-          <button onClick={() => fileInputRef.current?.click()} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-slate-700 bg-slate-100 px-4 py-2 rounded-xl hover:bg-slate-200 transition-colors">
+          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-slate-700 bg-slate-100 px-4 py-2 rounded-xl hover:bg-slate-200 transition-colors">
             <UploadCloud className="w-4 h-4" /> Upload new
           </button>
           {user?.profile_photo_url && (
-            <button onClick={handleRemovePhoto} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl hover:bg-red-100 transition-colors">
+            <button type="button" onClick={handleRemovePhoto} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl hover:bg-red-100 transition-colors">
               <Trash2 className="w-4 h-4" /> Remove
             </button>
           )}
@@ -168,7 +222,16 @@ export default function ProfilePage() {
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">@</span>
             <input type="text" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} required minLength={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-3 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={loading} />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {handleStatus === "checking" && <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />}
+              {handleStatus === "available" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+              {handleStatus === "unavailable" && <AlertCircle className="w-4 h-4 text-red-500" />}
+            </div>
           </div>
+          {handleStatus === "checking" && <p className="text-xs text-slate-500 mt-1.5">Checking...</p>}
+          {handleStatus === "available" && <p className="text-xs text-green-600 mt-1.5 font-medium">Available</p>}
+          {handleStatus === "unavailable" && <p className="text-xs text-red-600 mt-1.5 font-medium">That handle is unavailable</p>}
+          {handleStatus === "invalid" && <p className="text-xs text-red-600 mt-1.5 font-medium">Invalid handle</p>}
         </div>
         
         <div>
@@ -183,7 +246,7 @@ export default function ProfilePage() {
           <p className="text-xs text-slate-400 mt-1.5">Contact support to change your verified phone number.</p>
         </div>
 
-        <button type="submit" disabled={loading} className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 shadow-lg hover:bg-brand/90 disabled:opacity-50 mt-4">
+        <button type="submit" disabled={loading || handleStatus === "unavailable" || handleStatus === "invalid" || handleStatus === "checking"} className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 shadow-lg hover:bg-brand/90 disabled:opacity-50 mt-4">
           {loading ? "Saving..." : "Save changes"}
         </button>
       </form>
