@@ -12,7 +12,7 @@ from app.schemas.auth import LoginRequest, MessageResponse, SendOTPRequest, Veri
 from app.core.config import settings
 from app.services.recipient_identity import normalize_handle
 from app.services.account_identity import create_account
-from app.services.otp_service import generate_and_send_otp, verify_otp, OTPRateLimitExceeded
+from app.services.otp_service import generate_and_send_otp, verify_otp, OTPRateLimitExceeded, OTPDeliveryFailed
 from app.services.social_auth import validate_google_token, validate_apple_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -90,6 +90,11 @@ def send_otp(req: SendOTPRequest, db: SessionDep):
         generate_and_send_otp(db, req.phone_number)
     except OTPRateLimitExceeded as e:
         raise HTTPException(status_code=429, detail=str(e))
+    except OTPDeliveryFailed:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to send verification code right now. Please try again later."
+        )
     return {"message": "OTP sent successfully"}
 
 @router.post("/verify-phone", response_model=MessageResponse)

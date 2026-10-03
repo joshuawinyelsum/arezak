@@ -57,10 +57,11 @@ class ProfileUpdateRequest(BaseModel):
     handle: str | None = Field(default=None, min_length=3, max_length=31)
 
 class HandleUpdateRequest(BaseModel):
+    handle: str = Field(min_length=3, max_length=30)
+
 class HandleAvailabilityResponse(BaseModel):
     available: bool
     reason: str | None = None
-    handle: str = Field(min_length=3, max_length=31)
 
 
 @router.get("/me", response_model=MyIdentityResponse)
@@ -99,23 +100,25 @@ def lookup_recipient(request: RecipientLookupRequest, db: SessionDep, current_us
     )
 
 
-@router.patch("/handle", response_model=MyIdentityResponse)
-def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: OnboardingUser, response: Response):
 @router.get("/handle/available", response_model=HandleAvailabilityResponse)
 def check_handle_availability(handle: str, db: SessionDep, current_user: CurrentUser):
     try:
         normalized = normalize_handle(handle)
     except InvalidRecipientIdentifier as exc:
         return HandleAvailabilityResponse(available=False, reason=str(exc))
-        
+
     if current_user.handle and current_user.handle.casefold() == normalized:
         return HandleAvailabilityResponse(available=True)
-        
+
     existing = db.execute(select(User).where(func.lower(User.handle) == normalized)).scalar_one_or_none()
     if existing:
         return HandleAvailabilityResponse(available=False, reason="That handle is already taken.")
-        
+
     return HandleAvailabilityResponse(available=True)
+
+
+@router.patch("/handle", response_model=MyIdentityResponse)
+def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: OnboardingUser, response: Response):
     try:
         current_user.handle = normalize_handle(request.handle)
     except InvalidRecipientIdentifier as exc:
@@ -127,17 +130,17 @@ def check_handle_availability(handle: str, db: SessionDep, current_user: Current
         db.rollback()
         raise HTTPException(status_code=409, detail="That handle is already in use.") from exc
     db.refresh(current_user)
-    
+
     if current_user.phone_verified and not current_user.accounts:
         from app.services.account_identity import create_account
         create_account(db, user_id=current_user.id, name="Main Account", account_type="MAIN")
         db.commit()
         db.refresh(current_user)
-        
+
     if current_user.phone_verified and current_user.handle:
         from app.api.v1.auth import _set_auth_cookie
         _set_auth_cookie(response, str(current_user.id), is_onboarding=False)
-        
+
     return get_my_identity(db, current_user)
 
 
@@ -234,12 +237,17 @@ def request_phone_change(request: RequestPhoneChangeRequest, db: SessionDep, cur
     if existing:
         raise HTTPException(status_code=400, detail="This phone number is already registered to another account.")
         
-    from app.services.otp_service import generate_and_send_otp, OTPRateLimitExceeded
+    from app.services.otp_service import generate_and_send_otp, OTPRateLimitExceeded, OTPDeliveryFailed
     try:
         generate_and_send_otp(db, request.phone_number)
     except OTPRateLimitExceeded as e:
         raise HTTPException(status_code=429, detail=str(e))
-        
+    except OTPDeliveryFailed:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to send verification code right now. Please try again later."
+        )
+
     return {"message": "OTP sent to new phone number"}
 
 class VerifyPhoneChangeRequest(BaseModel):
