@@ -19,6 +19,12 @@
     
     --accent: #f8fafc; /* slate-50 */
     --accent-foreground: #0f172a; /* slate-900 */
+    
+    --destructive: #fee2e2;
+    --destructive-foreground: #dc2626;
+    
+    --success: #dcfce7;
+    --success-foreground: #15803d;
   }
   
   .dark {
@@ -37,6 +43,12 @@
     
     --accent: #1e293b; /* slate-800 */
     --accent-foreground: #f8fafc;
+    
+    --destructive: rgba(127, 29, 29, 0.2);
+    --destructive-foreground: #f87171;
+    
+    --success: rgba(20, 83, 45, 0.2);
+    --success-foreground: #4ade80;
   }
 }
 

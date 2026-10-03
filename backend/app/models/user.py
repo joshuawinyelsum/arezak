@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean
+from sqlalchemy import String, Boolean, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import BaseModel
 import typing
@@ -24,6 +24,7 @@ class User(BaseModel):
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     currency: Mapped[str] = mapped_column(String(10), default="GHS", nullable=False)
     timezone: Mapped[str] = mapped_column(String(100), default="UTC", nullable=False)
+    notification_preferences: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     accounts: Mapped[list["Account"]] = relationship("Account", back_populates="user", cascade="all, delete-orphan")
     categories: Mapped[list["Category"]] = relationship("Category", back_populates="user", cascade="all, delete-orphan")

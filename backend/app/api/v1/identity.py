@@ -53,6 +53,7 @@ class ProfileUpdateRequest(BaseModel):
     first_name: str | None = Field(default=None, min_length=1, max_length=255)
     last_name: str | None = Field(default=None, min_length=1, max_length=255)
     profile_photo_url: str | None = Field(default=None, max_length=1024)
+    handle: str | None = Field(default=None, min_length=3, max_length=31)
 
 class HandleUpdateRequest(BaseModel):
     handle: str = Field(min_length=3, max_length=31)
@@ -130,6 +131,12 @@ def update_profile(request: ProfileUpdateRequest, db: SessionDep, current_user: 
         current_user.last_name = request.last_name
     if request.profile_photo_url is not None:
         current_user.profile_photo_url = request.profile_photo_url
+    if request.handle is not None:
+        # Check if handle is taken
+        existing = db.query(User).filter(User.handle == request.handle, User.id != current_user.id).first()
+        if existing:
+            raise HTTPException(status_code=409, detail="Handle is already taken")
+        current_user.handle = request.handle
         
     db.commit()
     db.refresh(current_user)

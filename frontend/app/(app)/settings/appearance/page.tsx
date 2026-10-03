@@ -38,7 +38,7 @@ export default function AppearancePage() {
       <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden divide-y divide-border">
         <button onClick={() => handleThemeChange("light")} className="w-full flex items-center justify-between p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500"><Sun className="w-5 h-5" /></div>
+            <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500"><Sun className="w-5 h-5" /></div>
             <span className="font-semibold text-card-foreground">Light</span>
           </div>
           {theme === "light" && <div className="w-2.5 h-2.5 rounded-full bg-brand"></div>}
@@ -46,7 +46,7 @@ export default function AppearancePage() {
         
         <button onClick={() => handleThemeChange("dark")} className="w-full flex items-center justify-between p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-500 dark:text-indigo-400"><Moon className="w-5 h-5" /></div>
+            <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500"><Moon className="w-5 h-5" /></div>
             <span className="font-semibold text-card-foreground">Dark</span>
           </div>
           {theme === "dark" && <div className="w-2.5 h-2.5 rounded-full bg-brand"></div>}
@@ -54,7 +54,7 @@ export default function AppearancePage() {
         
         <button onClick={() => handleThemeChange("system")} className="w-full flex items-center justify-between p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300"><Monitor className="w-5 h-5" /></div>
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><Monitor className="w-5 h-5" /></div>
             <span className="font-semibold text-card-foreground">System</span>
           </div>
           {theme === "system" && <div className="w-2.5 h-2.5 rounded-full bg-brand"></div>}

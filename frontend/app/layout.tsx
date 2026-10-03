@@ -39,7 +39,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased overflow-hidden h-screen w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100`}>
+      <body className={`${inter.variable} font-sans antialiased overflow-hidden h-screen w-full bg-background text-foreground`}>
         <AuthProvider>
           {children}
         </AuthProvider>

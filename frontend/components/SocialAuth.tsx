@@ -8,7 +8,7 @@ export function SocialAuth() {
   const [loading, setLoading] = useState<"google" | null>(null);
   const { socialLogin } = useAuth();
   
-  const isGoogleConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || (typeof window !== 'undefined' && (window as any).MOCK_GOOGLE_CONFIGURED);
+  const isGoogleConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ;
 
   const handleGoogleSuccess = async (credential: string) => {
     setError("");
@@ -68,13 +68,13 @@ export function SocialAuth() {
   return (
     <div className="w-full flex flex-col items-center">
       <div className="flex items-center w-full mb-6 mt-6">
-        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
-        <span className="px-3 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Or continue with</span>
-        <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+        <div className="flex-grow border-t border-border"></div>
+        <span className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Or continue with</span>
+        <div className="flex-grow border-t border-border"></div>
       </div>
       
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-xl text-sm font-medium text-center w-full mb-4">
+        <div className="bg-destructive text-destructive-foreground p-3 rounded-xl text-sm font-medium text-center w-full mb-4">
           {error}
         </div>
       )}
@@ -86,7 +86,7 @@ export function SocialAuth() {
           <button
             type="button"
             onClick={handleUnconfiguredGoogle}
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl py-3 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-3"
+            className="w-full bg-card border border-border text-foreground font-semibold rounded-xl py-3 shadow-sm hover:bg-accent transition-all flex items-center justify-center gap-3"
           >
             <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>

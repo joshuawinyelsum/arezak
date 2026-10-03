@@ -90,8 +90,8 @@ export default function PasswordPage() {
       </div>
 
       <form onSubmit={handlePasswordChange} className="bg-card border border-border rounded-[24px] p-6 sm:p-8 shadow-sm space-y-5">
-        {passError && <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm font-medium">{passError}</div>}
-        {passSuccess && <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 p-4 rounded-xl text-sm font-medium">{passSuccess}</div>}
+        {passError && <div className="bg-destructive text-destructive-foreground p-4 rounded-xl text-sm font-medium">{passError}</div>}
+        {passSuccess && <div className="bg-success text-success-foreground p-4 rounded-xl text-sm font-medium">{passSuccess}</div>}
         
         {!isSettingPassword && (
           <div>

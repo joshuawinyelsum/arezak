@@ -11,7 +11,7 @@ const settingsGroups = [
     title: "Account",
     items: [
       { id: "security", label: "Account & Security", icon: Lock, available: true, href: "/settings/security" },
-      { id: "notifications", label: "Notifications", icon: Bell, available: true, href: "/settings/notifications" },
+      { id: "notifications", label: "Notifications", icon: Bell, available: false },
       { id: "appearance", label: "Appearance", icon: Palette, value: "System", available: true, href: "/settings/appearance" },
     ],
   },
@@ -129,12 +129,12 @@ export default function SettingsPage() {
 
       {/* Logout Row */}
       <div className="bg-card border border-red-500/20 rounded-[24px] shadow-sm overflow-hidden mt-8">
-        <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center justify-between p-4 text-left hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:bg-red-50 dark:focus-visible:bg-red-500/10">
+        <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center justify-between p-4 text-left hover:bg-destructive transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:bg-destructive">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-500/20 flex items-center justify-center shrink-0">
-              <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <div className="w-10 h-10 rounded-full bg-destructive flex items-center justify-center shrink-0">
+              <LogOut className="w-5 h-5 text-destructive-foreground" />
             </div>
-            <span className="font-bold text-red-600 dark:text-red-400">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
+            <span className="font-bold text-destructive-foreground">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
           </div>
         </button>
       </div>

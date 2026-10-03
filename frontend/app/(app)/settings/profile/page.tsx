@@ -68,16 +68,13 @@ export default function ProfilePage() {
     setSuccess("");
 
     try {
-      if (handle !== user?.handle) {
-        await apiFetch("/identity/handle", {
-          method: "PATCH",
-          body: JSON.stringify({ handle }),
-        });
-      }
-      
       await apiFetch("/identity/profile", {
         method: "PATCH",
-        body: JSON.stringify({ first_name: firstName, last_name: lastName }),
+        body: JSON.stringify({ 
+          first_name: firstName, 
+          last_name: lastName,
+          ...(handle !== user?.handle ? { handle } : {})
+        }),
       });
 
       await refreshUser();
@@ -199,8 +196,8 @@ export default function ProfilePage() {
         <h1 className="text-2xl font-bold text-foreground tracking-tight">Edit Profile</h1>
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 p-4 rounded-xl text-sm font-medium">{error}</div>}
-      {success && <div className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 p-4 rounded-xl text-sm font-medium">{success}</div>}
+      {error && <div className="bg-destructive text-destructive-foreground p-4 rounded-xl text-sm font-medium">{error}</div>}
+      {success && <div className="bg-success text-success-foreground p-4 rounded-xl text-sm font-medium">{success}</div>}
 
       <div className="bg-card border border-border rounded-[24px] p-8 shadow-sm flex flex-col items-center gap-5">
         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -226,7 +223,7 @@ export default function ProfilePage() {
             <UploadCloud className="w-4 h-4" /> Upload new
           </button>
           {user?.profile_photo_url && (
-            <button type="button" onClick={handleRemovePhoto} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 px-4 py-2 rounded-xl hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
+            <button type="button" onClick={handleRemovePhoto} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-destructive-foreground bg-destructive px-4 py-2 rounded-xl hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive-foreground">
               <Trash2 className="w-4 h-4" /> Remove
             </button>
           )}
@@ -257,9 +254,9 @@ export default function ProfilePage() {
             </div>
           </div>
           {handleStatus === "checking" && <p className="text-xs text-muted-foreground mt-1.5">Checking...</p>}
-          {handleStatus === "available" && <p className="text-xs text-green-600 dark:text-green-400 mt-1.5 font-medium">Available</p>}
-          {handleStatus === "unavailable" && <p className="text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium">That handle is unavailable</p>}
-          {handleStatus === "invalid" && <p className="text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium">Invalid handle</p>}
+          {handleStatus === "available" && <p className="text-xs text-success-foreground mt-1.5 font-medium">Available</p>}
+          {handleStatus === "unavailable" && <p className="text-xs text-destructive-foreground mt-1.5 font-medium">That handle is unavailable</p>}
+          {handleStatus === "invalid" && <p className="text-xs text-destructive-foreground mt-1.5 font-medium">Invalid handle</p>}
         </div>
         
         <div>
@@ -282,7 +279,7 @@ export default function ProfilePage() {
              <input type="text" value={user?.phone_number || ""} disabled className="w-full bg-muted border border-border rounded-xl px-4 py-3.5 text-sm text-muted-foreground cursor-not-allowed" />
           ) : (
              <div className="space-y-3 bg-muted p-4 sm:p-5 rounded-xl border border-border">
-                {phoneError && <div className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">{phoneError}</div>}
+                {phoneError && <div className="text-xs font-medium text-destructive-foreground bg-destructive p-3 rounded-lg">{phoneError}</div>}
                 
                 {phoneStep === "request" ? (
                    <>

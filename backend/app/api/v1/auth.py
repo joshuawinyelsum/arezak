@@ -200,22 +200,9 @@ logger = logging.getLogger(__name__)
 
 @router.post("/request-password-reset", response_model=MessageResponse)
 def request_password_reset(req: RequestPasswordResetRequest, db: SessionDep, request: Request):
-    user = db.query(User).filter(User.email == req.email).first()
-    if user and user.password_hash:
-        # Generate reset token: use user_id, add a claim with password_hash prefix so it invalidates on change
-        reset_token = create_access_token(
-            subject=str(user.id),
-            expires_delta=timedelta(minutes=30),
-            claims={"type": "password_reset", "pwd": user.password_hash[:10]}
-        )
-        # Log the token for local testing since we don't have an email provider
-        origin = request.headers.get("origin") or "http://localhost:3000"
-        reset_url = f"{origin}/reset-password?token={reset_token}"
-        logger.info(f"Password reset link for {user.email}: {reset_url}")
-        print(f"\n*** PASSWORD RESET LINK FOR {user.email}: {reset_url} ***\n")
-        
-    # Always return success to prevent email enumeration
-    return {"message": "If an account exists with that email, a password reset link has been sent."}
+    # The reset flow must deliver the reset mechanism through a real production-capable channel
+    # or explicitly remain unavailable until a real delivery service is configured.
+    raise HTTPException(status_code=501, detail="Email delivery service is not configured. Password reset is temporarily unavailable.")
 
 @router.post("/reset-password", response_model=MessageResponse)
 def reset_password(req: ConfirmPasswordResetRequest, db: SessionDep):

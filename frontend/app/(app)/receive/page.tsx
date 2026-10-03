@@ -33,7 +33,7 @@ export default function ReceivePage() {
     apiFetch("/identity/me")
       .then((response) => response.json())
       .then((data: Identity) => { if (active) { setIdentity(data); } })
-      .catch(() => { if (active) setError("Your receiving identity could not be loaded."); });
+      .catch((err: any) => { if (active) setError(err.message || "Your receiving identity could not be loaded."); });
     return () => { active = false; };
   }, []);
 
@@ -74,7 +74,7 @@ export default function ReceivePage() {
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive Money</h1>
       </header>
 
-      {error && <p role="alert" className="rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/20 p-4 text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p role="alert" className="rounded-xl border border-destructive-foreground/20 bg-destructive p-4 text-sm font-medium text-destructive-foreground">{error}</p>}
       {!identity && !error && <div className="py-12 flex justify-center"><div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin"></div></div>}
       
       {identity && (
