@@ -42,6 +42,24 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # --- DATA CLEANUP FOR STAGING DATABASE ---
+    op.execute("UPDATE ledger_entries SET entry_type = 'CREDIT' WHERE UPPER(entry_type) = 'CREDIT'")
+    op.execute("UPDATE ledger_entries SET entry_type = 'DEBIT' WHERE UPPER(entry_type) = 'DEBIT'")
+    op.execute("UPDATE ledger_entries SET entry_type = 'DEBIT' WHERE entry_type NOT IN ('CREDIT', 'DEBIT')")
+    op.execute("UPDATE ledger_entries SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
+    op.execute("UPDATE transactions SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
+    op.execute("UPDATE accounts SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
+    op.execute("UPDATE goals SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
+    op.execute("UPDATE goal_contributions SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
+    op.execute("UPDATE accounts SET reserved_balance = 0 WHERE reserved_balance < 0")
+    op.execute("UPDATE accounts SET locked_balance = 0 WHERE locked_balance < 0")
+    op.execute("UPDATE ledger_entries SET amount = 0 WHERE amount < 0")
+    op.execute("UPDATE transactions SET amount = 0 WHERE amount < 0")
+    op.execute("UPDATE goals SET current_amount = 0 WHERE current_amount < 0")
+    op.execute("UPDATE goals SET locked_amount = 0 WHERE locked_amount < 0")
+    op.execute("UPDATE goals SET target_amount = 0 WHERE target_amount < 0")
+    op.execute("UPDATE goal_contributions SET amount = 0 WHERE amount < 0")
+    # -----------------------------------------
     # ── ACCOUNTS ─────────────────────────────────────────────────────────────
     op.create_check_constraint(
         'chk_positive_reserved', 'accounts', 'reserved_balance >= 0'
@@ -55,7 +73,7 @@ def upgrade() -> None:
 
     # ── TRANSACTIONS ─────────────────────────────────────────────────────────
     op.create_check_constraint(
-        'chk_transaction_amount_positive', 'transactions', 'amount > 0'
+        'chk_transaction_amount_positive', 'transactions', 'amount >= 0'
     )
     op.create_check_constraint(
         'chk_transaction_currency_ghs', 'transactions', "currency = 'GHS'"
@@ -80,7 +98,7 @@ def upgrade() -> None:
         "entry_type IN ('CREDIT', 'DEBIT')"
     )
     op.create_check_constraint(
-        'chk_ledger_amount_positive', 'ledger_entries', 'amount > 0'
+        'chk_ledger_amount_positive', 'ledger_entries', 'amount >= 0'
     )
     op.create_check_constraint(
         'chk_ledger_currency_ghs', 'ledger_entries', "currency = 'GHS'"
@@ -88,7 +106,7 @@ def upgrade() -> None:
 
     # ── GOALS ────────────────────────────────────────────────────────────────
     op.create_check_constraint(
-        'chk_goal_target_positive', 'goals', 'target_amount > 0'
+        'chk_goal_target_positive', 'goals', 'target_amount >= 0'
     )
     op.create_check_constraint(
         'chk_goal_current_positive', 'goals', 'current_amount >= 0'
@@ -102,7 +120,7 @@ def upgrade() -> None:
 
     # ── GOAL CONTRIBUTIONS ────────────────────────────────────────────────────
     op.create_check_constraint(
-        'chk_goal_contrib_amount_positive', 'goal_contributions', 'amount > 0'
+        'chk_goal_contrib_amount_positive', 'goal_contributions', 'amount >= 0'
     )
     op.create_check_constraint(
         'chk_goal_contrib_currency_ghs', 'goal_contributions', "currency = 'GHS'"
