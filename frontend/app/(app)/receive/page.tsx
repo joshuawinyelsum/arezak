@@ -43,7 +43,7 @@ export default function ReceivePage() {
 
   const getNormalizedHandle = (rawHandle: string | null) => {
     if (!rawHandle) return "";
-    return rawHandle.startsWith("@") ? rawHandle : @ + rawHandle;
+    return rawHandle.startsWith("@") ? rawHandle : "@" + rawHandle;
   };
 
   const getPaymentDetailsText = (account: ReceivingAccount) => {
@@ -140,5 +140,6 @@ export default function ReceivePage() {
     </div>
   );
 }
+
 
 
