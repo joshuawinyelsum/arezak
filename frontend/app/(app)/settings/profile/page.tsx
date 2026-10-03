@@ -19,6 +19,8 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const isDirty = firstName !== (user?.first_name || "") || lastName !== (user?.last_name || "") || handle !== (user?.handle || "");
+
   const [photoLoading, setPhotoLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -303,7 +305,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="pt-4">
-           <button type="submit" disabled={loading || handleStatus === "unavailable" || handleStatus === "invalid" || handleStatus === "checking"} className="w-full bg-brand text-white font-semibold rounded-xl py-4 shadow-lg shadow-brand/20 hover:bg-brand/90 disabled:opacity-50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+           <button type="submit" disabled={!isDirty || loading || handleStatus === "unavailable" || handleStatus === "invalid" || handleStatus === "checking"} className="w-full bg-brand text-white font-semibold rounded-xl py-4 shadow-lg shadow-brand/20 hover:bg-brand/90 disabled:opacity-50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
              {loading ? "Saving..." : "Save changes"}
            </button>
         </div>
