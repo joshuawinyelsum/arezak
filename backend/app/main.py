@@ -48,7 +48,7 @@ def version_check():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "environment": settings.ENVIRONMENT, "mtn_key_set": bool(settings.MTN_CONSUMER_KEY), "mtn_secret_set": bool(settings.MTN_CONSUMER_SECRET), "mtn_sender_set": bool(settings.MTN_SMS_SENDER_ADDRESS), "env_keys": ",".join(os.environ.keys())}
+    return {"status": "ok", "environment": settings.ENVIRONMENT}
 
 @app.get("/health/ready")
 def readiness_check(db: Session = Depends(get_db)):
@@ -56,7 +56,7 @@ def readiness_check(db: Session = Depends(get_db)):
     try:
         from sqlalchemy import text
         db.execute(text("SELECT 1"))
-        return {"status": "ready", "database": "connected", "environment": settings.ENVIRONMENT, "mtn_key_set": bool(settings.MTN_CONSUMER_KEY), "mtn_secret_set": bool(settings.MTN_CONSUMER_SECRET), "mtn_sender_set": bool(settings.MTN_SMS_SENDER_ADDRESS), "env_keys": ",".join(os.environ.keys())}
+        return {"status": "ready", "database": "connected", "environment": settings.ENVIRONMENT}
     except Exception as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=503, detail="Database not ready")
