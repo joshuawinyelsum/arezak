@@ -12,6 +12,7 @@ export interface User {
   last_name: string;
   phone_number: string | null;
   phone_verified: boolean;
+  phone_verification_required: boolean;
   profile_photo_url: string | null;
   handle: string | null;
   status: "onboarding" | "authenticated";
@@ -120,3 +121,4 @@ export function useAuth() {
   }
   return context;
 }
+

@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     MTN_CONSUMER_KEY: str | None = os.getenv("MTN_CONSUMER_KEY")
     MTN_CONSUMER_SECRET: str | None = os.getenv("MTN_CONSUMER_SECRET")
     MTN_SMS_SENDER_ADDRESS: str | None = os.getenv("MTN_SMS_SENDER_ADDRESS")
+    PHONE_VERIFICATION_REQUIRED_FOR_LOGIN: bool = os.getenv("PHONE_VERIFICATION_REQUIRED_FOR_LOGIN", "false").lower() == "true"
 
 
     
@@ -71,4 +72,5 @@ class Settings(BaseSettings):
         return f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 settings = Settings()
+
 

@@ -18,11 +18,9 @@ export default function LoginPage() {
   const { login, status, user } = useAuth();
   const router = useRouter();
 
-  React.useEffect(() => {
-    if (status === "authenticated") {
+      React.useEffect(() => {
+    if (status === "authenticated" || status === "onboarding") {
       router.push("/");
-    } else if (status === "onboarding") {
-      router.push("/verify-phone");
     }
   }, [status, router]);
 
@@ -124,4 +122,6 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
 

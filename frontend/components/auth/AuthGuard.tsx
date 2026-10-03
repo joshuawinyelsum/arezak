@@ -13,13 +13,16 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (status === "unauthenticated") {
       router.push("/login");
     } else if (status === "onboarding") {
-      if (user?.phone_verified) {
+      const requiresPhone = user?.phone_verification_required && !user?.phone_verified;
+      if (requiresPhone) {
+        router.push("/verify-phone");
+      } else if (!user?.handle) {
         router.push("/setup-handle");
       } else {
-        router.push("/verify-phone");
+        router.push("/");
       }
     }
-  }, [status, router, user?.phone_verified]);
+  }, [status, router, user?.phone_verified, user?.phone_verification_required, user?.handle]);
 
   if (status === "loading") {
     return (
@@ -54,4 +57,3 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       </div>
     );
 }
-

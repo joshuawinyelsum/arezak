@@ -131,13 +131,16 @@ def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: On
         raise HTTPException(status_code=409, detail="That handle is already in use.") from exc
     db.refresh(current_user)
 
-    if current_user.phone_verified and not current_user.accounts:
+    requires_phone = not current_user.phone_verified if settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN else False
+    is_fully_onboarded = not requires_phone and current_user.handle
+
+    if is_fully_onboarded and not current_user.accounts:
         from app.services.account_identity import create_account
         create_account(db, user_id=current_user.id, name="Main Account", account_type="MAIN")
         db.commit()
         db.refresh(current_user)
 
-    if current_user.phone_verified and current_user.handle:
+    if is_fully_onboarded:
         from app.api.v1.auth import _set_auth_cookie
         _set_auth_cookie(response, str(current_user.id), is_onboarding=False)
 
@@ -271,3 +274,5 @@ def verify_phone_change(request: VerifyPhoneChangeRequest, db: SessionDep, curre
     db.refresh(current_user)
     
     return get_my_identity(db, current_user)
+
+

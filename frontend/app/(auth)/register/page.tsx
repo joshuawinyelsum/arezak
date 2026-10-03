@@ -23,11 +23,9 @@ export default function RegisterPage() {
   const { register, status } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (status === "authenticated") {
+      useEffect(() => {
+    if (status === "authenticated" || status === "onboarding") {
       router.push("/");
-    } else if (status === "onboarding") {
-      router.push("/verify-phone");
     }
   }, [status, router]);
 
@@ -131,4 +129,6 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+
 

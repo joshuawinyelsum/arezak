@@ -17,6 +17,10 @@ from app.services.social_auth import validate_google_token, validate_apple_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+def _is_user_onboarding(user: User) -> bool:
+    requires_phone = not user.phone_verified if settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN else False
+    return requires_phone or not user.handle
+
 def _set_auth_cookie(response: Response, user_id: str, is_onboarding: bool = False):
     claims = {"scp": "onboarding"} if is_onboarding else {}
     access_token = create_access_token(subject=user_id, claims=claims)
@@ -64,7 +68,7 @@ def register(user_in: UserCreate, db: SessionDep, response: Response):
     db.refresh(user)
     
     # Give onboarding token since they haven't verified phone yet
-    _set_auth_cookie(response, str(user.id), is_onboarding=True)
+    _set_auth_cookie(response, str(user.id), is_onboarding=_is_user_onboarding(user))
     return user
 
 @router.post("/login", response_model=MessageResponse)
@@ -74,7 +78,7 @@ def login(login_data: LoginRequest, db: SessionDep, response: Response):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
         
     # Determine if user finished onboarding (phone verified and handle set)
-    is_onboarding = not (user.phone_verified and user.handle)
+    is_onboarding = _is_user_onboarding(user)
     _set_auth_cookie(response, str(user.id), is_onboarding=is_onboarding)
     return {"message": "Successfully logged in"}
 
@@ -161,7 +165,7 @@ def social_auth(req: SocialAuthRequest, db: SessionDep, response: Response):
         db.commit()
         db.refresh(user)
         
-    is_onboarding = not (user.phone_verified and user.handle)
+    is_onboarding = _is_user_onboarding(user)
     _set_auth_cookie(response, str(user.id), is_onboarding=is_onboarding)
     return {"message": "Social authentication successful"}
 
@@ -195,6 +199,7 @@ def get_me(request: Request, db: SessionDep):
         "handle": user.handle,
         "phone_number": user.phone_number,
         "phone_verified": user.phone_verified,
+        "phone_verification_required": settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN,
         "profile_photo_url": user.profile_photo_url,
         "status": "onboarding" if scope == "onboarding" else "authenticated"
     }
@@ -237,3 +242,5 @@ def reset_password(req: ConfirmPasswordResetRequest, db: SessionDep):
     db.commit()
     
     return {"message": "Password has been successfully reset"}
+
+
