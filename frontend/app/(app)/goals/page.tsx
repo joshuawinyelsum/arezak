@@ -177,10 +177,10 @@ export default function GoalsPage() {
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between md:mt-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-             <Link href="/" className="md:hidden text-slate-400 hover:text-slate-600 transition-colors">
+             <Link href="/" className="md:hidden text-muted-foreground hover:text-muted-foreground transition-colors">
                <ArrowLeft className="w-5 h-5" />
              </Link>
-             <h1 className="text-[22px] md:text-2xl font-bold text-slate-900 tracking-tight">Your goals</h1>
+             <h1 className="text-[22px] md:text-2xl font-bold text-foreground tracking-tight">Your goals</h1>
           </div>
         </div>
         <Link 
@@ -192,7 +192,7 @@ export default function GoalsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-6 border-b border-slate-200 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-6 border-b border-border overflow-x-auto no-scrollbar">
          {tabs.map(tab => (
             <button 
                key={tab.id}
@@ -201,7 +201,7 @@ export default function GoalsPage() {
                   "py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                   activeTab === tab.id 
                      ? "border-brand text-brand" 
-                     : "border-transparent text-slate-500 hover:text-slate-700"
+                     : "border-transparent text-muted-foreground hover:text-card-foreground"
                )}
             >
                {tab.label}
@@ -213,20 +213,20 @@ export default function GoalsPage() {
          <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center justify-center border border-red-100">
             <AlertCircle className="w-8 h-8 mb-3" />
             <div className="font-semibold">{error}</div>
-            <button onClick={loadData} className="mt-4 px-4 py-2 bg-white rounded-xl text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">Try Again</button>
+            <button onClick={loadData} className="mt-4 px-4 py-2 bg-card rounded-xl text-sm font-medium shadow-sm hover:bg-muted transition-colors">Try Again</button>
          </div>
       ) : isLoading ? (
-         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <Loader2 className="w-8 h-8 animate-spin mb-4" />
             <p className="text-sm font-medium">Loading goals...</p>
          </div>
       ) : filteredGoals.length === 0 ? (
-         <div className="bg-white border border-slate-200 rounded-[24px] p-12 flex flex-col items-center justify-center text-center shadow-sm">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-               <Target className="w-8 h-8 text-slate-400" />
+         <div className="bg-card border border-border rounded-[24px] p-12 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+               <Target className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">No goals yet</h3>
-            <p className="text-slate-500 max-w-sm mb-6">Create a goal to start protecting money for something that matters to you.</p>
+            <h3 className="text-lg font-bold text-foreground mb-2">No goals yet</h3>
+            <p className="text-muted-foreground max-w-sm mb-6">Create a goal to start protecting money for something that matters to you.</p>
             <Link href="/goals/create" className="bg-brand text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-brand-hover transition-colors shadow-sm">Create a goal</Link>
          </div>
       ) : (
@@ -235,7 +235,7 @@ export default function GoalsPage() {
               const percentage = goal.target_amount > 0 ? Math.floor((goal.current_amount / goal.target_amount) * 100) : 0;
               
               return (
-                <div key={goal.id} className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
+                <div key={goal.id} className="bg-card border border-border rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
                      <div>
                           <div className="flex items-center justify-between mb-5">
                              <div className="flex items-center gap-3">
@@ -243,7 +243,7 @@ export default function GoalsPage() {
                                    <Icon name={goal.icon || "Target"} className="w-5 h-5" />
                                 </div>
                                 <div>
-                                   <Link href={`/goals/${goal.id}`} className="font-bold text-slate-900 hover:text-brand transition-colors text-lg inline-flex items-center gap-1 group-hover:underline">
+                                   <Link href={`/goals/${goal.id}`} className="font-bold text-foreground hover:text-brand transition-colors text-lg inline-flex items-center gap-1 group-hover:underline">
                                       {goal.name}
                                    </Link>
                                 </div>
@@ -252,34 +252,34 @@ export default function GoalsPage() {
                              <div>
                                 {goal.status === "ACTIVE" && <span className="bg-blue-50 text-blue-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Saving</span>}
                                 {goal.status === "ACHIEVED" && <span className="bg-green-50 text-green-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Target reached</span>}
-                                {(goal.status === "RELEASED" || goal.status === "ARCHIVED" || goal.status === "CANCELLED") && <span className="bg-slate-100 text-slate-500 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
+                                {(goal.status === "RELEASED" || goal.status === "ARCHIVED" || goal.status === "CANCELLED") && <span className="bg-input text-muted-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
                              </div>
                           </div>
 
                           <div className="flex justify-between items-end mb-2">
                              <div>
-                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Protected</div>
-                                <div className="text-xl font-bold text-slate-900">GH₵{formatPesewas(goal.current_amount)}</div>
+                                <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Protected</div>
+                                <div className="text-xl font-bold text-foreground">GH₵{formatPesewas(goal.current_amount)}</div>
                              </div>
                              <div className="text-right">
-                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Target</div>
-                                <div className="text-sm font-semibold text-slate-600">GH₵{formatPesewas(goal.target_amount)}</div>
+                                <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Target</div>
+                                <div className="text-sm font-semibold text-muted-foreground">GH₵{formatPesewas(goal.target_amount)}</div>
                              </div>
                           </div>
                           
-                          <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden mb-2">
+                          <div className="w-full bg-input rounded-full h-2.5 overflow-hidden mb-2">
                              <div 
                                 className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-green-500" : "bg-brand")}
                                 style={{ width: `${Math.min(percentage, 100)}%` }}
                              ></div>
                           </div>
-                          <div className="text-xs text-slate-500 font-medium">{percentage}% protected</div>
+                          <div className="text-xs text-muted-foreground font-medium">{percentage}% protected</div>
                      </div>
                      
                      <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2">
                           <Link 
                              href={`/goals/${goal.id}`}
-                             className="flex-1 flex items-center justify-center gap-1.5 bg-slate-50 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-100 transition-colors"
+                             className="flex-1 flex items-center justify-center gap-1.5 bg-muted text-card-foreground py-2.5 rounded-xl text-sm font-semibold hover:bg-input transition-colors"
                           >
                              View details
                           </Link>
@@ -321,9 +321,9 @@ export default function GoalsPage() {
       {/* Modal Overlay */}
       {selectedGoal && modalMode && modalMode !== "edit" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
+          <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-foreground">
                    {modalMode === "contribute" && "Add money"}
                    {modalMode === "release" && "Move to available"}
                    {modalMode === "delete" && "Delete goal"}
@@ -331,7 +331,7 @@ export default function GoalsPage() {
               <button 
                 onClick={closeModal}
                 disabled={isSubmitting}
-                className="text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
+                className="text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -346,18 +346,18 @@ export default function GoalsPage() {
 
             {modalMode === "contribute" && (
                <form onSubmit={handleContribute} className="space-y-4">
-                  <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
-                     <p className="text-xs text-slate-500 mb-1">Target: GH₵{formatPesewas(selectedGoal.target_amount)}</p>
+                  <div className="bg-muted rounded-xl p-4 text-center border border-slate-100">
+                     <p className="text-xs text-muted-foreground mb-1">Target: GH₵{formatPesewas(selectedGoal.target_amount)}</p>
                      <p className="text-lg font-bold text-brand">Protected: GH₵{formatPesewas(selectedGoal.current_amount)}</p>
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-slate-900 mb-1.5">From Account</label>
+                     <label className="block text-sm font-semibold text-foreground mb-1.5">From Account</label>
                      <select 
                         value={accountId}
                         onChange={(e) => setAccountId(e.target.value)}
                         disabled={isSubmitting || accounts.length === 0}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                        className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                         required
                      >
                         {accounts.map(acc => (
@@ -367,7 +367,7 @@ export default function GoalsPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-slate-900 mb-1.5">Amount (GH₵)</label>
+                     <label className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
                      <input 
                         type="number"
                         step="0.01"
@@ -376,7 +376,7 @@ export default function GoalsPage() {
                         onChange={(e) => setAmountStr(e.target.value)}
                         placeholder="0.00"
                         disabled={isSubmitting}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                        className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                         required
                      />
                   </div>
@@ -397,7 +397,7 @@ export default function GoalsPage() {
             
             {modalMode === "release" && (
                <div className="space-y-4">
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-muted-foreground">
                      This will complete your <strong>{selectedGoal.name}</strong> goal and make <strong>GH₵{formatPesewas(selectedGoal.locked_amount)}</strong> available to spend.
                   </p>
 
@@ -412,7 +412,7 @@ export default function GoalsPage() {
                      <button 
                         onClick={closeModal}
                         disabled={isSubmitting}
-                        className="w-full bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl py-3.5 transition-all hover:bg-slate-50"
+                        className="w-full bg-card border border-border text-card-foreground font-semibold rounded-xl py-3.5 transition-all hover:bg-muted"
                      >
                         Keep protected
                      </button>
@@ -422,7 +422,7 @@ export default function GoalsPage() {
 
             {modalMode === "delete" && (
                <div className="space-y-4">
-                  <p className="text-sm text-slate-600 text-center">
+                  <p className="text-sm text-muted-foreground text-center">
                      Are you sure you want to permanently delete this goal? This action cannot be undone.
                   </p>
                   <button 
@@ -452,3 +452,4 @@ export default function GoalsPage() {
     </div>
   );
 }
+

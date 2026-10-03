@@ -55,16 +55,16 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-        <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl relative animate-in zoom-in-95">
+        <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl relative animate-in zoom-in-95">
           <button 
             onClick={onClose} 
             disabled={isLoading}
-            className="absolute right-6 top-6 text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
+            className="absolute right-6 top-6 text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
           
-          <h2 className="text-xl font-bold text-slate-900 mb-6">Edit Goal</h2>
+          <h2 className="text-xl font-bold text-foreground mb-6">Edit Goal</h2>
           
           {error && (
             <div className="bg-red-50 text-red-600 text-sm font-medium p-3 rounded-xl mb-4 text-center border border-red-100 flex items-center justify-center gap-2">
@@ -87,29 +87,29 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-1.5">Goal Name</label>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Goal Name</label>
               <input 
                 type="text" 
                 value={name} 
                 onChange={e => setName(e.target.value)} 
                 required 
                 disabled={isLoading}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50" 
+                className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50" 
               />
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-1.5 flex items-center justify-between">
+              <label className="block text-sm font-semibold text-foreground mb-1.5 flex items-center justify-between">
                 <span>Target Amount (GHS)</span>
-                <span className="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold">Fixed</span>
+                <span className="text-[10px] uppercase tracking-wider bg-input text-muted-foreground px-2 py-0.5 rounded-md font-bold">Fixed</span>
               </label>
               <input 
                 type="number" 
                 value={goal ? (goal.target_amount / 100).toString() : ""} 
                 disabled={true}
-                className="w-full bg-slate-100/50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed" 
+                className="w-full bg-input/50 border border-border rounded-xl px-4 py-3 text-sm text-muted-foreground cursor-not-allowed" 
               />
-              <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+              <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" /> The target cannot be changed after a goal is created.
               </p>
             </div>
@@ -134,6 +134,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
     </>
   );
 }
+
 
 
 

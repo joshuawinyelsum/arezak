@@ -51,7 +51,7 @@ export default function NotificationsPage() {
               onClick={() => togglePref(item.id as keyof typeof prefs)}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card ${prefs[item.id as keyof typeof prefs] ? 'bg-brand' : 'bg-border'}`}
             >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${prefs[item.id as keyof typeof prefs] ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-card transition-transform ${prefs[item.id as keyof typeof prefs] ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
         ))}
@@ -63,3 +63,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+

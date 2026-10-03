@@ -46,13 +46,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 animate-in fade-in duration-500">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4 animate-in fade-in duration-500">
       
-      <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100">
+      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100">
          <div className="flex flex-col items-center text-center mb-8">
             <Image src="/brand/logo.png" alt="Arezak" width={56} height={56} className="mb-6 rounded-xl" />
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
-            <p className="text-sm text-slate-500 mt-2">Money is governed by rules, not decisions.</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Welcome back</h1>
+            <p className="text-sm text-muted-foreground mt-2">Money is governed by rules, not decisions.</p>
          </div>
 
          <form className="space-y-4" onSubmit={handleSubmit}>
@@ -62,7 +62,7 @@ export default function LoginPage() {
               </div>
             )}
             <div>
-               <label className="block text-sm font-semibold text-slate-900 mb-1.5" htmlFor="email">Email address</label>
+               <label className="block text-sm font-semibold text-foreground mb-1.5" htmlFor="email">Email address</label>
                <input 
                  id="email"
                  type="email" 
@@ -70,14 +70,14 @@ export default function LoginPage() {
                  required
                  value={email}
                  onChange={(e) => setEmail(e.target.value)}
-                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+                 className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
                  disabled={isLoading}
                />
             </div>
             
             <div>
                <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-sm font-semibold text-slate-900" htmlFor="password">Password</label>
+                  <label className="block text-sm font-semibold text-foreground" htmlFor="password">Password</label>
                   <Link href="/forgot-password" className="text-xs text-brand font-medium hover:underline">Forgot?</Link>
                </div>
                <div className="relative">
@@ -88,13 +88,13 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all pr-12"
+                    className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all pr-12"
                     disabled={isLoading}
                   />
                   <button 
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                     disabled={isLoading}
                   >
                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -115,7 +115,7 @@ export default function LoginPage() {
          
          <SocialAuth />
 
-         <p className="text-center text-sm text-slate-500 mt-8">
+         <p className="text-center text-sm text-muted-foreground mt-8">
 
             Don&apos;t have an account? <Link href="/register" className="text-brand font-semibold hover:underline">Sign up</Link>
          </p>
@@ -124,3 +124,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

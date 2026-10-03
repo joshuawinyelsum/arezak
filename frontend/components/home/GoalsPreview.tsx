@@ -36,9 +36,9 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
   );
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4">
+    <section className="rounded-xl border border-border bg-card p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-slate-900">Your Goals</h2>
+        <h2 className="font-semibold text-foreground">Your Goals</h2>
         <Link
           href="/goals"
           className="flex items-center gap-0.5 text-xs text-brand font-medium hover:underline"
@@ -51,8 +51,8 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
         <div className="flex flex-col items-center text-center py-6 gap-3">
           <Target className="w-8 h-8 text-slate-200" />
           <div>
-            <p className="text-sm font-medium text-slate-900">No goals yet</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-sm font-medium text-foreground">No goals yet</p>
+            <p className="text-xs text-muted-foreground mt-1">
               Protect money for things that matter.
             </p>
           </div>
@@ -82,7 +82,7 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
                 className="block group"
               >
                 <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-sm font-semibold text-slate-900 group-hover:text-brand transition-colors">
+                  <span className="text-sm font-semibold text-foreground group-hover:text-brand transition-colors">
                     {goal.name}
                   </span>
                   <div className="flex items-center gap-2">
@@ -91,12 +91,12 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
                         Done
                       </span>
                     )}
-                    <span className="text-xs text-slate-500 font-medium">
+                    <span className="text-xs text-muted-foreground font-medium">
                       {progress}%
                     </span>
                   </div>
                 </div>
-                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-input rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
                       isAchieved ? "bg-green-500" : "bg-brand"
@@ -104,7 +104,7 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <div className="mt-1.5 text-[11px] text-slate-400">
+                <div className="mt-1.5 text-[11px] text-muted-foreground">
                   {formatPesewas(goal.current_amount)} of{" "}
                   {formatPesewas(goal.target_amount)}
                 </div>
@@ -116,3 +116,4 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
     </section>
   );
 }
+

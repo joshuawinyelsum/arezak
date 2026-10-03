@@ -82,7 +82,7 @@ export default function SetupHandlePage() {
 
   if (status === "loading") {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full items-center justify-center bg-muted">
         <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
@@ -94,17 +94,17 @@ export default function SetupHandlePage() {
     status === "error"
   ) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full items-center justify-center bg-muted">
         <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
+      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl text-center">
         <h1 className="text-2xl font-bold mb-2">Claim your handle</h1>
-        <p className="text-slate-500 mb-8 text-sm">
+        <p className="text-muted-foreground mb-8 text-sm">
           This is how friends will find you on Arezak.
         </p>
 
@@ -115,7 +115,7 @@ export default function SetupHandlePage() {
             </div>
           )}
           <div className="relative mb-6 text-left">
-            <span className="absolute left-4 top-[22px] -translate-y-1/2 text-slate-400 font-semibold">
+            <span className="absolute left-4 top-[22px] -translate-y-1/2 text-muted-foreground font-semibold">
               @
             </span>
             <input
@@ -128,13 +128,13 @@ export default function SetupHandlePage() {
               onChange={(e) =>
                 setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
               }
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-10 py-3 focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none"
+              className="w-full bg-muted border border-border rounded-xl pl-9 pr-10 py-3 focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none"
               disabled={loading}
               autoFocus
             />
             <div className="absolute right-4 top-[22px] -translate-y-1/2">
               {handleStatus === "checking" && (
-                <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
               )}
               {handleStatus === "available" && (
                 <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -144,7 +144,7 @@ export default function SetupHandlePage() {
               )}
             </div>
             {handleStatus === "checking" && (
-              <p className="text-xs text-slate-500 mt-1.5 ml-1">Checking...</p>
+              <p className="text-xs text-muted-foreground mt-1.5 ml-1">Checking...</p>
             )}
             {handleStatus === "available" && (
               <p className="text-xs text-green-600 mt-1.5 ml-1 font-medium">
@@ -180,4 +180,5 @@ export default function SetupHandlePage() {
     </div>
   );
 }
+
 

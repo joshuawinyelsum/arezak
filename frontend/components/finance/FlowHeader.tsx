@@ -19,7 +19,7 @@ export function FlowHeader({
           type="button"
           onClick={onBack}
           aria-label="Go back"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -27,17 +27,18 @@ export function FlowHeader({
         <span className="w-11 shrink-0" aria-hidden="true" />
       )}
       <div className="min-w-0 flex-1">
-        <h2 id="financial-flow-title" className="truncate text-lg font-bold text-slate-900">{title}</h2>
-        <p className="text-xs text-slate-500">{stepLabel}</p>
+        <h2 id="financial-flow-title" className="truncate text-lg font-bold text-foreground">{title}</h2>
+        <p className="text-xs text-muted-foreground">{stepLabel}</p>
       </div>
       <button
         type="button"
         onClick={onClose}
         aria-label="Close flow"
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-muted-foreground hover:bg-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <X className="h-5 w-5" aria-hidden="true" />
       </button>
     </header>
   );
 }
+

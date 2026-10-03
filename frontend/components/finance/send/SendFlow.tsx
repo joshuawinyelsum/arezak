@@ -176,9 +176,9 @@ export function SendFlow({ accounts, onClose }: { accounts: MoneyAccount[]; onCl
       {step === "result" ? (
         <section className="space-y-4 py-3 text-center">
           <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" aria-hidden="true" />
-          <h3 className="text-xl font-bold text-slate-900">Money sent to {resolvedRecipient?.display_name}</h3>
-          <p className="text-sm text-slate-600">{pesewas ? formatGhs(pesewas) : ""} was transferred to their Arezak account.</p>
-          <p className="text-xs text-slate-500">Transaction reference: {completedTransactionId}</p>
+          <h3 className="text-xl font-bold text-foreground">Money sent to {resolvedRecipient?.display_name}</h3>
+          <p className="text-sm text-muted-foreground">{pesewas ? formatGhs(pesewas) : ""} was transferred to their Arezak account.</p>
+          <p className="text-xs text-muted-foreground">Transaction reference: {completedTransactionId}</p>
         </section>
       ) : step === "review" ? (
         <ReviewTransaction
@@ -208,8 +208,8 @@ export function SendFlow({ accounts, onClose }: { accounts: MoneyAccount[]; onCl
           {step === "recipient" && (
             <section className="space-y-3">
               <div className="mb-4">
-                <h3 className="text-xl font-bold text-slate-900">Who are you sending to?</h3>
-                <p className="mt-1 text-sm text-slate-600">Choose where the recipient is registered.</p>
+                <h3 className="text-xl font-bold text-foreground">Who are you sending to?</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Choose where the recipient is registered.</p>
               </div>
               <ChoiceCard title="Arezak user" description="Find a person by account number, @handle, verified phone, or QR." selected={recipientType === "arezak"} onClick={() => setRecipientType("arezak")} />
               <ChoiceCard title="Mobile money" description="Choose a receiving network, then enter the mobile number." selected={recipientType === "mobile"} onClick={() => setRecipientType("mobile")} />
@@ -217,13 +217,13 @@ export function SendFlow({ accounts, onClose }: { accounts: MoneyAccount[]; onCl
           )}
           {step === "network" && (
             <section className="space-y-4">
-              <div><h3 className="text-xl font-bold text-slate-900">Choose receiving network</h3><p className="mt-1 text-sm text-slate-600">Select it directly. Arezak does not guess a network from the phone prefix.</p></div>
+              <div><h3 className="text-xl font-bold text-foreground">Choose receiving network</h3><p className="mt-1 text-sm text-muted-foreground">Select it directly. Arezak does not guess a network from the phone prefix.</p></div>
               <NetworkSelector value={rail} onChange={setRail} />
             </section>
           )}
           {step === "details" && (
             <section className="space-y-5">
-              <div><h3 className="text-xl font-bold text-slate-900">{recipientType === "arezak" ? "Find an Arezak user" : "Recipient details"}</h3><p className="mt-1 text-sm text-slate-600">{recipientType === "arezak" ? "The recipient is verified before you enter an amount." : `Receiving on ${ghanaRailLabel(rail)}.`}</p></div>
+              <div><h3 className="text-xl font-bold text-foreground">{recipientType === "arezak" ? "Find an Arezak user" : "Recipient details"}</h3><p className="mt-1 text-sm text-muted-foreground">{recipientType === "arezak" ? "The recipient is verified before you enter an amount." : `Receiving on ${ghanaRailLabel(rail)}.`}</p></div>
               {recipientType === "mobile" ? <GhanaPhoneField value={recipient} onChange={setRecipient} label="Recipient mobile number" /> : <>
                 <FlowField label="Account number, @handle, verified phone, or QR value" value={recipient} onChange={setRecipient} placeholder="e.g. 123456789012 or @handle" autoComplete="off" />
                 <QrScanner onDetected={setRecipient} />
@@ -233,20 +233,20 @@ export function SendFlow({ accounts, onClose }: { accounts: MoneyAccount[]; onCl
           )}
           {step === "confirm-recipient" && resolvedRecipient && (
             <section className="space-y-4">
-              <h3 className="text-xl font-bold text-slate-900">Is this the right person?</h3>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <p className="text-lg font-semibold text-slate-900">{resolvedRecipient.display_name}</p>
-                {resolvedRecipient.handle && <p className="mt-1 text-sm text-slate-600">{resolvedRecipient.handle}</p>}
-                {resolvedRecipient.masked_phone_number && <p className="mt-1 text-sm text-slate-600">{resolvedRecipient.masked_phone_number}</p>}
-                <p className="mt-3 text-xs font-medium uppercase tracking-wide text-slate-500">Arezak account</p>
-                <p className="mt-1 font-mono text-lg tracking-wider text-slate-900">{resolvedRecipient.account_number}</p>
+              <h3 className="text-xl font-bold text-foreground">Is this the right person?</h3>
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-lg font-semibold text-foreground">{resolvedRecipient.display_name}</p>
+                {resolvedRecipient.handle && <p className="mt-1 text-sm text-muted-foreground">{resolvedRecipient.handle}</p>}
+                {resolvedRecipient.masked_phone_number && <p className="mt-1 text-sm text-muted-foreground">{resolvedRecipient.masked_phone_number}</p>}
+                <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">Arezak account</p>
+                <p className="mt-1 font-mono text-lg tracking-wider text-foreground">{resolvedRecipient.account_number}</p>
               </div>
               <FlowNotice>Confirm the person before choosing how much to send.</FlowNotice>
             </section>
           )}
           {step === "amount" && (
             <section className="space-y-5">
-              <div><h3 className="text-xl font-bold text-slate-900">How much?</h3><p className="mt-1 text-sm text-slate-600">To {recipientType === "arezak" ? resolvedRecipient?.display_name : reviewRecipient}.</p></div>
+              <div><h3 className="text-xl font-bold text-foreground">How much?</h3><p className="mt-1 text-sm text-muted-foreground">To {recipientType === "arezak" ? resolvedRecipient?.display_name : reviewRecipient}.</p></div>
               <SourceSelector accounts={accounts} value={accountId} onChange={setAccountId} />
               <AmountInput value={amount} onChange={setAmount} availableBalance={account?.available_balance.amount_pesewas ?? 0} />
               <FlowField label="Reference or note (optional)" value={note} onChange={setNote} required={false} placeholder="Add a note" maxLength={120} />
@@ -259,3 +259,4 @@ export function SendFlow({ accounts, onClose }: { accounts: MoneyAccount[]; onCl
     </FinancialFlowShell>
   );
 }
+

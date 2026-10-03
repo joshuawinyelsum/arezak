@@ -60,12 +60,12 @@ export default function AccountsPage() {
       {/* Header */}
       <header className="flex justify-between items-center py-2">
         <div className="flex items-center gap-3">
-           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-slate-100 transition-colors">
-             <ArrowLeft className="w-5 h-5 text-slate-700" />
+           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-input transition-colors">
+             <ArrowLeft className="w-5 h-5 text-card-foreground" />
            </Link>
-           <h1 className="text-xl md:text-2xl font-bold text-slate-900">Accounts</h1>
+           <h1 className="text-xl md:text-2xl font-bold text-foreground">Accounts</h1>
         </div>
-        <button onClick={() => setShowBalance(!showBalance)} className="text-slate-500 hover:text-slate-900 transition-colors bg-white border border-slate-200 p-2 rounded-full shadow-sm focus:outline-none">
+        <button onClick={() => setShowBalance(!showBalance)} className="text-muted-foreground hover:text-foreground transition-colors bg-card border border-border p-2 rounded-full shadow-sm focus:outline-none">
            {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
       </header>
@@ -86,7 +86,7 @@ export default function AccountsPage() {
       )}
 
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="w-8 h-8 animate-spin mb-4" />
           <p className="text-sm font-medium">Loading your accounts...</p>
         </div>
@@ -107,10 +107,10 @@ export default function AccountsPage() {
       )}
 
       {!isLoading && !error && accounts.length === 0 && (
-        <div className="bg-slate-50 border border-slate-200 p-10 rounded-2xl flex flex-col items-center text-center">
+        <div className="bg-muted border border-border p-10 rounded-2xl flex flex-col items-center text-center">
           <Wallet className="w-12 h-12 text-slate-300 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900">No accounts yet</h3>
-          <p className="text-slate-500 text-sm mt-1 mb-6">You don&apos;t have any accounts set up.</p>
+          <h3 className="text-lg font-semibold text-foreground">No accounts yet</h3>
+          <p className="text-muted-foreground text-sm mt-1 mb-6">You don&apos;t have any accounts set up.</p>
         </div>
       )}
 
@@ -118,12 +118,12 @@ export default function AccountsPage() {
         <div className="space-y-10">
           {accounts.map(account => (
             <div key={account.id} className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-800 px-1">{account.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground px-1">{account.name}</h2>
               
               {/* Available */}
               <div className="bg-brand text-white p-6 rounded-2xl flex items-center justify-between shadow-lg shadow-brand/20">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-card/20 flex items-center justify-center shrink-0">
                         <Wallet className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -167,13 +167,13 @@ export default function AccountsPage() {
       )}
 
       {!isLoading && !error && accounts.length > 0 && (
-        <div className="bg-white border border-slate-200 p-5 rounded-2xl flex gap-4 mt-6 items-start shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-              <Lock className="w-4 h-4 text-slate-500" />
+        <div className="bg-card border border-border p-5 rounded-2xl flex gap-4 mt-6 items-start shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-input flex items-center justify-center shrink-0 mt-0.5">
+              <Lock className="w-4 h-4 text-muted-foreground" />
           </div>
           <div>
-              <h4 className="font-semibold text-slate-900 text-sm mb-1">Strict financial invariants</h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <h4 className="font-semibold text-foreground text-sm mb-1">Strict financial invariants</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 Your financial state is rigorously divided. You cannot spend protected funds. The system will enforce this automatically at the transaction level.
               </p>
           </div>
@@ -191,4 +191,5 @@ export default function AccountsPage() {
     </div>
   );
 }
+
 

@@ -22,7 +22,7 @@ export function FlowButton({
       form={form}
       onClick={onClick}
       disabled={disabled}
-      className={`min-h-12 w-full rounded-xl px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 ${variant === "primary" ? "bg-brand text-white hover:bg-brand-hover" : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}
+      className={`min-h-12 w-full rounded-xl px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-muted-foreground ${variant === "primary" ? "bg-brand text-white hover:bg-brand-hover" : "border border-border bg-card text-card-foreground hover:bg-muted"}`}
     >
       {children}
     </button>
@@ -50,14 +50,14 @@ export function ChoiceCard({
       onClick={onClick}
       disabled={disabled}
       aria-pressed={selected}
-      className={`flex min-h-[76px] w-full items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-70 ${selected ? "border-brand bg-blue-50/60" : "border-slate-200 bg-white hover:border-slate-300"}`}
+      className={`flex min-h-[76px] w-full items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-70 ${selected ? "border-brand bg-blue-50/60" : "border-border bg-card hover:border-border"}`}
     >
       <span className="min-w-0">
-        <span className="block font-semibold text-slate-900">{title}</span>
-        <span className="mt-1 block text-sm leading-snug text-slate-500">{description}</span>
+        <span className="block font-semibold text-foreground">{title}</span>
+        <span className="mt-1 block text-sm leading-snug text-muted-foreground">{description}</span>
       </span>
       <span className="flex shrink-0 items-center gap-2">
-        {badge && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600">{badge}</span>}
+        {badge && <span className="rounded-full bg-input px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{badge}</span>}
         {selected && <Check className="h-5 w-5 text-brand" aria-label="Selected" />}
       </span>
     </button>
@@ -105,7 +105,7 @@ export function FlowField({
   const id = React.useId();
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-slate-800">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-foreground">{label}</label>
       <input
         id={id}
         name={id}
@@ -117,9 +117,9 @@ export function FlowField({
         placeholder={placeholder}
         required={required}
         maxLength={maxLength}
-        className="min-h-12 w-full scroll-mt-5 rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+        className="min-h-12 w-full scroll-mt-5 rounded-xl border border-border bg-card px-4 py-3 text-base text-foreground placeholder:text-muted-foreground focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
       />
-      {hint && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -137,13 +137,13 @@ export function AmountInput({
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3">
-        <label htmlFor={id} className="text-sm font-semibold text-slate-800">Amount</label>
+        <label htmlFor={id} className="text-sm font-semibold text-foreground">Amount</label>
         {availableBalance !== undefined && (
-          <span className="text-xs text-slate-500">Available GH₵{(availableBalance / 100).toFixed(2)}</span>
+          <span className="text-xs text-muted-foreground">Available GH₵{(availableBalance / 100).toFixed(2)}</span>
         )}
       </div>
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-sm font-semibold text-slate-500">GH₵</span>
+        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-sm font-semibold text-muted-foreground">GH₵</span>
         <input
           id={id}
           name="amount"
@@ -154,23 +154,24 @@ export function AmountInput({
           onChange={(event) => onChange(event.target.value.replace(/[^\d.]/g, ""))}
           placeholder="0.00"
           aria-describedby={`${id}-hint`}
-          className="min-h-14 w-full scroll-mt-5 rounded-xl border border-slate-300 bg-white pl-14 pr-4 text-2xl font-semibold tabular-nums text-slate-900 placeholder:text-slate-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="min-h-14 w-full scroll-mt-5 rounded-xl border border-border bg-card pl-14 pr-4 text-2xl font-semibold tabular-nums text-foreground placeholder:text-slate-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
       </div>
-      <p id={`${id}-hint`} className="mt-1.5 text-xs text-slate-500">Enter cedis and pesewas, for example 25.50.</p>
+      <p id={`${id}-hint`} className="mt-1.5 text-xs text-muted-foreground">Enter cedis and pesewas, for example 25.50.</p>
     </div>
   );
 }
 
 export function ReviewRows({ rows }: { rows: { label: string; value: React.ReactNode; strong?: boolean }[] }) {
   return (
-    <dl className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white px-4">
+    <dl className="divide-y divide-slate-100 rounded-2xl border border-border bg-card px-4">
       {rows.map((row) => (
         <div key={row.label} className="flex items-start justify-between gap-4 py-3.5">
-          <dt className="text-sm text-slate-500">{row.label}</dt>
-          <dd className={`max-w-[65%] break-words text-right text-sm ${row.strong ? "font-semibold text-slate-900" : "font-medium text-slate-700"}`}>{row.value}</dd>
+          <dt className="text-sm text-muted-foreground">{row.label}</dt>
+          <dd className={`max-w-[65%] break-words text-right text-sm ${row.strong ? "font-semibold text-foreground" : "font-medium text-card-foreground"}`}>{row.value}</dd>
         </div>
       ))}
     </dl>
   );
 }
+

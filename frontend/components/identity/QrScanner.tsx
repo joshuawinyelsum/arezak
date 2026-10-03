@@ -63,12 +63,13 @@ export function QrScanner({ onDetected }: { onDetected: (value: string) => void 
   return (
     <div className="space-y-2">
       {!active ? <FlowButton variant="secondary" onClick={start}>Scan Arezak QR</FlowButton> : (
-        <div className="space-y-2 rounded-xl border border-slate-200 p-3">
+        <div className="space-y-2 rounded-xl border border-border p-3">
           <video ref={videoRef} playsInline muted className="max-h-56 w-full rounded-lg bg-slate-950 object-cover" aria-label="Camera view for scanning an Arezak QR" />
           <FlowButton variant="secondary" onClick={stop}>Stop scanning</FlowButton>
         </div>
       )}
-      {message && <p role="status" className="text-sm text-slate-600">{message}</p>}
+      {message && <p role="status" className="text-sm text-muted-foreground">{message}</p>}
     </div>
   );
 }
+

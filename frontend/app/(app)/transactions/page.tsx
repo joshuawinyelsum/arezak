@@ -120,10 +120,10 @@ export default function TransactionsPage() {
       {/* Header */}
       <header className="flex justify-between items-center py-2">
         <div className="flex items-center gap-3">
-           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-slate-100 transition-colors">
-             <ArrowLeft className="w-5 h-5 text-slate-700" />
+           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-input transition-colors">
+             <ArrowLeft className="w-5 h-5 text-card-foreground" />
            </Link>
-           <h1 className="text-xl md:text-2xl font-bold text-slate-900">Transactions</h1>
+           <h1 className="text-xl md:text-2xl font-bold text-foreground">Transactions</h1>
         </div>
           <div className="flex gap-2">
              <button 
@@ -133,7 +133,7 @@ export default function TransactionsPage() {
                  setModalError(null);
                  setIsExpenseModalOpen(true);
                }}
-               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors shadow-sm"
+               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-input text-card-foreground hover:bg-slate-200 transition-colors shadow-sm"
                aria-label="Add Expense"
              >
                <Minus className="w-4 h-4 md:mr-1.5" />
@@ -151,7 +151,7 @@ export default function TransactionsPage() {
       </header>
 
       {/* Tabs */}
-      <div className="flex bg-slate-100 p-1 rounded-xl">
+      <div className="flex bg-input p-1 rounded-xl">
          {[
            { id: "all", label: "All" },
            { id: "income", label: "Income" },
@@ -164,7 +164,7 @@ export default function TransactionsPage() {
                "flex-1 py-1.5 rounded-lg text-sm font-semibold transition-all",
                activeTab === tab.id 
                  ? "bg-brand text-white shadow-sm" 
-                 : "text-slate-500 hover:text-slate-700"
+                 : "text-muted-foreground hover:text-card-foreground"
              )}
            >
              {tab.label}
@@ -173,7 +173,7 @@ export default function TransactionsPage() {
       </div>
 
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <Loader2 className="w-8 h-8 animate-spin mb-4" />
           <p className="text-sm font-medium">Loading transactions...</p>
         </div>
@@ -194,10 +194,10 @@ export default function TransactionsPage() {
       )}
 
       {!isLoading && !error && filteredGroups.length === 0 && (
-        <div className="bg-slate-50 border border-slate-200 p-10 rounded-2xl flex flex-col items-center text-center mt-6">
+        <div className="bg-muted border border-border p-10 rounded-2xl flex flex-col items-center text-center mt-6">
           <PieChart className="w-12 h-12 text-slate-300 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900">No transactions</h3>
-          <p className="text-slate-500 text-sm mt-1 mb-6">You don&apos;t have any transactions here yet.</p>
+          <h3 className="text-lg font-semibold text-foreground">No transactions</h3>
+          <p className="text-muted-foreground text-sm mt-1 mb-6">You don&apos;t have any transactions here yet.</p>
         </div>
       )}
 
@@ -206,7 +206,7 @@ export default function TransactionsPage() {
         <div className="space-y-6 mt-6">
            {filteredGroups.map(group => (
               <div key={group.date}>
-                 <h3 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">{group.date}</h3>
+                 <h3 className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider">{group.date}</h3>
                  <div className="space-y-1">
                     {group.txs.map(item => {
                        const { Icon, bg, color } = getIconForType(item.type);
@@ -218,14 +218,14 @@ export default function TransactionsPage() {
                        const subtitleLabel = item.description?.trim() ? pres.label : null;
                        
                        return (
-                       <div key={item.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors group border border-transparent hover:border-slate-100">
+                       <div key={item.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-muted transition-colors group border border-transparent hover:border-slate-100">
                           <div className="flex items-center gap-4">
                              <div className={cn("w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform", bg, color)}>
                                 <Icon className="w-5 h-5" />
                              </div>
                                <div className="min-w-0">
-                                  <div className="font-semibold text-sm text-slate-900 truncate">{primaryLabel}</div>
-                                  <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                                  <div className="font-semibold text-sm text-foreground truncate">{primaryLabel}</div>
+                                  <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
                                     {subtitleLabel && <span>{subtitleLabel}</span>}
                                     {subtitleLabel && item.note && <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />}
                                     {item.note && <span className="truncate">{item.note}</span>}
@@ -235,7 +235,7 @@ export default function TransactionsPage() {
                             <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
                                <div className={cn(
                                   "font-semibold text-sm",
-                                  isPositive ? "text-green-600" : "text-slate-900"
+                                  isPositive ? "text-green-600" : "text-foreground"
                                )}>
                                   {isPositive ? "+" : "-"} GH₵{formatPesewas(item.amount.amount_pesewas)}
                                </div>
@@ -243,7 +243,7 @@ export default function TransactionsPage() {
                                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                     <button 
                                       onClick={() => openActionModal(item, "metadata")} 
-                                      className="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 font-medium"
+                                      className="text-xs bg-input hover:bg-slate-200 px-2 py-1 rounded text-muted-foreground font-medium"
                                     >
                                       Edit
                                     </button>
@@ -268,13 +268,13 @@ export default function TransactionsPage() {
       {/* Expense Modal */}
       {isExpenseModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95">
+          <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-900">Record Expense</h2>
+              <h2 className="text-xl font-bold text-foreground">Record Expense</h2>
               <button 
                 onClick={() => { if (!isSubmitting) setIsExpenseModalOpen(false); }}
                 disabled={isSubmitting}
-                className="text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
+                className="text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -326,11 +326,11 @@ export default function TransactionsPage() {
               }
             }} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-1.5">Account</label>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Account</label>
                 <select 
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all appearance-none"
+                  className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all appearance-none"
                   disabled={isSubmitting}
                 >
                   {accounts.map(acc => (
@@ -340,7 +340,7 @@ export default function TransactionsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-1.5">Amount (GH₵)</label>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
                 <input 
                   type="number"
                   step="0.01"
@@ -349,20 +349,20 @@ export default function TransactionsPage() {
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
                   disabled={isSubmitting}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-1.5">Description (Optional)</label>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Description (Optional)</label>
                 <input 
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What was this for?"
                   disabled={isSubmitting}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                  className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                 />
               </div>
 
@@ -401,3 +401,4 @@ export default function TransactionsPage() {
     </div>
   );
 }
+

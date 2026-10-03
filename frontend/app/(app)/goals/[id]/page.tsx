@@ -167,7 +167,7 @@ export default function GoalDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400 min-h-[50vh]">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground min-h-[50vh]">
         <Loader2 className="w-8 h-8 animate-spin mb-4" />
         <p className="text-sm font-medium">Loading goal...</p>
       </div>
@@ -177,13 +177,13 @@ export default function GoalDetailPage() {
   if (error || !goal) {
     return (
       <div className="w-full max-w-2xl mx-auto space-y-6 pt-8">
-        <Link href="/goals" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors">
+        <Link href="/goals" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Goals
         </Link>
         <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center justify-center border border-red-100">
           <AlertCircle className="w-8 h-8 mb-3" />
           <div className="font-semibold">{error || "Goal not found"}</div>
-          <Link href="/goals" className="mt-4 px-4 py-2 bg-white rounded-xl text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">Return to Goals</Link>
+          <Link href="/goals" className="mt-4 px-4 py-2 bg-card rounded-xl text-sm font-medium shadow-sm hover:bg-muted transition-colors">Return to Goals</Link>
         </div>
       </div>
     );
@@ -196,7 +196,7 @@ export default function GoalDetailPage() {
     <div className="w-full max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12">
       <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between md:mt-4">
         <div>
-          <Link href="/goals" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-4 text-sm font-medium">
+          <Link href="/goals" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4 text-sm font-medium">
             <ArrowLeft className="w-4 h-4" /> Back to Goals
           </Link>
           <div className="flex items-center gap-3">
@@ -204,7 +204,7 @@ export default function GoalDetailPage() {
                 <DynamicIcon name={goal.icon || "Target"} className="w-6 h-6" />
              </div>
              <div>
-                <h1 className="text-[24px] md:text-3xl font-bold text-slate-900 tracking-tight">{goal.name}</h1>
+                <h1 className="text-[24px] md:text-3xl font-bold text-foreground tracking-tight">{goal.name}</h1>
              </div>
           </div>
         </div>
@@ -212,41 +212,41 @@ export default function GoalDetailPage() {
         <div className="flex gap-2">
            <button 
               onClick={() => openModal("edit")}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+              className="px-4 py-2 bg-card border border-border text-card-foreground rounded-xl text-sm font-semibold hover:bg-muted transition-colors shadow-sm"
            >
               Edit Goal
            </button>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm">
+      <div className="bg-card border border-border rounded-[24px] p-6 shadow-sm">
          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <div className="flex items-center gap-4">
                <div>
                   {goal.status === "ACTIVE" && <span className="bg-blue-50 text-blue-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Saving</span>}
                   {goal.status === "ACHIEVED" && <span className="bg-green-50 text-green-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Target reached</span>}
-                  {(goal.status === "RELEASED" || goal.status === "ARCHIVED" || goal.status === "CANCELLED") && <span className="bg-slate-100 text-slate-500 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
+                  {(goal.status === "RELEASED" || goal.status === "ARCHIVED" || goal.status === "CANCELLED") && <span className="bg-input text-muted-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
                </div>
             </div>
             
             <div className="grid grid-cols-2 gap-8">
                <div>
-                  <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Protected</div>
-                  <div className="text-xl font-bold text-slate-900">GH₵{formatPesewas(goal.current_amount)}</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Protected</div>
+                  <div className="text-xl font-bold text-foreground">GH₵{formatPesewas(goal.current_amount)}</div>
                </div>
                <div>
-                  <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Target</div>
-                  <div className="text-xl font-bold text-slate-600">GH₵{formatPesewas(goal.target_amount)}</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Target</div>
+                  <div className="text-xl font-bold text-muted-foreground">GH₵{formatPesewas(goal.target_amount)}</div>
                </div>
             </div>
          </div>
 
          <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-               <span className="font-semibold text-slate-900">{percentage}% Protected</span>
-               <span className="text-slate-500 font-medium">GH₵{formatPesewas(goal.target_amount - goal.current_amount)} remaining</span>
+               <span className="font-semibold text-foreground">{percentage}% Protected</span>
+               <span className="text-muted-foreground font-medium">GH₵{formatPesewas(goal.target_amount - goal.current_amount)} remaining</span>
             </div>
-            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-input rounded-full h-3 overflow-hidden">
                <div 
                   className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-green-500" : "bg-brand", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "")}
                   style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -257,13 +257,13 @@ export default function GoalDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
          {goal.status === "ACTIVE" && (
-            <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm flex flex-col items-center text-center justify-center space-y-4">
+            <div className="bg-card border border-border rounded-[24px] p-6 shadow-sm flex flex-col items-center text-center justify-center space-y-4">
                <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center">
                   <ArrowDownCircle className="w-6 h-6" />
                </div>
                <div>
-                  <h3 className="font-bold text-slate-900">Add money</h3>
-                  <p className="text-sm text-slate-500 mt-1">Move money from your available balance to protect it for this goal.</p>
+                  <h3 className="font-bold text-foreground">Add money</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Move money from your available balance to protect it for this goal.</p>
                </div>
                <button 
                   onClick={() => openModal("contribute")}
@@ -275,7 +275,7 @@ export default function GoalDetailPage() {
          )}
 
          {isEligible && goal.status !== "RELEASED" && goal.status !== "ARCHIVED" && (
-            <div className="bg-white border border-green-200 rounded-[24px] p-6 shadow-sm flex flex-col items-center text-center justify-center space-y-4 ring-1 ring-green-500/20">
+            <div className="bg-card border border-green-200 rounded-[24px] p-6 shadow-sm flex flex-col items-center text-center justify-center space-y-4 ring-1 ring-green-500/20">
                <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
                   <ArrowUpCircle className="w-6 h-6" />
                </div>
@@ -292,9 +292,9 @@ export default function GoalDetailPage() {
             </div>
          )}
          
-         <div className="bg-slate-50 border border-slate-100 rounded-[24px] p-6 shadow-inner flex flex-col justify-center">
-            <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2"><Target className="w-4 h-4 text-slate-400"/> Goal Rules</h3>
-            <ul className="space-y-3 text-sm text-slate-600">
+         <div className="bg-muted border border-slate-100 rounded-[24px] p-6 shadow-inner flex flex-col justify-center">
+            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Target className="w-4 h-4 text-muted-foreground"/> Goal Rules</h3>
+            <ul className="space-y-3 text-sm text-muted-foreground">
                <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0"></div>
                   <span>This goal is locked until the target amount is reached.</span>
@@ -306,7 +306,7 @@ export default function GoalDetailPage() {
             </ul>
 
             {goal.status === "ACTIVE" && goal.current_amount === 0 && (
-               <div className="mt-6 pt-4 border-t border-slate-200">
+               <div className="mt-6 pt-4 border-t border-border">
                   <button onClick={() => openModal("delete")} className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors flex items-center gap-1.5">
                      <X className="w-4 h-4" /> Delete goal
                   </button>
@@ -318,9 +318,9 @@ export default function GoalDetailPage() {
       {/* Modal Overlay */}
       {modalMode && modalMode !== "edit" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
+          <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-foreground">
                    {modalMode === "contribute" && "Add money"}
                    {modalMode === "withdraw" && "Withdraw"}
                    {modalMode === "delete" && "Delete goal"}
@@ -328,7 +328,7 @@ export default function GoalDetailPage() {
               <button 
                 onClick={closeModal}
                 disabled={isSubmitting}
-                className="text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
+                className="text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -343,18 +343,18 @@ export default function GoalDetailPage() {
 
             {modalMode === "contribute" && (
                <form onSubmit={handleContribute} className="space-y-4">
-                  <div className="bg-slate-50 rounded-xl p-4 text-center border border-slate-100">
-                     <p className="text-xs text-slate-500 mb-1">Target: GH₵{formatPesewas(goal.target_amount)}</p>
+                  <div className="bg-muted rounded-xl p-4 text-center border border-slate-100">
+                     <p className="text-xs text-muted-foreground mb-1">Target: GH₵{formatPesewas(goal.target_amount)}</p>
                      <p className="text-lg font-bold text-brand">Protected: GH₵{formatPesewas(goal.current_amount)}</p>
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-slate-900 mb-1.5">From Account</label>
+                     <label className="block text-sm font-semibold text-foreground mb-1.5">From Account</label>
                      <select 
                         value={accountId}
                         onChange={(e) => setAccountId(e.target.value)}
                         disabled={isSubmitting || accounts.length === 0}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                        className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                         required
                      >
                         {accounts.map(acc => (
@@ -364,7 +364,7 @@ export default function GoalDetailPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-slate-900 mb-1.5">Amount (GH₵)</label>
+                     <label className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
                      <input 
                         type="number"
                         step="0.01"
@@ -373,7 +373,7 @@ export default function GoalDetailPage() {
                         onChange={(e) => setAmountStr(e.target.value)}
                         placeholder="0.00"
                         disabled={isSubmitting}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                        className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                         required
                      />
                   </div>
@@ -435,13 +435,13 @@ export default function GoalDetailPage() {
 
                   <div>
                      <div className="flex justify-between items-center mb-1.5">
-                        <label className="text-sm font-semibold text-slate-900">Amount to withdraw</label>
+                        <label className="text-sm font-semibold text-foreground">Amount to withdraw</label>
                         <button type="button" onClick={() => setAmountStr((goal.current_amount / 100).toFixed(2))} className="text-xs text-brand font-medium hover:underline">
                            Withdraw all
                         </button>
                      </div>
                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">GH₵</span>
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">GH₵</span>
                         <input
                            type="number"
                            inputMode="decimal"
@@ -452,20 +452,20 @@ export default function GoalDetailPage() {
                            onChange={(e) => setAmountStr(e.target.value)}
                            placeholder="0.00"
                            disabled={isSubmitting}
-                           className="w-full pl-12 pr-4 p-3 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                           className="w-full pl-12 pr-4 p-3 border border-border bg-muted rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                            required
                         />
                      </div>
-                     <div className="text-xs text-slate-400 mt-1.5">Goal balance: GH₵{formatPesewas(goal.current_amount)}</div>
+                     <div className="text-xs text-muted-foreground mt-1.5">Goal balance: GH₵{formatPesewas(goal.current_amount)}</div>
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-slate-900 mb-1.5">Return to account</label>
+                     <label className="block text-sm font-semibold text-foreground mb-1.5">Return to account</label>
                      <select
                         value={accountId}
                         onChange={(e) => setAccountId(e.target.value)}
                         disabled={isSubmitting || accounts.length === 0}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
+                        className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all disabled:opacity-50"
                      >
                         {accounts.map(acc => (
                            <option key={acc.id} value={acc.id}>{acc.name} (GH₵{formatPesewas(acc.available_balance.amount_pesewas)} available)</option>
@@ -480,7 +480,7 @@ export default function GoalDetailPage() {
                   >
                      {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Withdrawing...</> : "Withdraw from Goal"}
                   </button>
-                  <button type="button" onClick={closeModal} disabled={isSubmitting} className="w-full bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl py-3 transition-all hover:bg-slate-50">
+                  <button type="button" onClick={closeModal} disabled={isSubmitting} className="w-full bg-card border border-border text-card-foreground font-semibold rounded-xl py-3 transition-all hover:bg-muted">
                      Keep protected
                   </button>
                </form>
@@ -488,7 +488,7 @@ export default function GoalDetailPage() {
 
             {modalMode === "delete" && (
                <div className="space-y-4">
-                  <p className="text-sm text-slate-600 text-center">
+                  <p className="text-sm text-muted-foreground text-center">
                      Are you sure you want to permanently delete this goal? This action cannot be undone.
                   </p>
                   <button 
@@ -518,3 +518,4 @@ export default function GoalDetailPage() {
     </div>
   );
 }
+

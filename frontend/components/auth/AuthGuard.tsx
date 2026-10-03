@@ -23,7 +23,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (status === "loading") {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full items-center justify-center bg-muted">
         <Loader2 className="w-8 h-8 animate-spin text-brand" />
       </div>
     );
@@ -31,8 +31,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (status === "error") {
     return (
-      <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-slate-50">
-        <p className="text-slate-600 font-medium">Failed to authenticate. Please check your connection.</p>
+      <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-muted">
+        <p className="text-muted-foreground font-medium">Failed to authenticate. Please check your connection.</p>
         <button 
           onClick={() => window.location.reload()}
           className="px-6 py-2.5 bg-slate-900 font-semibold text-white rounded-xl hover:bg-slate-800 transition-colors"
@@ -49,8 +49,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   // Prevent flash while redirecting (for unauthenticated or onboarding)
   return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full items-center justify-center bg-muted">
         <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
 }
+

@@ -18,11 +18,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   if (status === "loading" || status === "authenticated") {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return <>{children}</>;
 }
+
 

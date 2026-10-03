@@ -82,14 +82,14 @@ export function MoneyActions({
             onClick={handlers[action.key]}
             disabled={disabled}
             aria-label={`${action.label}: ${action.description}`}
-            className="group flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-28"
+            className="group flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 transition-colors hover:border-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-28"
           >
             <action.icon className="h-5 w-5 text-brand" strokeWidth={1.8} aria-hidden="true" />
             <div className="text-center">
-              <div className="font-semibold text-[13px] text-slate-900">
+              <div className="font-semibold text-[13px] text-foreground">
                 {action.label}
               </div>
-              <div className="mt-0.5 hidden text-xs text-slate-500 sm:block">
+              <div className="mt-0.5 hidden text-xs text-muted-foreground sm:block">
                 {action.description}
               </div>
             </div>
@@ -99,3 +99,4 @@ export function MoneyActions({
     </div>
   );
 }
+

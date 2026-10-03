@@ -117,7 +117,7 @@ export function FinancialFlowShell({
         aria-modal="true"
         aria-labelledby="financial-flow-title"
         tabIndex={-1}
-        className="flex min-h-0 w-full max-h-full flex-col overflow-hidden rounded-t-[28px] bg-white shadow-2xl md:max-h-[min(90dvh,780px)] md:max-w-lg md:rounded-3xl"
+        className="flex min-h-0 w-full max-h-full flex-col overflow-hidden rounded-t-[28px] bg-card shadow-2xl md:max-h-[min(90dvh,780px)] md:max-w-lg md:rounded-3xl"
         style={{ height: "min(100%, 780px)" }}
       >
         <FlowHeader title={title} stepLabel={stepLabel} onBack={onBack} onClose={onClose} />
@@ -135,3 +135,4 @@ export function FinancialFlowShell({
 
   return portalReady ? createPortal(shell, document.body) : null;
 }
+

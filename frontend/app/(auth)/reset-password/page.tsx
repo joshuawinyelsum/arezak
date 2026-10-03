@@ -62,7 +62,7 @@ function ResetPasswordForm() {
 
   return (
     <>
-      <p className="text-sm text-slate-500 mb-6">Create a new password for your account. Must be at least 8 characters.</p>
+      <p className="text-sm text-muted-foreground mb-6">Create a new password for your account. Must be at least 8 characters.</p>
       <form className="space-y-4" onSubmit={handleSubmit}>
         {status === "error" && (
           <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium text-center">
@@ -71,7 +71,7 @@ function ResetPasswordForm() {
         )}
         
         <div>
-           <label className="block text-sm font-semibold text-slate-900 mb-1.5" htmlFor="password">New password</label>
+           <label className="block text-sm font-semibold text-foreground mb-1.5" htmlFor="password">New password</label>
            <div className="relative">
               <input 
                 id="password"
@@ -80,13 +80,13 @@ function ResetPasswordForm() {
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all pr-12"
+                className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all pr-12"
                 disabled={status === "loading"}
               />
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-sm"
                 disabled={status === "loading"}
               >
                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -95,7 +95,7 @@ function ResetPasswordForm() {
         </div>
         
         <div>
-           <label className="block text-sm font-semibold text-slate-900 mb-1.5" htmlFor="confirm_password">Confirm new password</label>
+           <label className="block text-sm font-semibold text-foreground mb-1.5" htmlFor="confirm_password">Confirm new password</label>
            <input 
              id="confirm_password"
              type={showPassword ? "text" : "password"} 
@@ -103,7 +103,7 @@ function ResetPasswordForm() {
              minLength={8}
              value={confirmPassword}
              onChange={(e) => setConfirmPassword(e.target.value)}
-             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+             className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
              disabled={status === "loading"}
            />
         </div>
@@ -122,9 +122,9 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4 animate-in fade-in duration-500">
-      <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100">
-         <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Set new password</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4 animate-in fade-in duration-500">
+      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100">
+         <h1 className="text-2xl font-bold text-foreground tracking-tight mb-2">Set new password</h1>
          <Suspense fallback={<div className="h-20 flex items-center justify-center"><div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin"></div></div>}>
            <ResetPasswordForm />
          </Suspense>
@@ -132,3 +132,4 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
+

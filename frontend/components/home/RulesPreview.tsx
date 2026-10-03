@@ -33,9 +33,9 @@ export function RulesPreview({ rules }: RulesPreviewProps) {
   const activeRules = rules.filter((r) => r.is_active);
 
   return (
-    <section className="bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm">
+    <section className="bg-card border border-border rounded-[24px] p-5 shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-slate-900">Money Rules</h2>
+        <h2 className="font-semibold text-foreground">Money Rules</h2>
         <Link
           href="/rules"
           className="flex items-center gap-0.5 text-xs text-brand font-medium hover:underline"
@@ -48,8 +48,8 @@ export function RulesPreview({ rules }: RulesPreviewProps) {
         <div className="flex flex-col items-center text-center py-5 gap-3">
           <SlidersHorizontal className="w-7 h-7 text-slate-200" />
           <div>
-            <p className="text-sm font-medium text-slate-900">No active rules</p>
-            <p className="text-xs text-slate-400 mt-1 max-w-[180px] mx-auto">
+            <p className="text-sm font-medium text-foreground">No active rules</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-[180px] mx-auto">
               Automatically organise your money as it comes in.
             </p>
           </div>
@@ -62,7 +62,7 @@ export function RulesPreview({ rules }: RulesPreviewProps) {
         </div>
       ) : (
         <div className="space-y-2">
-          <p className="text-xs text-slate-500 mb-3">
+          <p className="text-xs text-muted-foreground mb-3">
             {activeRules.length} active rule{activeRules.length !== 1 ? "s" : ""}
           </p>
           {activeRules.slice(0, 3).map((rule) => (
@@ -71,7 +71,7 @@ export function RulesPreview({ rules }: RulesPreviewProps) {
               className="flex items-center gap-3 py-1"
             >
               <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-              <span className="text-sm text-slate-700 font-medium">
+              <span className="text-sm text-card-foreground font-medium">
                 {rule.name}
               </span>
             </div>
@@ -89,3 +89,4 @@ export function RulesPreview({ rules }: RulesPreviewProps) {
     </section>
   );
 }
+

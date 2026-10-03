@@ -128,7 +128,7 @@ export default function Home() {
   // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="w-full h-[60vh] flex flex-col items-center justify-center text-slate-400">
+      <div className="w-full h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
         <Loader2 className="w-8 h-8 animate-spin mb-4" />
         <p className="text-sm font-medium">Loading your dashboard...</p>
       </div>
@@ -138,9 +138,9 @@ export default function Home() {
   // ── Error ────────────────────────────────────────────────────────────────
   if (error || !data) {
     return (
-      <div className="w-full h-[60vh] flex flex-col items-center justify-center text-slate-500">
+      <div className="w-full h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
         <AlertCircle className="w-10 h-10 text-red-400 mb-4" />
-        <p className="text-base font-semibold text-slate-900">Unable to load dashboard</p>
+        <p className="text-base font-semibold text-foreground">Unable to load dashboard</p>
         <p className="text-sm mt-1">{error}</p>
         <button
           onClick={() => window.location.reload()}
@@ -173,10 +173,10 @@ export default function Home() {
     <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-4 space-y-5">
       {/* ── Greeting ── */}
       <header className="pt-1">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+        <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
           Good morning, {firstName}
         </h1>
-        <p className="text-sm text-slate-400 mt-0.5">
+        <p className="text-sm text-muted-foreground mt-0.5">
           Here&apos;s your money summary.
         </p>
       </header>
@@ -241,3 +241,4 @@ export default function Home() {
     </div>
   );
 }
+

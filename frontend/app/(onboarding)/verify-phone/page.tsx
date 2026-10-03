@@ -112,7 +112,7 @@ export default function VerifyPhonePage() {
   
   if (status === "loading") {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full items-center justify-center bg-muted">
         <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
@@ -121,7 +121,7 @@ export default function VerifyPhonePage() {
   if (status === "unauthenticated" || status === "authenticated" || status === "error") {
     // The layout will handle the redirect, just render a safe blank state while redirecting
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex h-screen w-full items-center justify-center bg-muted">
         <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
@@ -129,14 +129,14 @@ export default function VerifyPhonePage() {
 
   if (!isPhoneSet) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
+        <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl">
           <h1 className="text-2xl font-bold mb-2 text-center">Enter your phone number</h1>
-          <p className="text-slate-500 mb-8 text-center text-sm">We need your phone number to secure your account.</p>
+          <p className="text-muted-foreground mb-8 text-center text-sm">We need your phone number to secure your account.</p>
           
           <form onSubmit={handlePhoneSubmit}>
              {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-6 text-center">{error}</div>}
-             <input type="tel" placeholder="+233..." required value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={resendLoading} />
+             <input type="tel" placeholder="+233..." required value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-muted border border-border rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={resendLoading} />
              <button type="submit" disabled={resendLoading} className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 shadow-lg hover:bg-brand/90 disabled:opacity-50">
                {resendLoading ? "Sending code..." : "Send Verification Code"}
              </button>
@@ -147,12 +147,12 @@ export default function VerifyPhonePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
+      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl text-center">
         <h1 className="text-2xl font-bold mb-2">Verify your phone</h1>
-        <p className="text-slate-500 mb-8 text-sm">
+        <p className="text-muted-foreground mb-8 text-sm">
           Enter the 6-digit code sent to:<br/>
-          <span className="font-semibold text-slate-800">{phone}</span>
+          <span className="font-semibold text-foreground">{phone}</span>
         </p>
 
         {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-6">{error}</div>}
@@ -167,7 +167,7 @@ export default function VerifyPhonePage() {
               value={digit}
               onChange={(e) => handleOtpChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className="w-12 h-14 text-center text-xl font-bold bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand"
+              className="w-12 h-14 text-center text-xl font-bold bg-muted border border-border rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand"
             />
           ))}
         </div>
@@ -176,7 +176,7 @@ export default function VerifyPhonePage() {
           {loading ? "Verifying..." : "Verify"}
         </button>
 
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           {timeLeft > 0 ? (
             <span>Code expires in {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}</span>
           ) : (
@@ -191,3 +191,4 @@ export default function VerifyPhonePage() {
     </div>
   );
 }
+

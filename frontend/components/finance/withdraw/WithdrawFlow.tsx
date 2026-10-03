@@ -85,18 +85,18 @@ export function WithdrawFlow({ accounts, onClose }: { accounts: MoneyAccount[]; 
         <form id="withdraw-flow-form" noValidate onSubmit={next} className="space-y-5">
           {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
           {step === "destination" && <section className="space-y-3">
-            <div><h3 className="text-xl font-bold text-slate-900">Where should the money go?</h3><p className="mt-1 text-sm text-slate-600">Choose a destination to see the details needed.</p></div>
+            <div><h3 className="text-xl font-bold text-foreground">Where should the money go?</h3><p className="mt-1 text-sm text-muted-foreground">Choose a destination to see the details needed.</p></div>
             <ChoiceCard title="Mobile money" description="Choose a network and enter the receiving number" badge="Coming soon" selected={destination === "mobile"} onClick={() => setDestination("mobile")} />
             <ChoiceCard title="Bank account" description="Enter the bank and account number" badge="Coming soon" selected={destination === "bank"} onClick={() => setDestination("bank")} />
             <ChoiceCard title="Other destination" description="No other withdrawal destination is supported yet" badge="Unavailable" disabled />
           </section>}
-          {step === "network" && <section className="space-y-4"><div><h3 className="text-xl font-bold text-slate-900">Choose receiving network</h3><p className="mt-1 text-sm text-slate-600">Choose the network explicitly.</p></div><NetworkSelector value={rail} onChange={setRail} /></section>}
+          {step === "network" && <section className="space-y-4"><div><h3 className="text-xl font-bold text-foreground">Choose receiving network</h3><p className="mt-1 text-sm text-muted-foreground">Choose the network explicitly.</p></div><NetworkSelector value={rail} onChange={setRail} /></section>}
           {step === "details" && <section className="space-y-5">
-            <div><h3 className="text-xl font-bold text-slate-900">Destination details</h3><p className="mt-1 text-sm text-slate-600">No payment request will be sent until a provider is connected.</p></div>
+            <div><h3 className="text-xl font-bold text-foreground">Destination details</h3><p className="mt-1 text-sm text-muted-foreground">No payment request will be sent until a provider is connected.</p></div>
             {destination === "mobile" ? <GhanaPhoneField value={phone} onChange={setPhone} label="Receiving mobile number" /> : <BankDetailsFields bank={bank} account={bankAccount} onBankChange={setBank} onAccountChange={setBankAccount} />}
           </section>}
           {step === "amount" && <section className="space-y-5">
-            <div><h3 className="text-xl font-bold text-slate-900">How much will you withdraw?</h3><p className="mt-1 text-sm text-slate-600">To {destinationLabel}.</p></div>
+            <div><h3 className="text-xl font-bold text-foreground">How much will you withdraw?</h3><p className="mt-1 text-sm text-muted-foreground">To {destinationLabel}.</p></div>
             <SourceSelector accounts={accounts} value={accountId} onChange={setAccountId} />
             <AmountInput value={amount} onChange={setAmount} availableBalance={account?.available_balance.amount_pesewas ?? 0} />
             {pesewas !== null && !enoughBalance && <p role="alert" className="text-sm text-red-700">Amount exceeds this account’s available balance.</p>}
@@ -106,3 +106,4 @@ export function WithdrawFlow({ accounts, onClose }: { accounts: MoneyAccount[]; 
     </FinancialFlowShell>
   );
 }
+

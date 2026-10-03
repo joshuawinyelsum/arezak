@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Copy, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { apiFetch } from "@/lib/api";
-import Image from "next/image";
 
 type ReceivingAccount = {
   account_id: string;
@@ -14,13 +12,10 @@ type ReceivingAccount = {
   account_number: string;
   qr_payload: string;
 };
+
 type Identity = {
   display_name: string;
   handle: string | null;
-  email: string;
-  phone_number: string | null;
-  phone_verified: boolean;
-  profile_photo_url: string | null;
   accounts: ReceivingAccount[];
 };
 
@@ -35,7 +30,7 @@ export default function ReceivePage() {
   };
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -46,33 +41,37 @@ export default function ReceivePage() {
     return () => { active = false; };
   }, []);
 
-  const copyValue = async (value: string, label: string) => {
+  const getNormalizedHandle = (rawHandle: string | null) => {
+    if (!rawHandle) return "";
+    return rawHandle.startsWith("@") ? rawHandle : @ + rawHandle;
+  };
+
+  const getPaymentDetailsText = (account: ReceivingAccount) => {
+    return [
+      Name: ,
+      identity?.handle ? Handle:  : null,
+      Arezak account number: 
+    ].filter(Boolean).join("\n");
+  };
+
+  const handleCopy = async (account: ReceivingAccount) => {
     try {
-      await navigator.clipboard.writeText(value);
-      setCopied(label);
-      window.setTimeout(() => setCopied(null), 1800);
+      await navigator.clipboard.writeText(getPaymentDetailsText(account));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
     } catch {
       setError("Copy is unavailable in this browser.");
     }
   };
 
-  const shareIdentity = async (account: ReceivingAccount) => {
-    const text = [
-      `Arezak account: ${account.account_number}`,
-      identity?.handle ?? "",
-      `Receive with Arezak: ${account.qr_payload}`,
-    ].filter(Boolean).join("\n");
-    
+  const handleShare = async (account: ReceivingAccount) => {
+    const text = getPaymentDetailsText(account);
     if (navigator.share) {
-      try { await navigator.share({ title: "My Arezak account", text }); } catch {}
+      try { await navigator.share({ title: "My Arezak payment details", text }); } catch {}
     } else {
-      await copyValue(text, "Share details");
+      await handleCopy(account);
     }
   };
-
-  const initials = identity?.display_name
-    ? identity.display_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()
-    : "?";
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-6 pb-12 animate-in fade-in duration-300">
@@ -80,7 +79,7 @@ export default function ReceivePage() {
         <button type="button" onClick={handleBack} aria-label="Back" className="rounded-full p-2 text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive Money</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive money</h1>
       </header>
 
       {error && <p role="alert" className="rounded-xl border border-destructive-foreground/20 bg-destructive p-4 text-sm font-medium text-destructive-foreground">{error}</p>}
@@ -88,59 +87,58 @@ export default function ReceivePage() {
       
       {identity && (
         <div className="space-y-6">
-          <section className="rounded-[32px] border border-border bg-card p-6 sm:p-8 shadow-sm flex flex-col items-center text-center">
-            <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center mb-5 overflow-hidden shadow-sm relative">
-              {identity.profile_photo_url ? (
-                <Image src={identity.profile_photo_url} alt="Profile" fill className="object-cover" unoptimized />
-              ) : (
-                <span className="text-3xl font-bold text-brand">{initials}</span>
-              )}
-            </div>
-            
-            <h2 className="text-2xl font-bold text-card-foreground">{identity.display_name}</h2>
-            {identity.handle && <p className="text-sm font-semibold text-brand mt-1.5">{identity.handle}</p>}
-            {identity.email && (
-              <p className="text-sm text-muted-foreground mt-1.5">{identity.email}</p>
-            )}
-            {identity.phone_verified && identity.phone_number && (
-              <p className="text-sm text-muted-foreground mt-1.5">{identity.phone_number}</p>
-            )}
-            
-            {identity.accounts.map((account) => (
-              <div key={account.account_id} className="mt-8 w-full border-t border-border pt-8">
-                <div className="flex flex-col items-center">
-                  <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200 mb-8 inline-block">
-                    {/* The QR code needs a white background even in dark mode for scanner compatibility */}
-                    <QRCodeSVG value={account.qr_payload} size={220} level="Q" marginSize={0} />
+          <p className="text-sm text-muted-foreground px-1">Share your Arezak details to receive money.</p>
+          
+          {identity.accounts.map((account) => (
+            <section key={account.account_id} className="rounded-[32px] border border-border bg-card p-6 sm:p-8 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
+              <div className="w-full mb-8">
+                <div className="flex flex-col gap-4 text-left">
+                  
+                  <div className="border-b border-border pb-4">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Name</p>
+                    <p className="text-lg font-medium text-card-foreground">{identity.display_name}</p>
                   </div>
                   
-                  <div className="w-full bg-input rounded-2xl p-5 mb-8 text-left border border-border">
-                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{account.account_name || "Arezak Account"} Number</p>
-                     <p className="font-mono text-2xl font-semibold tracking-[0.1em] text-foreground">{account.account_number}</p>
-                  </div>
+                  {identity.handle && (
+                    <div className="border-b border-border pb-4">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Handle</p>
+                      <p className="text-lg font-medium text-card-foreground">{getNormalizedHandle(identity.handle)}</p>
+                    </div>
+                  )}
                   
-                  <div className="grid grid-cols-2 gap-3 w-full">
-                    <button type="button" onClick={() => copyValue(account.account_number, "Account")} className="flex items-center justify-center gap-2 rounded-xl bg-foreground text-background px-4 py-4 text-sm font-semibold hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
-                      {copied === "Account" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copied === "Account" ? "Copied!" : "Copy Acct No."}
-                    </button>
-                    {identity.handle ? (
-                      <button type="button" onClick={() => copyValue(identity.handle!, "Handle")} className="flex items-center justify-center gap-2 rounded-xl bg-muted border border-border px-4 py-4 text-sm font-semibold text-card-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
-                        {copied === "Handle" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        {copied === "Handle" ? "Copied!" : "Copy Handle"}
-                      </button>
-                    ) : (
-                      <button type="button" onClick={() => shareIdentity(account)} className="flex items-center justify-center gap-2 rounded-xl bg-muted border border-border px-4 py-4 text-sm font-semibold text-card-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
-                        <Share2 className="h-4 w-4" /> Share
-                      </button>
-                    )}
+                  <div className="pb-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Arezak account number</p>
+                    <p className="font-mono text-3xl font-semibold tracking-wider text-foreground">{account.account_number}</p>
                   </div>
+
                 </div>
               </div>
-            ))}
-          </section>
+
+              <div className="w-full flex flex-col gap-3">
+                <button type="button" onClick={() => handleCopy(account)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand text-white px-4 py-4 font-semibold hover:bg-brand/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-card shadow-lg shadow-brand/20">
+                  {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                  {copied ? "Copied" : "Copy payment details"}
+                </button>
+                
+                <button type="button" onClick={() => handleShare(account)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-muted text-card-foreground border border-border px-4 py-4 font-semibold hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
+                  <Share2 className="h-5 w-5 text-muted-foreground" />
+                  Share
+                </button>
+              </div>
+
+              <div className="mt-10 pt-10 border-t border-border w-full flex flex-col items-center">
+                <p className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wider">Or scan to pay</p>
+                <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200">
+                  <QRCodeSVG value={account.qr_payload} size={160} level="Q" marginSize={0} />
+                </div>
+              </div>
+
+            </section>
+          ))}
         </div>
       )}
     </div>
   );
 }
+
+

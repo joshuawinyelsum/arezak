@@ -41,7 +41,7 @@ export function Vault({
           </span>
           <button
             onClick={onToggleBalance}
-            className="rounded-lg p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="rounded-lg p-2 text-white/70 transition-colors hover:bg-card/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={showBalance ? "Hide balance" : "Show balance"}
           >
             {showBalance ? (
@@ -93,3 +93,4 @@ export function Vault({
     </section>
   );
 }
+

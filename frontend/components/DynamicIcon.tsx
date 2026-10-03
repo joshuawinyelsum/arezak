@@ -11,10 +11,11 @@ interface IconProps extends LucideProps {
 
 export const DynamicIcon = memo(({ name, ...props }: IconProps) => {
   const LucideIcon = dynamic(dynamicIconImports[name], {
-    loading: () => <div className="w-6 h-6 rounded-md bg-slate-100 animate-pulse" />,
+    loading: () => <div className="w-6 h-6 rounded-md bg-input animate-pulse" />,
   });
 
   return <LucideIcon {...props} />;
 });
 
 DynamicIcon.displayName = 'DynamicIcon';
+

@@ -10,9 +10,10 @@ export function ReviewTransaction({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-sm leading-relaxed text-slate-600">Check the details below before you continue.</p>
+      <p className="text-sm leading-relaxed text-muted-foreground">Check the details below before you continue.</p>
       <ReviewRows rows={rows} />
       <FlowNotice tone="warning">{notice}</FlowNotice>
     </div>
   );
 }
+
