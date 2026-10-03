@@ -48,13 +48,13 @@ def generate_and_send_otp(db: Session, phone_number: str) -> None:
     message = f"Your Arezak verification code is {otp_code}. It expires in 5 minutes."
 
     # 3. Call MTN API FIRST, so a provider failure does not destroy the old valid OTP
-    if settings.ENVIRONMENT != "test":
+    if settings.ENVIRONMENT not in ("test", "development"):
         try:
             mtn_provider.send_sms(phone_number, message)
         except MTNSMSError as exc:
             raise OTPDeliveryFailed(str(exc)) from exc
     else:
-        logger.info(f"Sandbox/Test mode: OTP request for {phone_number} mocked.")
+        logger.info(f"Sandbox/Test mode: OTP request for {phone_number} mocked. CODE: {otp_code}")
 
     # Generation succeeded. Now we can safely invalidate previous attempts.
     db.query(PhoneVerificationAttempt).filter(
@@ -115,4 +115,6 @@ def verify_otp(db: Session, phone_number: str, otp_code: str) -> bool:
     attempt.verified = True
     db.commit()
     return True
+
+
 
