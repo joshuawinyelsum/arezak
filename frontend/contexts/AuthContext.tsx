@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
       setStatus(userData.status);
     } catch (err: any) {
-      if (err.message?.includes("401") || err.message?.includes("403")) {
+      if (err.status === 401 || err.status === 403 || err.message?.includes("401") || err.message?.includes("403")) {
         setUser(null);
         setStatus("unauthenticated");
       } else {

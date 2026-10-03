@@ -109,7 +109,23 @@ export default function VerifyPhonePage() {
     }
   };
 
-  if (status !== "onboarding") return null;
+  
+  if (status === "loading") {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" || status === "authenticated" || status === "error") {
+    // The layout will handle the redirect, just render a safe blank state while redirecting
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   if (!isPhoneSet) {
     return (

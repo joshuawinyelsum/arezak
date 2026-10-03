@@ -19,6 +19,8 @@ export default function SetupHandlePage() {
       router.push("/login");
     } else if (status === "authenticated") {
       router.push("/");
+    } else if (status === "onboarding" && !user?.phone_verified) {
+      router.push("/verify-phone");
     }
   }, [status, router]);
 
@@ -77,7 +79,23 @@ export default function SetupHandlePage() {
     }
   };
 
-  if (status !== "onboarding") return null;
+
+  if (status === "loading") {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated" || status === "authenticated" || status === "error") {
+    // The layout will handle the redirect, just render a safe blank state while redirecting
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">

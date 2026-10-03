@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv('.env')
+
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -29,6 +33,16 @@ class Settings(BaseSettings):
     
     GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID")
     APPLE_CLIENT_ID: str | None = os.getenv("APPLE_CLIENT_ID")
+    MTN_CONSUMER_KEY: str | None = os.getenv("MTN_CONSUMER_KEY")
+    MTN_CONSUMER_SECRET: str | None = os.getenv("MTN_CONSUMER_SECRET")
+    MTN_SMS_SENDER_ADDRESS: str | None = os.getenv("MTN_SMS_SENDER_ADDRESS")
+
+
+    
+    
+    
+    
+    
     
     @property
     def DATABASE_URL(self) -> str:

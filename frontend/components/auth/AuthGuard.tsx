@@ -48,5 +48,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Prevent flash while redirecting (for unauthenticated or onboarding)
-  return <div className="h-screen w-full bg-slate-50" />;
+  return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 animate-spin text-brand border-4 border-brand border-t-transparent rounded-full" />
+      </div>
+    );
 }
