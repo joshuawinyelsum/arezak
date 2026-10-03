@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, Copy, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { apiFetch } from "@/lib/api";
+import Image from "next/image";
 
 type ReceivingAccount = {
   account_id: string;
@@ -67,56 +68,57 @@ export default function ReceivePage() {
   return (
     <div className="mx-auto w-full max-w-xl space-y-6 pb-12 animate-in fade-in duration-300">
       <header className="flex items-center gap-3">
-        <Link href="/" aria-label="Back" className="rounded-full p-2 text-slate-600 hover:bg-slate-100 transition-colors">
+        <Link href="/" aria-label="Back" className="rounded-full p-2 text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">Receive Money</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive Money</h1>
       </header>
 
-      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">{error}</p>}
+      {error && <p role="alert" className="rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/20 p-4 text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
       {!identity && !error && <div className="py-12 flex justify-center"><div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin"></div></div>}
       
       {identity && (
         <div className="space-y-6">
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-brand/10 flex items-center justify-center mb-4 overflow-hidden shadow-sm">
+          <section className="rounded-[32px] border border-border bg-card p-6 sm:p-8 shadow-sm flex flex-col items-center text-center">
+            <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center mb-5 overflow-hidden shadow-sm relative">
               {identity.profile_photo_url ? (
-                <img src={identity.profile_photo_url} alt="" className="w-full h-full object-cover" />
+                <Image src={identity.profile_photo_url} alt="Profile" fill className="object-cover" unoptimized />
               ) : (
-                <span className="text-2xl font-bold text-brand">{initials}</span>
+                <span className="text-3xl font-bold text-brand">{initials}</span>
               )}
             </div>
             
-            <h2 className="text-xl font-bold text-slate-900">{identity.display_name}</h2>
-            {identity.handle && <p className="text-sm font-semibold text-brand mt-1">{identity.handle}</p>}
+            <h2 className="text-2xl font-bold text-card-foreground">{identity.display_name}</h2>
+            {identity.handle && <p className="text-sm font-semibold text-brand mt-1.5">{identity.handle}</p>}
             {identity.phone_verified && identity.phone_number && (
-              <p className="text-sm text-slate-500 mt-1">{identity.phone_number}</p>
+              <p className="text-sm text-muted-foreground mt-1.5">{identity.phone_number}</p>
             )}
             
             {identity.accounts.map((account) => (
-              <div key={account.account_id} className="mt-8 w-full border-t border-slate-100 pt-6">
+              <div key={account.account_id} className="mt-8 w-full border-t border-border pt-8">
                 <div className="flex flex-col items-center">
-                  <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100 mb-6">
-                    <QRCodeSVG value={account.qr_payload} size={200} level="Q" marginSize={0} />
+                  <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200 mb-8 inline-block">
+                    {/* The QR code needs a white background even in dark mode for scanner compatibility */}
+                    <QRCodeSVG value={account.qr_payload} size={220} level="Q" marginSize={0} />
                   </div>
                   
-                  <div className="w-full bg-slate-50 rounded-2xl p-4 mb-6 text-left border border-slate-100">
-                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Arezak Account Number</p>
-                     <p className="font-mono text-2xl font-semibold tracking-[0.1em] text-slate-900">{account.account_number}</p>
+                  <div className="w-full bg-input rounded-2xl p-5 mb-8 text-left border border-border">
+                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Arezak Account Number</p>
+                     <p className="font-mono text-2xl font-semibold tracking-[0.1em] text-foreground">{account.account_number}</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 w-full">
-                    <button type="button" onClick={() => copyValue(account.account_number, "Account")} className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 transition-colors">
+                    <button type="button" onClick={() => copyValue(account.account_number, "Account")} className="flex items-center justify-center gap-2 rounded-xl bg-foreground text-background px-4 py-4 text-sm font-semibold hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
                       {copied === "Account" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       {copied === "Account" ? "Copied!" : "Copy Acct No."}
                     </button>
                     {identity.handle ? (
-                      <button type="button" onClick={() => copyValue(identity.handle!, "Handle")} className="flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-colors">
+                      <button type="button" onClick={() => copyValue(identity.handle!, "Handle")} className="flex items-center justify-center gap-2 rounded-xl bg-muted border border-border px-4 py-4 text-sm font-semibold text-card-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
                         {copied === "Handle" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                         {copied === "Handle" ? "Copied!" : "Copy Handle"}
                       </button>
                     ) : (
-                      <button type="button" onClick={() => shareIdentity(account)} className="flex items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-200 transition-colors">
+                      <button type="button" onClick={() => shareIdentity(account)} className="flex items-center justify-center gap-2 rounded-xl bg-muted border border-border px-4 py-4 text-sm font-semibold text-card-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
                         <Share2 className="h-4 w-4" /> Share
                       </button>
                     )}

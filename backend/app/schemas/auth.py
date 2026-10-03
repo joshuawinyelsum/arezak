@@ -22,3 +22,10 @@ class SocialAuthRequest(BaseModel):
     nonce: str | None = None
     first_name: str | None = None
     last_name: str | None = None
+
+class RequestPasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class ConfirmPasswordResetRequest(BaseModel):
+    token: str
+    new_password: str

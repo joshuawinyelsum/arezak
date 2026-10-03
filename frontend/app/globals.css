@@ -4,19 +4,39 @@
 
 @layer base {
   :root {
-    --background: #f8fafc; /* light slate */
-    --foreground: #0f172a;
+    --background: #f8fafc; /* slate-50 */
+    --foreground: #0f172a; /* slate-900 */
+    
     --card: #ffffff;
     --card-foreground: #0f172a;
-    --border: #e2e8f0;
+    
+    --border: #e2e8f0; /* slate-200 */
+    --input: #f1f5f9; /* slate-100 */
+    --ring: #3157E8; /* brand */
+    
+    --muted: #f1f5f9; /* slate-100 */
+    --muted-foreground: #64748b; /* slate-500 */
+    
+    --accent: #f8fafc; /* slate-50 */
+    --accent-foreground: #0f172a; /* slate-900 */
   }
   
   .dark {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --card: #1e293b;
+    --background: #090e17; /* Very dark rich blue/slate */
+    --foreground: #f8fafc; /* slate-50 */
+    
+    --card: #121a2f; /* Slightly lighter than background */
     --card-foreground: #f8fafc;
-    --border: #334155;
+    
+    --border: #1e293b; /* slate-800 */
+    --input: #1e293b; /* slate-800 */
+    --ring: #3157E8;
+    
+    --muted: #1e293b; /* slate-800 */
+    --muted-foreground: #94a3b8; /* slate-400 */
+    
+    --accent: #1e293b; /* slate-800 */
+    --accent-foreground: #f8fafc;
   }
 }
 

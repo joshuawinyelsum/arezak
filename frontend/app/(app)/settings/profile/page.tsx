@@ -1,87 +1,74 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { ChevronLeft, Camera, UploadCloud, Trash2, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch, ApiError } from "@/lib/api";
+import { ChevronLeft, Camera, UploadCloud, Trash2, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, refreshUser } = useAuth();
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [firstName, setFirstName] = useState(user?.first_name || "");
   const [lastName, setLastName] = useState(user?.last_name || "");
-  const [handle, setHandle] = useState(user?.handle ? user.handle.replace(/^@/, '') : "");
-  
+  const [handle, setHandle] = useState(user?.handle || "");
+  const [handleStatus, setHandleStatus] = useState<"idle" | "checking" | "available" | "unavailable" | "invalid">("idle");
   const [loading, setLoading] = useState(false);
-  const [photoLoading, setPhotoLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  
-  // Handle availability state
-  const [handleStatus, setHandleStatus] = useState<"idle" | "checking" | "available" | "unavailable" | "invalid">("idle");
-  
-  // Debounced handle check
+
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Phone Change State
+  const [isChangingPhone, setIsChangingPhone] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [phoneStep, setPhoneStep] = useState<"request" | "verify">("request");
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+
   useEffect(() => {
-    if (!handle) {
-      setHandleStatus("invalid");
+    if (user?.handle && handle === user.handle) {
+      setHandleStatus("idle");
       return;
     }
-    
-    // Unchanged handle
-    if (user?.handle && handle.toLowerCase() === user.handle.replace(/^@/, '').toLowerCase()) {
-      setHandleStatus("available");
-      return;
-    }
-    
     if (handle.length < 3) {
       setHandleStatus("invalid");
       return;
     }
 
-    setHandleStatus("checking");
-    
-    const timeoutId = setTimeout(async () => {
+    const checkHandle = async () => {
+      setHandleStatus("checking");
       try {
-        const res = await apiFetch("/identity/resolve", {
+        await apiFetch("/identity/resolve", {
           method: "POST",
-          body: JSON.stringify({ identifier: `@${handle.toLowerCase()}` })
+          body: JSON.stringify({ identifier: handle }),
         });
-        
-        // If it resolved successfully, someone owns it
-        const data = await res.json();
-        // Just in case it resolved to us (though we caught exact match above)
         setHandleStatus("unavailable");
       } catch (err: any) {
         if (err instanceof ApiError && err.status === 404) {
-          // Not found means it's available!
           setHandleStatus("available");
         } else {
-          setHandleStatus("idle");
+          setHandleStatus("invalid");
         }
       }
-    }, 500);
-    
-    return () => clearTimeout(timeoutId);
+    };
+
+    const debounce = setTimeout(checkHandle, 500);
+    return () => clearTimeout(debounce);
   }, [handle, user?.handle]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (handleStatus === "unavailable" || handleStatus === "invalid") {
-      setError("Please choose a valid and available handle.");
-      return;
-    }
-    
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      if (user?.handle && handle.toLowerCase() !== user.handle.replace(/^@/, '').toLowerCase()) {
+      if (handle !== user?.handle) {
         await apiFetch("/identity/handle", {
           method: "PATCH",
           body: JSON.stringify({ handle }),
@@ -92,9 +79,9 @@ export default function ProfilePage() {
         method: "PATCH",
         body: JSON.stringify({ first_name: firstName, last_name: lastName }),
       });
-      
+
       await refreshUser();
-      setSuccess("Profile updated successfully");
+      setSuccess("Profile updated successfully.");
     } catch (err: any) {
       if (err instanceof ApiError && err.status === 409) {
         setError("That handle is already in use.");
@@ -110,8 +97,8 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      setError("Only JPEG and PNG images are allowed.");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Only JPEG, PNG and WEBP images are allowed.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -121,6 +108,7 @@ export default function ProfilePage() {
 
     setPhotoLoading(true);
     setError("");
+    setSuccess("");
     const formData = new FormData();
     formData.append("file", file);
 
@@ -128,10 +116,10 @@ export default function ProfilePage() {
       await apiFetch("/identity/profile/photo", {
         method: "PUT",
         body: formData,
-        headers: {}, // Let browser set multipart/form-data
+        headers: {}, 
       });
       await refreshUser();
-      setSuccess("Photo updated");
+      setSuccess("Photo updated successfully.");
     } catch (err: any) {
       if (err instanceof ApiError && err.status === 501) {
         setError("Cloud storage is not configured on this server.");
@@ -146,16 +134,56 @@ export default function ProfilePage() {
   const handleRemovePhoto = async () => {
     setPhotoLoading(true);
     setError("");
+    setSuccess("");
     try {
       await apiFetch("/identity/profile/photo", {
         method: "DELETE"
       });
       await refreshUser();
-      setSuccess("Photo removed");
+      setSuccess("Photo removed successfully.");
     } catch (err) {
-      setError("Failed to remove photo");
+      setError("Failed to remove photo.");
     } finally {
       setPhotoLoading(false);
+    }
+  };
+
+  const handleRequestPhoneChange = async () => {
+    if (!newPhone) return;
+    setPhoneLoading(true);
+    setPhoneError("");
+    try {
+      await apiFetch("/identity/request-phone-change", {
+        method: "POST",
+        body: JSON.stringify({ phone_number: newPhone })
+      });
+      setPhoneStep("verify");
+    } catch (err: any) {
+      setPhoneError(err.message?.includes("400") ? "This phone number is already registered." : "Failed to send code. Make sure the number is valid.");
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
+  const handleVerifyPhoneChange = async () => {
+    if (!otp) return;
+    setPhoneLoading(true);
+    setPhoneError("");
+    try {
+      await apiFetch("/identity/verify-phone-change", {
+        method: "POST",
+        body: JSON.stringify({ phone_number: newPhone, otp })
+      });
+      await refreshUser();
+      setSuccess("Phone number changed successfully.");
+      setIsChangingPhone(false);
+      setNewPhone("");
+      setOtp("");
+      setPhoneStep("request");
+    } catch (err: any) {
+      setPhoneError("Invalid or expired code.");
+    } finally {
+      setPhoneLoading(false);
     }
   };
 
@@ -165,22 +193,22 @@ export default function ProfilePage() {
   return (
     <div className="w-full max-w-xl mx-auto space-y-6 animate-in fade-in duration-300 pb-12">
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <ChevronLeft className="w-5 h-5" />
+        <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">Edit Profile</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Edit Profile</h1>
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium">{error}</div>}
-      {success && <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm font-medium">{success}</div>}
+      {error && <div className="bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 p-4 rounded-xl text-sm font-medium">{error}</div>}
+      {success && <div className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 p-4 rounded-xl text-sm font-medium">{success}</div>}
 
-      <div className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm flex flex-col items-center gap-4">
+      <div className="bg-card border border-border rounded-[24px] p-8 shadow-sm flex flex-col items-center gap-5">
         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-          <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center overflow-hidden border-4 border-white shadow-sm">
+          <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center overflow-hidden border-4 border-card shadow-sm relative">
             {photoLoading ? (
               <Loader2 className="w-8 h-8 text-brand animate-spin" />
             ) : user?.profile_photo_url ? (
-              <img src={user.profile_photo_url} alt="" className="w-full h-full object-cover" />
+              <Image src={user.profile_photo_url} alt="Profile" fill className="object-cover" unoptimized />
             ) : (
               <span className="text-3xl font-bold text-brand">{initials}</span>
             )}
@@ -190,65 +218,107 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png" onChange={handlePhotoUpload} />
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoUpload} />
         </div>
         
         <div className="flex gap-3">
-          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-slate-700 bg-slate-100 px-4 py-2 rounded-xl hover:bg-slate-200 transition-colors">
+          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-foreground bg-muted px-4 py-2 rounded-xl hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <UploadCloud className="w-4 h-4" /> Upload new
           </button>
           {user?.profile_photo_url && (
-            <button type="button" onClick={handleRemovePhoto} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 px-4 py-2 rounded-xl hover:bg-red-100 transition-colors">
+            <button type="button" onClick={handleRemovePhoto} disabled={photoLoading} className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 px-4 py-2 rounded-xl hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
               <Trash2 className="w-4 h-4" /> Remove
             </button>
           )}
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm space-y-5">
+      <form onSubmit={handleSave} className="bg-card border border-border rounded-[24px] p-6 sm:p-8 shadow-sm space-y-5">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-900 mb-1.5">First name</label>
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={loading} />
+            <label className="block text-sm font-semibold text-card-foreground mb-1.5">First name</label>
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required className="w-full bg-input border border-border rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring text-foreground transition-all" disabled={loading} />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-900 mb-1.5">Last name</label>
-            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={loading} />
+            <label className="block text-sm font-semibold text-card-foreground mb-1.5">Last name</label>
+            <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required className="w-full bg-input border border-border rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring text-foreground transition-all" disabled={loading} />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-900 mb-1.5">@handle</label>
+          <label className="block text-sm font-semibold text-card-foreground mb-1.5">@handle</label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">@</span>
-            <input type="text" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} required minLength={3} className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-3 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={loading} />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              {handleStatus === "checking" && <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />}
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">@</span>
+            <input type="text" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} required minLength={3} className="w-full bg-input border border-border rounded-xl pl-9 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring text-foreground transition-all" disabled={loading} />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              {handleStatus === "checking" && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
               {handleStatus === "available" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
               {handleStatus === "unavailable" && <AlertCircle className="w-4 h-4 text-red-500" />}
             </div>
           </div>
-          {handleStatus === "checking" && <p className="text-xs text-slate-500 mt-1.5">Checking...</p>}
-          {handleStatus === "available" && <p className="text-xs text-green-600 mt-1.5 font-medium">Available</p>}
-          {handleStatus === "unavailable" && <p className="text-xs text-red-600 mt-1.5 font-medium">That handle is unavailable</p>}
-          {handleStatus === "invalid" && <p className="text-xs text-red-600 mt-1.5 font-medium">Invalid handle</p>}
+          {handleStatus === "checking" && <p className="text-xs text-muted-foreground mt-1.5">Checking...</p>}
+          {handleStatus === "available" && <p className="text-xs text-green-600 dark:text-green-400 mt-1.5 font-medium">Available</p>}
+          {handleStatus === "unavailable" && <p className="text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium">That handle is unavailable</p>}
+          {handleStatus === "invalid" && <p className="text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium">Invalid handle</p>}
         </div>
         
         <div>
-          <label className="block text-sm font-semibold text-slate-900 mb-1.5">Email</label>
-          <input type="email" value={user?.email || ""} disabled className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed" />
-          <p className="text-xs text-slate-400 mt-1.5">Email address cannot be changed.</p>
+          <label className="block text-sm font-semibold text-card-foreground mb-1.5">Email</label>
+          <input type="email" value={user?.email || ""} disabled className="w-full bg-muted border border-border rounded-xl px-4 py-3.5 text-sm text-muted-foreground cursor-not-allowed" />
+          <p className="text-xs text-muted-foreground mt-1.5">Email address cannot be changed.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-900 mb-1.5">Phone number</label>
-          <input type="text" value={user?.phone_number || ""} disabled className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed" />
-          <p className="text-xs text-slate-400 mt-1.5">Contact support to change your verified phone number.</p>
+          <label className="block text-sm font-semibold text-card-foreground mb-1.5 flex items-center justify-between">
+            Phone number
+            {!isChangingPhone && (
+               <button type="button" onClick={() => setIsChangingPhone(true)} className="text-xs text-brand hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm">
+                 Change
+               </button>
+            )}
+          </label>
+          
+          {!isChangingPhone ? (
+             <input type="text" value={user?.phone_number || ""} disabled className="w-full bg-muted border border-border rounded-xl px-4 py-3.5 text-sm text-muted-foreground cursor-not-allowed" />
+          ) : (
+             <div className="space-y-3 bg-muted p-4 sm:p-5 rounded-xl border border-border">
+                {phoneError && <div className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">{phoneError}</div>}
+                
+                {phoneStep === "request" ? (
+                   <>
+                     <input type="tel" placeholder="+233..." value={newPhone} onChange={e => setNewPhone(e.target.value)} className="w-full bg-card border border-border rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring text-foreground" />
+                     <div className="flex gap-2 pt-1">
+                       <button type="button" onClick={handleRequestPhoneChange} disabled={!newPhone || phoneLoading} className="flex-1 bg-foreground text-background text-xs font-semibold py-3 rounded-xl hover:opacity-90 disabled:opacity-50 transition-opacity">
+                         {phoneLoading ? "Sending..." : "Send Code"}
+                       </button>
+                       <button type="button" onClick={() => setIsChangingPhone(false)} className="flex-1 bg-card border border-border text-foreground text-xs font-semibold py-3 rounded-xl hover:bg-accent transition-colors">
+                         Cancel
+                       </button>
+                     </div>
+                   </>
+                ) : (
+                   <>
+                     <p className="text-xs text-muted-foreground">Enter the 6-digit code sent to {newPhone}</p>
+                     <input type="text" placeholder="123456" maxLength={6} value={otp} onChange={e => setOtp(e.target.value)} className="w-full bg-card border border-border rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring text-foreground text-center tracking-widest font-mono" />
+                     <div className="flex gap-2 pt-1">
+                       <button type="button" onClick={handleVerifyPhoneChange} disabled={!otp || phoneLoading} className="flex-1 bg-brand text-white text-xs font-semibold py-3 rounded-xl hover:bg-brand/90 disabled:opacity-50 transition-opacity">
+                         {phoneLoading ? "Verifying..." : "Verify"}
+                       </button>
+                       <button type="button" onClick={() => { setPhoneStep("request"); setOtp(""); }} className="flex-1 bg-card border border-border text-foreground text-xs font-semibold py-3 rounded-xl hover:bg-accent transition-colors">
+                         Back
+                       </button>
+                     </div>
+                   </>
+                )}
+             </div>
+          )}
         </div>
 
-        <button type="submit" disabled={loading || handleStatus === "unavailable" || handleStatus === "invalid" || handleStatus === "checking"} className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 shadow-lg hover:bg-brand/90 disabled:opacity-50 mt-4">
-          {loading ? "Saving..." : "Save changes"}
-        </button>
+        <div className="pt-4">
+           <button type="submit" disabled={loading || handleStatus === "unavailable" || handleStatus === "invalid" || handleStatus === "checking"} className="w-full bg-brand text-white font-semibold rounded-xl py-4 shadow-lg shadow-brand/20 hover:bg-brand/90 disabled:opacity-50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+             {loading ? "Saving..." : "Save changes"}
+           </button>
+        </div>
       </form>
     </div>
   );

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Lock, Bell, HelpCircle, Info, ChevronRight, LogOut, User, Palette, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import Image from "next/image";
 
 const settingsGroups = [
   {
@@ -40,71 +41,74 @@ export default function SettingsPage() {
   const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-5 animate-in fade-in duration-500 pb-12">
-      <header className="py-2">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900">More</h1>
+    <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500 pb-12">
+      <header className="py-2 px-1">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">More</h1>
       </header>
 
-      <div className="bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center shrink-0 overflow-hidden">
-          {user?.profile_photo_url ? (
-            <img src={user.profile_photo_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-xl font-bold text-brand">{initials}</span>
-          )}
-        </div>
-        <div className="min-w-0">
-          <h2 className="font-bold text-slate-900 text-base truncate">{name}</h2>
-          <p className="text-sm text-slate-400 mt-0.5 truncate">{user?.email ?? ""}</p>
-          {user?.handle && <p className="text-sm text-slate-500 mt-0.5 truncate">@{user.handle.replace(/^@/, "")}</p>}
-        </div>
-        <div className="ml-auto shrink-0">
-          <Link href="/settings/profile" className="flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 hover:bg-brand/20 px-3 py-1.5 rounded-full transition-colors">
-            <User className="w-3.5 h-3.5" /> Edit Profile
-          </Link>
-        </div>
-      </div>
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-            <WalletCards className="h-5 w-5" aria-hidden="true" />
+      {/* Edit Profile Row */}
+      <Link href="/settings/profile" className="block bg-card border border-border rounded-[24px] p-5 shadow-sm hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center shrink-0 overflow-hidden relative">
+            {user?.profile_photo_url ? (
+              <Image src={user.profile_photo_url} alt="Profile" fill className="object-cover" unoptimized />
+            ) : (
+              <span className="text-xl font-bold text-brand">{initials}</span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-semibold text-slate-900">Your Arezak account</h2>
-            <p className="mt-1 text-sm text-slate-500">Account number, handle, and receiving QR</p>
+            <h2 className="font-bold text-card-foreground text-base truncate">{name}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5 truncate">{user?.email ?? ""}</p>
+            {user?.handle && <p className="text-sm text-muted-foreground mt-0.5 truncate">@{user.handle.replace(/^@/, "")}</p>}
           </div>
-          <Link href="/receive" className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-            View <ChevronRight className="ml-1 h-4 w-4" aria-hidden="true" />
-          </Link>
+          <div className="ml-auto shrink-0 flex items-center">
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </div>
         </div>
-      </section>
+      </Link>
 
+      {/* Arezak Account Row */}
+      <Link href="/receive" className="block rounded-[24px] border border-border bg-card p-5 shadow-sm hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+            <WalletCards className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-bold text-card-foreground text-base">Your Arezak account</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground truncate">Account number, handle, and receiving QR</p>
+          </div>
+          <div className="ml-auto shrink-0 flex items-center">
+             <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </div>
+        </div>
+      </Link>
+
+      {/* Settings Groups */}
       {settingsGroups.map((group) => (
         <div key={group.title}>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">{group.title}</p>
-          <div className="bg-white border border-slate-200 rounded-[20px] shadow-sm overflow-hidden">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">{group.title}</p>
+          <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden">
             {group.items.map((item, index) => {
               const inner = (
-                <>
+                <div className="flex items-center w-full justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center shrink-0 text-slate-500">
-                      <item.icon className="w-4 h-4" />
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+                      <item.icon className="w-5 h-5" />
                     </div>
-                    <span className="font-medium text-sm text-slate-900">{item.label}</span>
+                    <span className="font-semibold text-card-foreground">{item.label}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {(item as any).value && <span className="text-xs text-slate-400 font-medium">{(item as any).value}</span>}
+                    {(item as any).value && <span className="text-sm text-muted-foreground font-medium">{(item as any).value}</span>}
                     {item.available ? (
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     ) : (
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-wider">Soon</span>
+                      <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full uppercase tracking-wider">Soon</span>
                     )}
                   </div>
-                </>
+                </div>
               );
 
-              const className = `flex items-center justify-between p-4 ${index < group.items.length - 1 ? "border-b border-slate-100" : ""} ${item.available ? "hover:bg-slate-50 cursor-pointer" : "opacity-60"}`;
+              const className = `block w-full p-4 ${index < group.items.length - 1 ? "border-b border-border" : ""} ${item.available ? "hover:bg-accent cursor-pointer focus-visible:outline-none focus-visible:bg-accent transition-colors" : "opacity-60"}`;
 
               if (item.href && item.available) {
                 return (
@@ -123,16 +127,19 @@ export default function SettingsPage() {
         </div>
       ))}
 
-      <div className="bg-white border border-red-100 rounded-[20px] shadow-sm overflow-hidden">
-        <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center gap-4 p-4 text-left hover:bg-red-50 transition-colors disabled:opacity-60">
-          <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-            <LogOut className="w-4 h-4 text-red-500" />
+      {/* Logout Row */}
+      <div className="bg-card border border-red-500/20 rounded-[24px] shadow-sm overflow-hidden mt-8">
+        <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center justify-between p-4 text-left hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:bg-red-50 dark:focus-visible:bg-red-500/10">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-500/20 flex items-center justify-center shrink-0">
+              <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
+            <span className="font-bold text-red-600 dark:text-red-400">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
           </div>
-          <span className="font-semibold text-sm text-red-600">{isLoggingOut ? "Signing out..." : "Sign out"}</span>
         </button>
       </div>
 
-      <p className="text-center text-xs text-slate-300 pb-2">Arezak Beta</p>
+      <p className="text-center text-sm font-medium text-muted-foreground/50 pb-2 mt-6 tracking-wide">AREZAK BETA</p>
     </div>
   );
 }

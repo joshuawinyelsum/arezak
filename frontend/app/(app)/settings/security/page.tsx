@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { ChevronLeft, Key, Smartphone, Mail, Shield, MonitorSmartphone, LogOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, Key, Shield, MonitorSmartphone, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -14,13 +14,6 @@ export default function SecurityPage() {
   const [status, setStatus] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
   
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passError, setPassError] = useState("");
-  const [passSuccess, setPassSuccess] = useState("");
-  const [passLoading, setPassLoading] = useState(false);
-
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -35,98 +28,51 @@ export default function SecurityPage() {
     fetchStatus();
   }, []);
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPassError("");
-    setPassSuccess("");
-    
-    if (newPassword !== confirmPassword) {
-      setPassError("New passwords do not match");
-      return;
-    }
-    
-    setPassLoading(true);
-    try {
-      await apiFetch("/identity/change-password", {
-        method: "POST",
-        body: JSON.stringify({
-          current_password: currentPassword,
-          new_password: newPassword
-        })
-      });
-      setPassSuccess("Password updated successfully");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {
-      setPassError(err.message?.includes("400") ? "Incorrect current password" : "Failed to change password");
-    } finally {
-      setPassLoading(false);
-    }
-  };
-
   const hasGoogle = status?.connected_providers?.includes("google");
-  const hasApple = status?.connected_providers?.includes("apple");
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-6 animate-in fade-in duration-300 pb-12">
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <ChevronLeft className="w-5 h-5" />
+        <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <ChevronLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="text-xl font-bold text-slate-900">Account & Security</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Account & Security</h1>
       </div>
 
       <div className="space-y-6">
         <section>
-          <h2 className="text-sm font-semibold text-slate-900 mb-3 px-1 flex items-center gap-2">
-            <Key className="w-4 h-4 text-slate-400" /> Password
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
+            <Key className="w-4 h-4" /> Password & Authentication
           </h2>
-          <form onSubmit={handlePasswordChange} className="bg-white border border-slate-200 rounded-[24px] p-6 shadow-sm space-y-4">
-            {passError && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium">{passError}</div>}
-            {passSuccess && <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm font-medium">{passSuccess}</div>}
-            
-            {status?.has_password && (
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-1.5">Current password</label>
-                <input type="password" required value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={passLoading} />
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-1.5">New password</label>
-              <input type="password" required minLength={8} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={passLoading} />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-1.5">Confirm new password</label>
-              <input type="password" required minLength={8} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={passLoading} />
-            </div>
-            
-            <button type="submit" disabled={passLoading || !newPassword} className="w-full bg-slate-900 text-white font-semibold rounded-xl py-3 mt-2 hover:bg-slate-800 disabled:opacity-50">
-              {passLoading ? "Updating..." : (status?.has_password ? "Update password" : "Set password")}
-            </button>
-          </form>
+          <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden">
+             
+             {/* Password Row */}
+             <Link href="/settings/security/password" className="block w-full p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
+               <div className="flex items-center justify-between">
+                 <span className="font-semibold text-card-foreground">Password</span>
+                 <div className="flex items-center gap-2">
+                   <span className="text-sm text-muted-foreground font-medium">
+                     {loadingStatus ? "Loading..." : (status?.has_password ? "Change password" : "Set password")}
+                   </span>
+                   <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                 </div>
+               </div>
+             </Link>
+          </div>
         </section>
 
         <section>
-          <h2 className="text-sm font-semibold text-slate-900 mb-3 px-1 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-slate-400" /> Connected Accounts
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
+            <Shield className="w-4 h-4" /> Connected Accounts
           </h2>
-          <div className="bg-white border border-slate-200 rounded-[20px] shadow-sm overflow-hidden divide-y divide-slate-100">
-             <div className="flex items-center justify-between p-4">
-                <span className="font-medium text-sm text-slate-900">Google</span>
-                {loadingStatus ? <span className="text-sm text-slate-400">Loading...</span> : (
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${hasGoogle ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+          <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden">
+             
+             {/* Google Row */}
+             <div className="flex items-center justify-between p-5">
+                <span className="font-semibold text-card-foreground">Google</span>
+                {loadingStatus ? <span className="text-sm text-muted-foreground">Loading...</span> : (
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${hasGoogle ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-muted text-muted-foreground'}`}>
                     {hasGoogle ? 'Connected' : 'Not connected'}
-                  </span>
-                )}
-             </div>
-             <div className="flex items-center justify-between p-4">
-                <span className="font-medium text-sm text-slate-900">Apple</span>
-                {loadingStatus ? <span className="text-sm text-slate-400">Loading...</span> : (
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${hasApple ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                    {hasApple ? 'Connected' : 'Not connected'}
                   </span>
                 )}
              </div>
@@ -134,12 +80,12 @@ export default function SecurityPage() {
         </section>
 
         <section>
-          <h2 className="text-sm font-semibold text-slate-900 mb-3 px-1 flex items-center gap-2">
-            <MonitorSmartphone className="w-4 h-4 text-slate-400" /> Devices & Sessions
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
+            <MonitorSmartphone className="w-4 h-4" /> Devices & Sessions
           </h2>
-          <div className="bg-white border border-slate-200 rounded-[20px] shadow-sm p-4">
-             <p className="text-sm text-slate-500 mb-4">Session management is not yet implemented in Arezak. Active sessions cannot be listed or revoked remotely at this time.</p>
-             <button onClick={() => logout()} className="flex items-center gap-2 text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-xl transition-colors">
+          <div className="bg-card border border-border rounded-[24px] shadow-sm p-6">
+             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">Session management is not yet implemented in Arezak. Active sessions cannot be listed or revoked remotely at this time.</p>
+             <button onClick={() => logout()} className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-semibold text-red-600 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 px-5 py-3 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
                <LogOut className="w-4 h-4" /> Sign out of this device
              </button>
           </div>
