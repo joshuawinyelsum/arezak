@@ -15,46 +15,34 @@ export default function SetupHandlePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    } else if (status === "authenticated") {
-      router.push("/");
-    } else if (status === "onboarding" && !user?.phone_verified) {
-      router.push("/verify-phone");
-    }
-  }, [status, router]);
+    let active = true;
 
-  useEffect(() => {
-    if (!handle) {
-      setHandleStatus("idle");
-      return;
-    }
-    
     if (handle.length < 3) {
-      setHandleStatus("invalid");
+      setStatus("idle");
       return;
     }
 
-    setHandleStatus("checking");
-    
-    const timeoutId = setTimeout(async () => {
+    const checkHandle = async () => {
+      if (!active) return;
+      setStatus("checking");
       try {
-        const res = await apiFetch("/identity/resolve", {
-          method: "POST",
-          body: JSON.stringify({ identifier: `@${handle.toLowerCase()}` })
-        });
-        await res.json();
-        setHandleStatus("unavailable");
-      } catch (err: any) {
-        if (err instanceof ApiError && err.status === 404) {
-          setHandleStatus("available");
-        } else {
-          setHandleStatus("idle");
+        const res = await apiFetch(`/identity/handle/available?handle=${handle}`);
+        const data = await res.json();
+        if (active) {
+          setStatus(data.available ? "available" : "unavailable");
+        }
+      } catch (err) {
+        if (active) {
+          setStatus("invalid");
         }
       }
-    }, 500);
-    
-    return () => clearTimeout(timeoutId);
+    };
+
+    const debounce = setTimeout(checkHandle, 500);
+    return () => {
+      active = false;
+      clearTimeout(debounce);
+    };
   }, [handle]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,7 +95,7 @@ export default function SetupHandlePage() {
            {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-6">{error}</div>}
            <div className="relative mb-6 text-left">
              <span className="absolute left-4 top-[22px] -translate-y-1/2 text-slate-400 font-semibold">@</span>
-             <input type="text" placeholder="username" required minLength={3} value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-10 py-3 focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={loading} />
+             <input type="text" placeholder="username" required minLength={3} value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-10 py-3 focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={loading} />
              <div className="absolute right-4 top-[22px] -translate-y-1/2">
                 {handleStatus === "checking" && <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />}
                 {handleStatus === "available" && <CheckCircle2 className="w-4 h-4 text-green-500" />}

@@ -31,6 +31,8 @@ export default function ProfilePage() {
   const [phoneError, setPhoneError] = useState("");
 
   useEffect(() => {
+    let active = true;
+
     if (user?.handle && handle === user.handle) {
       setHandleStatus("idle");
       return;
@@ -41,24 +43,26 @@ export default function ProfilePage() {
     }
 
     const checkHandle = async () => {
+      if (!active) return;
       setHandleStatus("checking");
       try {
-        await apiFetch("/identity/resolve", {
-          method: "POST",
-          body: JSON.stringify({ identifier: handle }),
-        });
-        setHandleStatus("unavailable");
-      } catch (err: any) {
-        if (err instanceof ApiError && err.status === 404) {
-          setHandleStatus("available");
-        } else {
+        const res = await apiFetch(`/identity/handle/available?handle=${handle}`);
+        const data = await res.json();
+        if (active) {
+          setHandleStatus(data.available ? "available" : "unavailable");
+        }
+      } catch (err) {
+        if (active) {
           setHandleStatus("invalid");
         }
       }
     };
 
     const debounce = setTimeout(checkHandle, 500);
-    return () => clearTimeout(debounce);
+    return () => {
+      active = false;
+      clearTimeout(debounce);
+    };
   }, [handle, user?.handle]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -70,7 +74,6 @@ export default function ProfilePage() {
     try {
       await apiFetch("/identity/profile", {
         method: "PATCH",
-        body: JSON.stringify({ 
           first_name: firstName, 
           last_name: lastName,
           ...(handle !== user?.handle ? { handle } : {})
@@ -79,10 +82,7 @@ export default function ProfilePage() {
 
       await refreshUser();
       setSuccess("Profile updated successfully.");
-    } catch (err: any) {
-      if (err instanceof ApiError && err.status === 409) {
         setError("That handle is already in use.");
-      } else {
         setError("Failed to update profile.");
       }
     } finally {
@@ -117,10 +117,7 @@ export default function ProfilePage() {
       });
       await refreshUser();
       setSuccess("Photo updated successfully.");
-    } catch (err: any) {
-      if (err instanceof ApiError && err.status === 501) {
         setError("Cloud storage is not configured on this server.");
-      } else {
         setError("Failed to upload photo.");
       }
     } finally {
@@ -151,11 +148,8 @@ export default function ProfilePage() {
     setPhoneError("");
     try {
       await apiFetch("/identity/request-phone-change", {
-        method: "POST",
-        body: JSON.stringify({ phone_number: newPhone })
       });
       setPhoneStep("verify");
-    } catch (err: any) {
       setPhoneError(err.message?.includes("400") ? "This phone number is already registered." : "Failed to send code. Make sure the number is valid.");
     } finally {
       setPhoneLoading(false);
@@ -168,8 +162,6 @@ export default function ProfilePage() {
     setPhoneError("");
     try {
       await apiFetch("/identity/verify-phone-change", {
-        method: "POST",
-        body: JSON.stringify({ phone_number: newPhone, otp })
       });
       await refreshUser();
       setSuccess("Phone number changed successfully.");
@@ -177,7 +169,6 @@ export default function ProfilePage() {
       setNewPhone("");
       setOtp("");
       setPhoneStep("request");
-    } catch (err: any) {
       setPhoneError("Invalid or expired code.");
     } finally {
       setPhoneLoading(false);
@@ -246,7 +237,7 @@ export default function ProfilePage() {
           <label className="block text-sm font-semibold text-card-foreground mb-1.5">@handle</label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">@</span>
-            <input type="text" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''))} required minLength={3} className="w-full bg-input border border-border rounded-xl pl-9 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring text-foreground transition-all" disabled={loading} />
+            <input type="text" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} required minLength={3} className="w-full bg-input border border-border rounded-xl pl-9 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring text-foreground transition-all" disabled={loading} />
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               {handleStatus === "checking" && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
               {handleStatus === "available" && <CheckCircle2 className="w-4 h-4 text-green-500" />}

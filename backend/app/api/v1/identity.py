@@ -6,6 +6,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, Response, UploadFile, File
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, func
 
 from app.api.deps import CurrentUser, SessionDep, OnboardingUser
 from app.models.account import Account
@@ -56,6 +57,9 @@ class ProfileUpdateRequest(BaseModel):
     handle: str | None = Field(default=None, min_length=3, max_length=31)
 
 class HandleUpdateRequest(BaseModel):
+class HandleAvailabilityResponse(BaseModel):
+    available: bool
+    reason: str | None = None
     handle: str = Field(min_length=3, max_length=31)
 
 
@@ -97,6 +101,21 @@ def lookup_recipient(request: RecipientLookupRequest, db: SessionDep, current_us
 
 @router.patch("/handle", response_model=MyIdentityResponse)
 def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: OnboardingUser, response: Response):
+@router.get("/handle/available", response_model=HandleAvailabilityResponse)
+def check_handle_availability(handle: str, db: SessionDep, current_user: CurrentUser):
+    try:
+        normalized = normalize_handle(handle)
+    except InvalidRecipientIdentifier as exc:
+        return HandleAvailabilityResponse(available=False, reason=str(exc))
+        
+    if current_user.handle and current_user.handle.casefold() == normalized:
+        return HandleAvailabilityResponse(available=True)
+        
+    existing = db.execute(select(User).where(func.lower(User.handle) == normalized)).scalar_one_or_none()
+    if existing:
+        return HandleAvailabilityResponse(available=False, reason="That handle is already taken.")
+        
+    return HandleAvailabilityResponse(available=True)
     try:
         current_user.handle = normalize_handle(request.handle)
     except InvalidRecipientIdentifier as exc:

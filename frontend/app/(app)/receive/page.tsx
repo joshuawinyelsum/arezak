@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Copy, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { apiFetch } from "@/lib/api";
@@ -24,6 +25,7 @@ type Identity = {
 };
 
 export default function ReceivePage() {
+  const router = useRouter();
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -68,9 +70,9 @@ export default function ReceivePage() {
   return (
     <div className="mx-auto w-full max-w-xl space-y-6 pb-12 animate-in fade-in duration-300">
       <header className="flex items-center gap-3">
-        <Link href="/" aria-label="Back" className="rounded-full p-2 text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <button type="button" onClick={() => router.back()} aria-label="Back" className="rounded-full p-2 text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <ArrowLeft className="h-5 w-5" />
-        </Link>
+        </button>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive Money</h1>
       </header>
 
@@ -90,6 +92,9 @@ export default function ReceivePage() {
             
             <h2 className="text-2xl font-bold text-card-foreground">{identity.display_name}</h2>
             {identity.handle && <p className="text-sm font-semibold text-brand mt-1.5">{identity.handle}</p>}
+            {identity.email && (
+              <p className="text-sm text-muted-foreground mt-1.5">{identity.email}</p>
+            )}
             {identity.phone_verified && identity.phone_number && (
               <p className="text-sm text-muted-foreground mt-1.5">{identity.phone_number}</p>
             )}
@@ -103,7 +108,7 @@ export default function ReceivePage() {
                   </div>
                   
                   <div className="w-full bg-input rounded-2xl p-5 mb-8 text-left border border-border">
-                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Arezak Account Number</p>
+                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">{account.account_name || "Arezak Account"} Number</p>
                      <p className="font-mono text-2xl font-semibold tracking-[0.1em] text-foreground">{account.account_number}</p>
                   </div>
                   
