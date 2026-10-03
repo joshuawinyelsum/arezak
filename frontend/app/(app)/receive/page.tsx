@@ -26,6 +26,13 @@ type Identity = {
 
 export default function ReceivePage() {
   const router = useRouter();
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      router.back();
+    } else {
+      router.push("/settings");
+    }
+  };
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -70,7 +77,7 @@ export default function ReceivePage() {
   return (
     <div className="mx-auto w-full max-w-xl space-y-6 pb-12 animate-in fade-in duration-300">
       <header className="flex items-center gap-3">
-        <button type="button" onClick={() => router.back()} aria-label="Back" className="rounded-full p-2 text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <button type="button" onClick={handleBack} aria-label="Back" className="rounded-full p-2 text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive Money</h1>
