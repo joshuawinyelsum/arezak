@@ -13,3 +13,5 @@ python-multipart
 pytest
 httpx
 pytest-asyncio
+
+boto3==1.34.69
