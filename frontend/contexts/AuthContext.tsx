@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await apiFetch("/auth/me");
       const userData = await res.json();
       setUser(userData);
-      setStatus(userData.status);
+      setStatus(userData.status || "authenticated");
     } catch (err: any) {
       if (err.status === 401 || err.status === 403 || err.message?.includes("401") || err.message?.includes("403")) {
         setUser(null);
