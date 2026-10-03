@@ -45,20 +45,20 @@ def upgrade() -> None:
     # --- DATA CLEANUP FOR STAGING DATABASE ---
     op.execute("UPDATE ledger_entries SET entry_type = 'CREDIT' WHERE UPPER(entry_type) = 'CREDIT'")
     op.execute("UPDATE ledger_entries SET entry_type = 'DEBIT' WHERE UPPER(entry_type) = 'DEBIT'")
-    op.execute("UPDATE ledger_entries SET entry_type = 'DEBIT' WHERE entry_type NOT IN ('CREDIT', 'DEBIT')")
+    op.execute("UPDATE ledger_entries SET entry_type = 'DEBIT' WHERE entry_type IS NULL OR entry_type NOT IN ('CREDIT', 'DEBIT')")
     op.execute("UPDATE ledger_entries SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
     op.execute("UPDATE transactions SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
     op.execute("UPDATE accounts SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
     op.execute("UPDATE goals SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
     op.execute("UPDATE goal_contributions SET currency = 'GHS' WHERE currency IS NULL OR currency != 'GHS'")
-    op.execute("UPDATE accounts SET reserved_balance = 0 WHERE reserved_balance < 0")
-    op.execute("UPDATE accounts SET locked_balance = 0 WHERE locked_balance < 0")
-    op.execute("UPDATE ledger_entries SET amount = 0 WHERE amount < 0")
-    op.execute("UPDATE transactions SET amount = 0 WHERE amount < 0")
-    op.execute("UPDATE goals SET current_amount = 0 WHERE current_amount < 0")
-    op.execute("UPDATE goals SET locked_amount = 0 WHERE locked_amount < 0")
-    op.execute("UPDATE goals SET target_amount = 0 WHERE target_amount < 0")
-    op.execute("UPDATE goal_contributions SET amount = 0 WHERE amount < 0")
+    op.execute("UPDATE accounts SET reserved_balance = 0 WHERE reserved_balance IS NULL OR reserved_balance < 0")
+    op.execute("UPDATE accounts SET locked_balance = 0 WHERE locked_balance IS NULL OR locked_balance < 0")
+    op.execute("UPDATE ledger_entries SET amount = 0 WHERE amount IS NULL OR amount < 0")
+    op.execute("UPDATE transactions SET amount = 0 WHERE amount IS NULL OR amount < 0")
+    op.execute("UPDATE goals SET current_amount = 0 WHERE current_amount IS NULL OR current_amount < 0")
+    op.execute("UPDATE goals SET locked_amount = 0 WHERE locked_amount IS NULL OR locked_amount < 0")
+    op.execute("UPDATE goals SET target_amount = 0 WHERE target_amount IS NULL OR target_amount < 0")
+    op.execute("UPDATE goal_contributions SET amount = 0 WHERE amount IS NULL OR amount < 0")
     # -----------------------------------------
     # ── ACCOUNTS ─────────────────────────────────────────────────────────────
     op.create_check_constraint(
@@ -154,3 +154,5 @@ def downgrade() -> None:
     op.drop_constraint('chk_account_currency_ghs', 'accounts')
     op.drop_constraint('chk_positive_locked', 'accounts')
     op.drop_constraint('chk_positive_reserved', 'accounts')
+
+
