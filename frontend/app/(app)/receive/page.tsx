@@ -48,9 +48,9 @@ export default function ReceivePage() {
 
   const getPaymentDetailsText = (account: ReceivingAccount) => {
     return [
-      Name: ,
-      identity?.handle ? Handle:  : null,
-      Arezak account number: 
+      `Name: ${identity?.display_name || ""}`,
+      identity?.handle ? `Handle: ${getNormalizedHandle(identity.handle)}` : null,
+      `Arezak account number: ${account.account_number}`
     ].filter(Boolean).join("\n");
   };
 
@@ -140,6 +140,3 @@ export default function ReceivePage() {
     </div>
   );
 }
-
-
-
