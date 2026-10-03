@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, func
 
-from app.api.deps import CurrentUser, SessionDep, OnboardingUser
+from app.api.deps import CurrentUser, SessionDep, OnboardingUser, AnyAuthUser
 from app.models.account import Account
 from app.models.user import User
 from app.services.recipient_identity import (
@@ -101,7 +101,7 @@ def lookup_recipient(request: RecipientLookupRequest, db: SessionDep, current_us
 
 
 @router.get("/handle/available", response_model=HandleAvailabilityResponse)
-def check_handle_availability(handle: str, db: SessionDep, current_user: CurrentUser):
+def check_handle_availability(handle: str, db: SessionDep, current_user: AnyAuthUser):
     try:
         normalized = normalize_handle(handle)
     except InvalidRecipientIdentifier as exc:
