@@ -36,7 +36,7 @@ export default function LoginPage() {
       await login({ email, password });
       // The redirect is handled automatically by the AuthLayout / AuthGuard logic once authenticated
     } catch (err: any) {
-      if (err.message?.includes("401")) {
+      if (err.status === 401) {
         setError("Invalid email or password");
       } else {
         setError("Failed to sign in. Please try again.");

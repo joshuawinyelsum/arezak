@@ -154,11 +154,16 @@ def update_profile(request: ProfileUpdateRequest, db: SessionDep, current_user: 
     if request.profile_photo_url is not None:
         current_user.profile_photo_url = request.profile_photo_url
     if request.handle is not None:
+        try:
+            normalized = normalize_handle(request.handle)
+        except InvalidRecipientIdentifier as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+            
         # Check if handle is taken
-        existing = db.query(User).filter(User.handle == request.handle, User.id != current_user.id).first()
+        existing = db.query(User).filter(func.lower(User.handle) == normalized, User.id != current_user.id).first()
         if existing:
             raise HTTPException(status_code=409, detail="Handle is already taken")
-        current_user.handle = request.handle
+        current_user.handle = normalized
         
     db.commit()
     db.refresh(current_user)
