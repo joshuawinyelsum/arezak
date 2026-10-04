@@ -20,14 +20,19 @@ export default function RegisterPage() {
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { register, status } = useAuth();
+  const { register, status, user } = useAuth();
   const router = useRouter();
 
-      useEffect(() => {
-    if (status === "authenticated" || status === "onboarding") {
+          useEffect(() => {
+    const isFullyOnboarded = status === "onboarding" && user?.handle;
+    const effectiveStatus = isFullyOnboarded ? "authenticated" : status;
+
+    if (effectiveStatus === "authenticated") {
       router.push("/");
+    } else if (effectiveStatus === "onboarding") {
+      router.push("/setup-handle");
     }
-  }, [status, router]);
+  }, [status, user?.handle, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,6 +134,8 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+
 
 
 

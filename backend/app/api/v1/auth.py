@@ -201,7 +201,7 @@ def get_me(request: Request, db: SessionDep):
         "phone_verified": user.phone_verified,
         "phone_verification_required": settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN,
         "profile_photo_url": user.profile_photo_url,
-        "status": "onboarding" if scope == "onboarding" else "authenticated"
+        "status": "onboarding" if _is_user_onboarding(user) else "authenticated"
     }
 
 from app.schemas.auth import RequestPasswordResetRequest, ConfirmPasswordResetRequest
@@ -242,5 +242,7 @@ def reset_password(req: ConfirmPasswordResetRequest, db: SessionDep):
     db.commit()
     
     return {"message": "Password has been successfully reset"}
+
+
 
 

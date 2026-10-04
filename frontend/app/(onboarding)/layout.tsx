@@ -6,41 +6,43 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
-  const { status } = useAuth();
+  const { user, status, refreshUser } = useAuth();
   const router = useRouter();
 
+  const isFullyOnboarded = status === "onboarding" && user?.handle;
+  const effectiveStatus = isFullyOnboarded ? "authenticated" : status;
+
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (effectiveStatus === "unauthenticated") {
       router.push("/login");
-    } else if (status === "authenticated") {
+    } else if (effectiveStatus === "authenticated") {
       router.push("/");
     }
-  }, [status, router]);
+  }, [effectiveStatus, router]);
 
-  if (status === "loading") {
+  if (effectiveStatus === "loading") {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-muted">
         <Loader2 className="w-8 h-8 animate-spin text-brand" />
       </div>
     );
   }
-
   
-  if (status === "error") {
+  if (effectiveStatus === "error") {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-muted">
-        <p className="text-muted-foreground font-medium">Failed to authenticate. Please check your connection.</p>
+        <p className="text-muted-foreground font-medium">We couldn&apos;t load your session.</p>
         <button 
-          onClick={() => window.location.reload()}
+          onClick={() => refreshUser()}
           className="px-6 py-2.5 bg-slate-900 font-semibold text-white rounded-xl hover:bg-slate-800 transition-colors"
         >
-          Retry
+          Try again
         </button>
       </div>
     );
   }
 
-  if (status === "onboarding") {
+  if (effectiveStatus === "onboarding") {
     return <>{children}</>;
   }
 
@@ -50,4 +52,3 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       </div>
     );
 }
-

@@ -61,3 +61,4 @@ def readiness_check(db: Session = Depends(get_db)):
         from fastapi import HTTPException
         raise HTTPException(status_code=503, detail="Database not ready")
 
+

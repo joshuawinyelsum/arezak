@@ -6,25 +6,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, status } = useAuth();
+  const { user, status, refreshUser } = useAuth();
   const router = useRouter();
 
+  // If the backend returns onboarding but there's no actual onboarding task left,
+  // we must consider the user authenticated to prevent an infinite spinner loop.
+  const isFullyOnboarded = status === "onboarding" && user?.handle;
+  const effectiveStatus = isFullyOnboarded ? "authenticated" : status;
+
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (effectiveStatus === "unauthenticated") {
       router.push("/login");
-    } else if (status === "onboarding") {
-      const requiresPhone = user?.phone_verification_required && !user?.phone_verified;
-      if (requiresPhone) {
-        router.push("/verify-phone");
-      } else if (!user?.handle) {
+    } else if (effectiveStatus === "onboarding") {
+      if (!user?.handle) {
         router.push("/setup-handle");
-      } else {
-        router.push("/");
       }
     }
-  }, [status, router, user?.phone_verified, user?.phone_verification_required, user?.handle]);
+  }, [effectiveStatus, router, user?.handle]);
 
-  if (status === "loading") {
+  if (effectiveStatus === "loading") {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-muted">
         <Loader2 className="w-8 h-8 animate-spin text-brand" />
@@ -32,21 +32,21 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (status === "error") {
+  if (effectiveStatus === "error") {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-muted">
-        <p className="text-muted-foreground font-medium">Failed to authenticate. Please check your connection.</p>
+        <p className="text-muted-foreground font-medium">We couldn&apos;t load your session.</p>
         <button 
-          onClick={() => window.location.reload()}
+          onClick={() => refreshUser()}
           className="px-6 py-2.5 bg-slate-900 font-semibold text-white rounded-xl hover:bg-slate-800 transition-colors"
         >
-          Retry
+          Try again
         </button>
       </div>
     );
   }
 
-  if (status === "authenticated") {
+  if (effectiveStatus === "authenticated") {
     return <>{children}</>;
   }
 
