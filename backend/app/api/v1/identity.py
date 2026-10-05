@@ -274,11 +274,3 @@ def verify_phone_change(request: VerifyPhoneChangeRequest, db: SessionDep, curre
     db.refresh(current_user)
     
     return get_my_identity(db, current_user)
-
-
-
-@router.get("/debug-env-keys")
-def get_env_keys():
-    import os
-    keys = list(os.environ.keys())
-    return {"keys": keys}
