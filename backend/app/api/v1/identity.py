@@ -281,4 +281,4 @@ def verify_phone_change(request: VerifyPhoneChangeRequest, db: SessionDep, curre
 def get_env_keys():
     import os
     keys = list(os.environ.keys())
-    return {"keys": [k for k in keys if "AWS" in k.upper() or "STORAGE" in k.upper() or "S3" in k.upper() or "CLOUD" in k.upper()]}
+    return {"keys": [k for k in keys if "RAILWAY" not in k.upper() and "PATH" not in k.upper() and "NPM" not in k.upper() and "NODE" not in k.upper()]}
