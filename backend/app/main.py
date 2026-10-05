@@ -44,7 +44,7 @@ app.include_router(identity.router, prefix=settings.API_V1_STR)
 @app.get("/version")
 def version_check():
 
-    return {"version": "goal-contract-v2", "commit": "abcecf2e26e98ef4f10ae2d96b2afc4cf31ccb93"}
+    return {"version": "debug-catchall-v1", "commit": "cffacbe"}
 
 @app.get("/health")
 def health_check():
