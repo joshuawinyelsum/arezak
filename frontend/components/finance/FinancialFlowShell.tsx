@@ -101,7 +101,7 @@ export function FinancialFlowShell({
 
   const shell = (
     <div
-      className="fixed inset-x-0 z-[70] flex items-end justify-center bg-slate-950/45 backdrop-blur-[2px] md:items-center md:p-6"
+      className="fixed inset-x-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-[2px] md:items-center md:p-6"
       style={{
         top: viewport.top,
         height: viewport.height

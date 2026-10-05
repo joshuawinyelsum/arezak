@@ -49,7 +49,7 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
 
       {activeGoals.length === 0 ? (
         <div className="flex flex-col items-center text-center py-6 gap-3">
-          <Target className="w-8 h-8 text-slate-200" />
+          <Target className="w-8 h-8 text-muted-foreground/20" />
           <div>
             <p className="text-sm font-medium text-foreground">No goals yet</p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -99,7 +99,7 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
                 <div className="w-full h-1.5 bg-input rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
-                      isAchieved ? "bg-green-500" : "bg-brand"
+                      isAchieved ? "bg-success-foreground" : "bg-brand"
                     }`}
                     style={{ width: `${progress}%` }}
                   />

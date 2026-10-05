@@ -46,7 +46,7 @@ export function RulesPreview({ rules }: RulesPreviewProps) {
 
       {activeRules.length === 0 ? (
         <div className="flex flex-col items-center text-center py-5 gap-3">
-          <SlidersHorizontal className="w-7 h-7 text-slate-200" />
+          <SlidersHorizontal className="w-7 h-7 text-muted-foreground/20" />
           <div>
             <p className="text-sm font-medium text-foreground">No active rules</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-[180px] mx-auto">
@@ -70,7 +70,7 @@ export function RulesPreview({ rules }: RulesPreviewProps) {
               key={rule.id}
               className="flex items-center gap-3 py-1"
             >
-              <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success-foreground shrink-0" />
               <span className="text-sm text-card-foreground font-medium">
                 {rule.name}
               </span>

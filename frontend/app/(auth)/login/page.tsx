@@ -51,7 +51,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4 animate-in fade-in duration-500">
       
-      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100">
+      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl shadow-none border border-border">
          <div className="flex flex-col items-center text-center mb-8">
             <Image src="/brand/logo.png" alt="Arezak" width={56} height={56} className="mb-6 rounded-xl" />
             <h1 className="text-2xl font-bold text-foreground tracking-tight">Welcome back</h1>
@@ -60,7 +60,7 @@ export default function LoginPage() {
 
          <form className="space-y-4" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-medium text-center">
+              <div className="bg-destructive/10 text-destructive-foreground p-3 rounded-xl text-sm font-medium text-center">
                 {error}
               </div>
             )}

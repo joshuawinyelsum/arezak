@@ -98,7 +98,7 @@ export function FundAccountModal({ isOpen, onClose, accountId, onSuccess }: Fund
           </div>
           
           <div className="pt-4 flex gap-3">
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl font-medium text-card-foreground bg-input hover:bg-slate-200 transition-colors">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl font-medium text-card-foreground bg-input hover:bg-muted-foreground/20 transition-colors">Cancel</button>
             <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2.5 rounded-xl font-medium text-white bg-brand hover:bg-brand-hover transition-colors flex items-center justify-center">
               {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Fund Account"}
             </button>

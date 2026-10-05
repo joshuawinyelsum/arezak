@@ -124,7 +124,7 @@ export default function RulesPage() {
                 <p className="font-semibold text-foreground text-sm">{rule.name}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{rule.summary}</p>
               </div>
-              <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+              <div className="w-2 h-2 rounded-full bg-success-foreground shrink-0" />
             </div>
           ))}
         </div>
@@ -132,7 +132,7 @@ export default function RulesPage() {
         /* Empty state — no rules yet */
         <div className="bg-card border border-slate-100 rounded-[24px] p-8 flex flex-col items-center text-center shadow-sm">
           <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-4">
-            <SlidersHorizontal className="w-7 h-7 text-slate-300" />
+            <SlidersHorizontal className="w-7 h-7 text-muted-foreground/30" />
           </div>
           <h2 className="text-base font-semibold text-foreground">No rules yet</h2>
           <p className="text-sm text-muted-foreground mt-1 max-w-xs">

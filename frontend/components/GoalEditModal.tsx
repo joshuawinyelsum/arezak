@@ -54,7 +54,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
         <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl relative animate-in zoom-in-95">
           <button 
             onClick={onClose} 

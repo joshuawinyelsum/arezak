@@ -133,7 +133,7 @@ export default function TransactionsPage() {
                  setModalError(null);
                  setIsExpenseModalOpen(true);
                }}
-               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-input text-card-foreground hover:bg-slate-200 transition-colors shadow-sm"
+               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-input text-card-foreground hover:bg-muted-foreground/10 transition-colors shadow-sm"
                aria-label="Add Expense"
              >
                <Minus className="w-4 h-4 md:mr-1.5" />
@@ -141,7 +141,7 @@ export default function TransactionsPage() {
              </button>
              <button 
                onClick={() => setShowFundModal(true)}
-               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-brand text-white hover:bg-brand/90 transition-colors shadow-sm"
+               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-brand text-brand-foreground hover:bg-brand/90 transition-colors shadow-sm"
                aria-label="Fund Account"
              >
                <Plus className="w-4 h-4 md:mr-1.5" />
@@ -163,7 +163,7 @@ export default function TransactionsPage() {
              className={cn(
                "flex-1 py-1.5 rounded-lg text-sm font-semibold transition-all",
                activeTab === tab.id 
-                 ? "bg-brand text-white shadow-sm" 
+                 ? "bg-brand text-brand-foreground shadow-sm" 
                  : "text-muted-foreground hover:text-card-foreground"
              )}
            >
@@ -180,13 +180,13 @@ export default function TransactionsPage() {
       )}
 
       {!isLoading && error && (
-        <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center text-center">
+        <div className="bg-destructive/10 text-destructive-foreground p-6 rounded-2xl flex flex-col items-center text-center">
           <AlertCircle className="w-8 h-8 mb-2" />
           <p className="font-medium">Failed to load transactions</p>
           <p className="text-sm mt-1 opacity-80">{error}</p>
           <button 
             onClick={() => loadData()}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+            className="mt-4 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium hover:bg-destructive/90 transition-colors"
           >
             Retry
           </button>
@@ -195,7 +195,7 @@ export default function TransactionsPage() {
 
       {!isLoading && !error && filteredGroups.length === 0 && (
         <div className="bg-muted border border-border p-10 rounded-2xl flex flex-col items-center text-center mt-6">
-          <PieChart className="w-12 h-12 text-slate-300 mb-4" />
+          <PieChart className="w-12 h-12 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-semibold text-foreground">No transactions</h3>
           <p className="text-muted-foreground text-sm mt-1 mb-6">You don&apos;t have any transactions here yet.</p>
         </div>
@@ -227,7 +227,7 @@ export default function TransactionsPage() {
                                   <div className="font-semibold text-sm text-foreground truncate">{primaryLabel}</div>
                                   <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
                                     {subtitleLabel && <span>{subtitleLabel}</span>}
-                                    {subtitleLabel && item.note && <span className="w-1 h-1 rounded-full bg-slate-300 shrink-0" />}
+                                    {subtitleLabel && item.note && <span className="w-1 h-1 rounded-full bg-border shrink-0" />}
                                     {item.note && <span className="truncate">{item.note}</span>}
                                   </div>
                                </div>
@@ -235,7 +235,7 @@ export default function TransactionsPage() {
                             <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
                                <div className={cn(
                                   "font-semibold text-sm",
-                                  isPositive ? "text-green-600" : "text-foreground"
+                                  isPositive ? "text-success-foreground" : "text-foreground"
                                )}>
                                   {isPositive ? "+" : "-"} GH₵{formatPesewas(item.amount.amount_pesewas)}
                                </div>
@@ -243,7 +243,7 @@ export default function TransactionsPage() {
                                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                     <button 
                                       onClick={() => openActionModal(item, "metadata")} 
-                                      className="text-xs bg-input hover:bg-slate-200 px-2 py-1 rounded text-muted-foreground font-medium"
+                                      className="text-xs bg-input hover:bg-muted-foreground/10 px-2 py-1 rounded text-muted-foreground font-medium"
                                     >
                                       Edit
                                     </button>
@@ -267,7 +267,7 @@ export default function TransactionsPage() {
       {/* Modal Overlay */}
       {/* Expense Modal */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
           <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-foreground">Record Expense</h2>
@@ -281,7 +281,7 @@ export default function TransactionsPage() {
             </div>
 
             {modalError && (
-              <div className="bg-red-50 text-red-600 text-sm font-medium p-3 rounded-xl mb-4 text-center border border-red-100">
+              <div className="bg-destructive/10 text-destructive-foreground text-sm font-medium p-3 rounded-xl mb-4 text-center border border-destructive/20">
                 {modalError}
               </div>
             )}
@@ -369,7 +369,7 @@ export default function TransactionsPage() {
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-slate-900 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-slate-800"
+                className="w-full bg-primary text-primary-foreground font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-primary/90"
               >
                 {isSubmitting ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>

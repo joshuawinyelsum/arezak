@@ -335,7 +335,7 @@ export default function ProfilePage() {
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               {handleStatus === "checking" && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
-              {handleStatus === "available" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+              {handleStatus === "available" && <CheckCircle2 className="w-4 h-4 text-success-foreground" />}
               {handleStatus === "unavailable" && <AlertCircle className="w-4 h-4 text-red-500" />}
             </div>
           </div>

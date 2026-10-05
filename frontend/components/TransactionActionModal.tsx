@@ -69,7 +69,7 @@ export function TransactionActionModal({ isOpen, onClose, transaction, mode, onS
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl relative">
         <button onClick={onClose} className="absolute right-6 top-6 text-muted-foreground hover:text-card-foreground">
           <X className="w-5 h-5" />
@@ -101,7 +101,7 @@ export function TransactionActionModal({ isOpen, onClose, transaction, mode, onS
               </div>
             </>
           )}
-          <button type="submit" disabled={isLoading} className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-semibold mt-2">
+          <button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 text-white py-3.5 rounded-xl font-semibold mt-2">
             {isLoading ? "Saving..." : (mode === "correct" ? "Confirm Correction" : "Save Metadata")}
           </button>
         </form>

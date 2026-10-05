@@ -12,15 +12,6 @@ interface VaultProps {
   formatPesewas: (pesewas: number) => string;
 }
 
-/**
- * Vault — the primary balance display for Arezak Home.
- *
- * Communicates the core mental model:
- *   Total Balance = Available + Protected
- *
- * "Total Balance" is the hero number. Available and Protected explain
- * where that money currently sits. Nothing more.
- */
 export function Vault({
   totalSum,
   totalAvailable,
@@ -32,16 +23,15 @@ export function Vault({
   const fmt = (n: number) => formatPesewas(n);
 
   return (
-    <section aria-label="Account balances" className="rounded-2xl bg-brand-dark p-6 text-white shadow-sm md:p-8">
+    <section aria-label="Account balances" className="rounded-2xl bg-brand p-6 text-brand-foreground shadow-sm md:p-8">
       <div className="relative z-10 flex flex-col gap-6">
-        {/* Header row */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
+          <span className="text-xs font-semibold uppercase tracking-widest text-brand-foreground/70">
             Total Balance
           </span>
           <button
             onClick={onToggleBalance}
-            className="rounded-lg p-2 text-white/70 transition-colors hover:bg-card/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="rounded-lg p-2 text-brand-foreground/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={showBalance ? "Hide balance" : "Show balance"}
           >
             {showBalance ? (
@@ -52,12 +42,10 @@ export function Vault({
           </button>
         </div>
 
-        {/* Hero amount */}
         <div className="text-[40px] font-bold leading-none tracking-tight tabular-nums md:text-[48px]">
           {fmt(totalSum)}
         </div>
 
-        {/* Available / Protected breakdown */}
         <div className="grid grid-cols-2 gap-4 border-t border-white/15 pt-5">
           <div>
             <div className="flex items-center gap-1.5 mb-1.5">
@@ -89,8 +77,6 @@ export function Vault({
           </div>
         </div>
       </div>
-
     </section>
   );
 }
-

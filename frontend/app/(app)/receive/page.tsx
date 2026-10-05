@@ -115,7 +115,7 @@ export default function ReceivePage() {
               </div>
 
               <div className="w-full flex flex-col gap-3">
-                <button type="button" onClick={() => handleCopy(account)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand text-white px-4 py-4 font-semibold hover:bg-brand/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-card shadow-lg shadow-brand/20">
+                <button type="button" onClick={() => handleCopy(account)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand text-brand-foreground px-4 py-4 font-semibold hover:bg-brand/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-card shadow-lg shadow-brand/20">
                   {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                   {copied ? "Copied" : "Copy payment details"}
                 </button>
@@ -128,7 +128,7 @@ export default function ReceivePage() {
 
               <div className="mt-10 pt-10 border-t border-border w-full flex flex-col items-center">
                 <p className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wider">Or scan to pay</p>
-                <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200">
+                <div className="p-4 bg-white rounded-2xl shadow-sm border border-border">
                   <QRCodeSVG value={account.qr_payload} size={160} level="Q" marginSize={0} />
                 </div>
               </div>

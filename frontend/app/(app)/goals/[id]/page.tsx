@@ -248,7 +248,7 @@ export default function GoalDetailPage() {
             </div>
             <div className="w-full bg-input rounded-full h-3 overflow-hidden">
                <div 
-                  className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-green-500" : "bg-brand", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-slate-300" : "")}
+                  className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-success-foreground" : "bg-brand", goal.status === "RELEASED" || goal.status === "ARCHIVED" ? "bg-muted-foreground/30" : "")}
                   style={{ width: `${Math.min(percentage, 100)}%` }}
                ></div>
             </div>
@@ -285,7 +285,7 @@ export default function GoalDetailPage() {
                </div>
                <button 
                   onClick={() => openModal("withdraw")}
-                  className="w-full bg-green-500 text-white font-semibold rounded-xl py-3 mt-2 transition-all hover:bg-green-600 shadow-sm"
+                  className="w-full bg-success-foreground text-white font-semibold rounded-xl py-3 mt-2 transition-all hover:bg-green-600 shadow-sm"
                >
                   Withdraw
                </button>
@@ -296,11 +296,11 @@ export default function GoalDetailPage() {
             <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Target className="w-4 h-4 text-muted-foreground"/> Goal Rules</h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 mt-1.5 shrink-0"></div>
                   <span>This goal is locked until the target amount is reached.</span>
                </li>
                <li className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 mt-1.5 shrink-0"></div>
                   <span>Target amount is strictly fixed and cannot be changed.</span>
                </li>
             </ul>
@@ -317,7 +317,7 @@ export default function GoalDetailPage() {
 
       {/* Modal Overlay */}
       {modalMode && modalMode !== "edit" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
           <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-foreground">

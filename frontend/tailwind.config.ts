@@ -11,18 +11,34 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        card: "var(--card)",
-        "card-foreground": "var(--card-foreground)",
+        elevated: "var(--elevated)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)"
+        },
         border: "var(--border)",
+        divider: "var(--divider)",
         input: "var(--input)",
         ring: "var(--ring)",
         muted: {
           DEFAULT: "var(--muted)",
           foreground: "var(--muted-foreground)",
         },
+        secondary: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--secondary-foreground)",
+        },
         accent: {
           DEFAULT: "var(--accent)",
           foreground: "var(--accent-foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        brand: {
+          DEFAULT: "var(--brand)",
+          foreground: "var(--brand-foreground)",
         },
         destructive: {
           DEFAULT: "var(--destructive)",
@@ -32,19 +48,14 @@ const config: Config = {
           DEFAULT: "var(--success)",
           foreground: "var(--success-foreground)",
         },
-        brand: {
-          DEFAULT: "#3157E8",
-          light: "#5373F2",
-          dark: "#1A37A5"
-        },
-        semantic: {
-          success: "#22C55E",
-          warning: "#F59E0B",
-          danger: "#EF4444",
+        warning: {
+          DEFAULT: "var(--warning)",
+          foreground: "var(--warning-foreground)",
         }
       },
       fontFamily: {
         sans: ["var(--font-inter)"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       }
     },
   },

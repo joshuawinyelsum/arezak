@@ -139,12 +139,12 @@ export default function Home() {
   if (error || !data) {
     return (
       <div className="w-full h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
-        <AlertCircle className="w-10 h-10 text-red-400 mb-4" />
+        <AlertCircle className="w-10 h-10 text-destructive mb-4" />
         <p className="text-base font-semibold text-foreground">Unable to load dashboard</p>
         <p className="text-sm mt-1">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
         >
           Retry
         </button>

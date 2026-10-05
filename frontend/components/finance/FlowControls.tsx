@@ -22,7 +22,7 @@ export function FlowButton({
       form={form}
       onClick={onClick}
       disabled={disabled}
-      className={`min-h-12 w-full rounded-xl px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-muted-foreground ${variant === "primary" ? "bg-brand text-white hover:bg-brand-hover" : "border border-border bg-card text-card-foreground hover:bg-muted"}`}
+      className={`min-h-12 w-full rounded-xl px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted-foreground/20 disabled:text-muted-foreground ${variant === "primary" ? "bg-brand text-white hover:bg-brand-hover" : "border border-border bg-card text-card-foreground hover:bg-muted"}`}
     >
       {children}
     </button>
@@ -154,7 +154,7 @@ export function AmountInput({
           onChange={(event) => onChange(event.target.value.replace(/[^\d.]/g, ""))}
           placeholder="0.00"
           aria-describedby={`${id}-hint`}
-          className="min-h-14 w-full scroll-mt-5 rounded-xl border border-border bg-card pl-14 pr-4 text-2xl font-semibold tabular-nums text-foreground placeholder:text-slate-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="min-h-14 w-full scroll-mt-5 rounded-xl border border-border bg-card pl-14 pr-4 text-2xl font-semibold tabular-nums text-foreground placeholder:text-muted-foreground/30 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
         />
       </div>
       <p id={`${id}-hint`} className="mt-1.5 text-xs text-muted-foreground">Enter cedis and pesewas, for example 25.50.</p>

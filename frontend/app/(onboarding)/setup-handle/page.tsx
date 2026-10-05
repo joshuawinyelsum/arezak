@@ -102,7 +102,7 @@ export default function SetupHandlePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted p-4">
-      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl text-center">
+      <div className="w-full max-w-md bg-card rounded-3xl p-8 shadow-sm border border-border text-center">
         <h1 className="text-2xl font-bold mb-2">Claim your handle</h1>
         <p className="text-muted-foreground mb-8 text-sm">
           This is how friends will find you on Arezak.
@@ -110,7 +110,7 @@ export default function SetupHandlePage() {
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div role="alert" className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-6">
+            <div role="alert" className="bg-destructive/10 text-destructive-foreground p-3 rounded-xl text-sm mb-6">
               {error}
             </div>
           )}
@@ -137,27 +137,27 @@ export default function SetupHandlePage() {
                 <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
               )}
               {handleStatus === "available" && (
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <CheckCircle2 className="w-4 h-4 text-success-foreground" />
               )}
               {handleStatus === "unavailable" && (
-                <AlertCircle className="w-4 h-4 text-red-500" />
+                <AlertCircle className="w-4 h-4 text-destructive-foreground" />
               )}
             </div>
             {handleStatus === "checking" && (
               <p className="text-xs text-muted-foreground mt-1.5 ml-1">Checking...</p>
             )}
             {handleStatus === "available" && (
-              <p className="text-xs text-green-600 mt-1.5 ml-1 font-medium">
+              <p className="text-xs text-success-foreground mt-1.5 ml-1 font-medium">
                 Available
               </p>
             )}
             {handleStatus === "unavailable" && (
-              <p className="text-xs text-red-600 mt-1.5 ml-1 font-medium">
+              <p className="text-xs text-destructive-foreground mt-1.5 ml-1 font-medium">
                 That handle is unavailable
               </p>
             )}
             {handleStatus === "invalid" && (
-              <p className="text-xs text-red-600 mt-1.5 ml-1 font-medium">
+              <p className="text-xs text-destructive-foreground mt-1.5 ml-1 font-medium">
                 Handle must be 3–30 characters: letters, numbers, underscores only
               </p>
             )}

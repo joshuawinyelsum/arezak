@@ -36,7 +36,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in">
       <div className="bg-card w-full sm:w-[500px] h-[85vh] sm:h-[600px] sm:max-h-[85vh] rounded-t-[32px] sm:rounded-[24px] shadow-xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95">
         
         {/* Header */}

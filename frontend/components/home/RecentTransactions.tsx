@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * RecentTransactions — Human-readable transaction ledger for Home.
- *
- * Raw backend enum names (GOAL_CONTRIBUTION, TRANSFER_OUT, etc.) are
- * NEVER exposed to users. All display goes through the TransactionMapper.
- *
- * Unknown future transaction types hit the safe FALLBACK entry in the mapper.
- */
-
 import React from "react";
 import Link from "next/link";
 import {
@@ -27,7 +18,6 @@ import {
 import { mapTransaction } from "@/lib/transactions/mapper";
 import { formatPesewas } from "@/lib/money/format";
 
-// Icon map keyed by the mapper's iconName field
 const ICON_MAP: Record<string, React.ElementType> = {
   ArrowDownLeft,
   ArrowUpRight,
@@ -75,7 +65,7 @@ export function RecentTransactions({
 
       {recent.length === 0 ? (
         <div className="flex flex-col items-center text-center py-6 gap-3">
-          <Receipt className="w-8 h-8 text-slate-200" />
+          <Receipt className="w-8 h-8 text-muted-foreground/30" />
           <div>
             <p className="text-sm font-medium text-foreground">
               No transactions yet
@@ -92,7 +82,6 @@ export function RecentTransactions({
             const Icon = ICON_MAP[pres.iconName] ?? CreditCard;
             const isCredit = pres.direction === "credit" || tx.direction === "INCOMING";
 
-            // Prefer a meaningful user description; fall back to the mapped label
             const label =
               tx.description && tx.description.trim().length > 0
                 ? tx.description
@@ -125,11 +114,9 @@ export function RecentTransactions({
                 </div>
 
                 <div
-                  className={`text-sm font-semibold ml-3 flex-shrink-0 ${
-                    isCredit ? "text-green-600" : "text-card-foreground"
-                  }`}
+                  className={	ext-sm font-semibold ml-3 flex-shrink-0 }
                 >
-                  {isCredit ? "+" : "−"}{" "}
+                  {isCredit ? "+" : "-"}{" "}
                   {formatPesewas(tx.amount.amount_pesewas, !showBalance)}
                 </div>
               </div>
@@ -140,4 +127,3 @@ export function RecentTransactions({
     </section>
   );
 }
-

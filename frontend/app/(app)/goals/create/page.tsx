@@ -289,12 +289,12 @@ export default function CreateGoalPage() {
                         <div className="text-lg font-bold text-foreground">{name}</div>
                      </div>
                   </div>
-                  <div className="w-full h-px bg-slate-200" />
+                  <div className="w-full h-px bg-muted-foreground/20" />
                   <div>
                      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Target</div>
                      <div className="text-xl font-bold text-foreground">GH₵ {parseFloat(targetAmountStr).toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                   </div>
-                  <div className="w-full h-px bg-slate-200" />
+                  <div className="w-full h-px bg-muted-foreground/20" />
                   <div>
                      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Unlock condition</div>
                      <div className="text-base font-bold text-card-foreground">

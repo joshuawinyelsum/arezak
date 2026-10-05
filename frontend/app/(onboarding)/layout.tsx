@@ -34,7 +34,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
         <p className="text-muted-foreground font-medium">We couldn&apos;t load your session.</p>
         <button 
           onClick={() => refreshUser()}
-          className="px-6 py-2.5 bg-slate-900 font-semibold text-white rounded-xl hover:bg-slate-800 transition-colors"
+          className="px-6 py-2.5 bg-primary font-semibold text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors"
         >
           Try again
         </button>

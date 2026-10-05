@@ -108,7 +108,7 @@ export default function AccountsPage() {
 
       {!isLoading && !error && accounts.length === 0 && (
         <div className="bg-muted border border-border p-10 rounded-2xl flex flex-col items-center text-center">
-          <Wallet className="w-12 h-12 text-slate-300 mb-4" />
+          <Wallet className="w-12 h-12 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-semibold text-foreground">No accounts yet</h3>
           <p className="text-muted-foreground text-sm mt-1 mb-6">You don&apos;t have any accounts set up.</p>
         </div>

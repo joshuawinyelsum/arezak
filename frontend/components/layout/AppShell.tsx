@@ -65,9 +65,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background font-sans text-foreground">
       {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex flex-col w-[240px] bg-card border-r border-slate-100 h-full flex-shrink-0">
+      <aside className="hidden md:flex flex-col w-[240px] bg-card border-r border-border h-full flex-shrink-0">
         {/* Logo */}
-        <div className="px-6 py-5 flex items-center gap-2.5 border-b border-slate-50">
+        <div className="px-6 py-5 flex items-center gap-2.5 border-b border-border/50">
           <Image
             src="/brand/logo.png"
             alt="Arezak"
@@ -111,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Settings link at bottom of sidebar */}
-        <div className="px-3 pb-4 border-t border-slate-50 pt-3">
+        <div className="px-3 pb-4 border-t border-border/50 pt-3">
           <Link
             href="/settings"
             className={cn(
@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── Main Content Area ── */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {/* Desktop Header */}
-        <header className="hidden md:flex h-16 px-8 items-center justify-end border-b border-slate-100 bg-card flex-shrink-0">
+        <header className="hidden md:flex h-16 px-8 items-center justify-end border-b border-border bg-card flex-shrink-0">
           <div className="flex items-center gap-4">
             {/* User menu */}
             <div className="relative">
@@ -165,7 +165,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-card rounded-xl shadow-lg border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-card rounded-xl shadow-lg border border-border py-2 z-50 animate-in fade-in slide-in-from-top-2">
                   <Link
                     href="/settings"
                     onClick={() => setIsUserMenuOpen(false)}
@@ -179,7 +179,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       setIsUserMenuOpen(false);
                       logout();
                     }}
-                    className="flex items-center gap-2.5 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    className="flex items-center gap-2.5 w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign out
@@ -191,7 +191,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Mobile Header */}
-        <header className="md:hidden flex h-14 items-center justify-between px-5 bg-card border-b border-slate-100 flex-shrink-0">
+        <header className="md:hidden flex h-14 items-center justify-between px-5 bg-card border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2">
             <Image
               src="/brand/logo.png"
