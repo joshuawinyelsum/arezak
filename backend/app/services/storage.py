@@ -16,10 +16,10 @@ class StorageConfigurationError(Exception):
 
 class StorageService:
     def __init__(self):
-        self.bucket = os.getenv("STORAGE_BUCKET")
-        self.region = os.getenv("STORAGE_REGION", "us-east-1")
-        self.access_key = os.getenv("STORAGE_ACCESS_KEY")
-        self.secret_key = os.getenv("STORAGE_SECRET_KEY")
+        self.bucket = os.getenv("STORAGE_BUCKET") or os.getenv("AWS_S3_BUCKET") or os.getenv("S3_BUCKET")
+        self.region = os.getenv("STORAGE_REGION") or os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION", "us-east-1")
+        self.access_key = os.getenv("STORAGE_ACCESS_KEY") or os.getenv("AWS_ACCESS_KEY_ID")
+        self.secret_key = os.getenv("STORAGE_SECRET_KEY") or os.getenv("AWS_SECRET_ACCESS_KEY")
         
         self.is_configured = bool(self.bucket and self.access_key and self.secret_key)
         

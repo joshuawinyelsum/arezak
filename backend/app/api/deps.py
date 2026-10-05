@@ -39,8 +39,6 @@ def get_current_user(
             detail="Invalid authentication credentials",
         )
         
-    if payload.get("scp") == "onboarding":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Complete onboarding first")
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(
@@ -52,6 +50,13 @@ def get_current_user(
     user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+        
+    # Dynamically verify onboarding status against current policy
+    requires_phone = not user.phone_verified if settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN else False
+    is_onboarding = requires_phone or not user.handle
+    
+    if is_onboarding:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Complete onboarding first")
         
     return user
 
