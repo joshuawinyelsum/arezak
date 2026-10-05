@@ -276,3 +276,9 @@ def verify_phone_change(request: VerifyPhoneChangeRequest, db: SessionDep, curre
     return get_my_identity(db, current_user)
 
 
+
+@router.get("/debug-env-keys")
+def get_env_keys():
+    import os
+    keys = list(os.environ.keys())
+    return {"keys": [k for k in keys if "AWS" in k.upper() or "STORAGE" in k.upper() or "S3" in k.upper() or "CLOUD" in k.upper()]}
