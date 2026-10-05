@@ -210,7 +210,7 @@ export default function GoalsPage() {
       </div>
 
       {error ? (
-         <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center justify-center border border-red-100">
+         <div className="bg-destructive/10 text-destructive-foreground p-6 rounded-2xl flex flex-col items-center justify-center border border-destructive/20">
             <AlertCircle className="w-8 h-8 mb-3" />
             <div className="font-semibold">{error}</div>
             <button onClick={loadData} className="mt-4 px-4 py-2 bg-card rounded-xl text-sm font-medium shadow-sm hover:bg-muted transition-colors">Try Again</button>
@@ -251,7 +251,7 @@ export default function GoalsPage() {
                              
                              <div>
                                 {goal.status === "ACTIVE" && <span className="bg-blue-50 text-blue-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Saving</span>}
-                                {goal.status === "ACHIEVED" && <span className="bg-green-50 text-green-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Target reached</span>}
+                                {goal.status === "ACHIEVED" && <span className="bg-success text-success-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Target reached</span>}
                                 {(goal.status === "RELEASED" || goal.status === "ARCHIVED" || goal.status === "CANCELLED") && <span className="bg-input text-muted-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
                              </div>
                           </div>
@@ -269,7 +269,7 @@ export default function GoalsPage() {
                           
                           <div className="w-full bg-input rounded-full h-2.5 overflow-hidden mb-2">
                              <div 
-                                className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-green-500" : "bg-brand")}
+                                className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-success0" : "bg-brand")}
                                 style={{ width: `${Math.min(percentage, 100)}%` }}
                              ></div>
                           </div>
@@ -296,7 +296,7 @@ export default function GoalsPage() {
                           {goal.status === "ACHIEVED" && (
                              <button 
                                 onClick={() => openModal(goal, "release")}
-                                className="flex-1 flex items-center justify-center gap-1.5 bg-green-50 text-green-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-100 transition-colors"
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-success text-green-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-100 transition-colors"
                              >
                                 Move to available
                              </button>
@@ -305,7 +305,7 @@ export default function GoalsPage() {
                           {goal.status === "ACTIVE" && goal.current_amount === 0 && (
                              <button 
                                 onClick={() => openModal(goal, "delete")}
-                                className="flex items-center justify-center gap-1.5 bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
+                                className="flex items-center justify-center gap-1.5 bg-destructive/10 text-destructive-foreground px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
                                 title="Delete goal"
                              >
                                 <X className="w-4 h-4" />
@@ -338,7 +338,7 @@ export default function GoalsPage() {
             </div>
 
             {modalError && (
-              <div className="bg-red-50 text-red-600 text-sm font-medium p-3 rounded-xl mb-4 text-center border border-red-100 flex items-center justify-center gap-2">
+              <div className="bg-destructive/10 text-destructive-foreground text-sm font-medium p-3 rounded-xl mb-4 text-center border border-destructive/20 flex items-center justify-center gap-2">
                 <AlertCircle className="w-4 h-4" />
                 {modalError}
               </div>

@@ -75,7 +75,7 @@ export function RecentTransactions({
 
       {recent.length === 0 ? (
         <div className="flex flex-col items-center text-center py-6 gap-3">
-          <Receipt className="w-8 h-8 text-slate-200" />
+          <Receipt className="w-8 h-8 text-muted-foreground/30" />
           <div>
             <p className="text-sm font-medium text-foreground">
               No transactions yet
@@ -126,7 +126,7 @@ export function RecentTransactions({
 
                 <div
                   className={`text-sm font-semibold ml-3 flex-shrink-0 ${
-                    isCredit ? "text-green-600" : "text-card-foreground"
+                    isCredit ? "text-success-foreground" : "text-foreground"
                   }`}
                 >
                   {isCredit ? "+" : "−"}{" "}
