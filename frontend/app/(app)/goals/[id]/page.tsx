@@ -55,6 +55,7 @@ export default function GoalDetailPage() {
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const [goalRes, accRes] = await Promise.all([
         apiFetch(`/goals/${goalId}`),
@@ -69,8 +70,9 @@ export default function GoalDetailPage() {
       if (aData.length > 0 && !accountId) {
         setAccountId(aData[0].id);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to load data.");
+    } catch (err) {
+      console.error("Unable to load goal details", err);
+      setError("This goal couldn’t be loaded.");
     } finally {
       setIsLoading(false);
     }
@@ -180,10 +182,11 @@ export default function GoalDetailPage() {
         <Link href="/goals" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Goals
         </Link>
-        <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center justify-center border border-red-100">
+        <div role="alert" className="bg-muted text-foreground p-6 rounded-2xl flex flex-col items-center justify-center">
           <AlertCircle className="w-8 h-8 mb-3" />
           <div className="font-semibold">{error || "Goal not found"}</div>
-          <Link href="/goals" className="mt-4 px-4 py-2 bg-card rounded-xl text-sm font-medium shadow-sm hover:bg-muted transition-colors">Return to Goals</Link>
+          {error && <button type="button" onClick={() => void loadData()} className="mt-4 px-4 py-2 bg-card rounded-xl text-sm font-medium hover:bg-accent transition-colors">Try again</button>}
+          <Link href="/goals" className="mt-3 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Return to Goals</Link>
         </div>
       </div>
     );

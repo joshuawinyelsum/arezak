@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Copy, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -30,16 +30,24 @@ export default function ReceivePage() {
   };
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    apiFetch("/identity/me")
-      .then((response) => response.json())
-      .then((data: Identity) => { if (active) { setIdentity(data); } })
-      .catch((err: any) => { if (active) setError(err.message || "Your receiving identity could not be loaded."); });
-    return () => { active = false; };
+  const loadIdentity = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await apiFetch("/identity/me");
+      setIdentity(await response.json());
+    } catch (err) {
+      console.error("Unable to load receiving identity", err);
+      setError("Your receiving details couldn’t be loaded.");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => { void loadIdentity(); }, [loadIdentity]);
 
   const getNormalizedHandle = (rawHandle: string | null) => {
     if (!rawHandle) return "";
@@ -82,13 +90,13 @@ export default function ReceivePage() {
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive money</h1>
       </header>
 
-      {error && <p role="alert" className="rounded-xl border border-destructive-foreground/20 bg-destructive p-4 text-sm font-medium text-destructive-foreground">{error}</p>}
-      {!identity && !error && <div className="py-12 flex justify-center"><div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin"></div></div>}
+      {isLoading && <div role="status" className="py-12 flex justify-center"><span className="sr-only">Loading receiving details</span><div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin" /></div>}
+      {error && <div role="alert" className="space-y-3 rounded-xl bg-muted p-4 text-sm"><p>{error}</p><button type="button" onClick={() => void loadIdentity()} className="font-semibold text-brand underline underline-offset-4">Try again</button></div>}
       
       {identity && (
         <div className="space-y-6">
           <p className="text-sm text-muted-foreground px-1">Share your Arezak details to receive money.</p>
-          
+          {identity.accounts.length === 0 && <div role="status" className="rounded-xl bg-muted p-5 text-sm text-muted-foreground">No receiving account is available yet. Try again in a moment or contact support if this continues.</div>}
           {identity.accounts.map((account) => (
             <section key={account.account_id} className="rounded-[32px] border border-border bg-card p-6 sm:p-8 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
               <div className="w-full mb-8">

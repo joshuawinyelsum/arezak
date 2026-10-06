@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { ChevronLeft } from "lucide-react";
@@ -11,6 +11,7 @@ export default function PasswordPage() {
   
   const [status, setStatus] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
+  const [statusError, setStatusError] = useState(false);
   
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -19,19 +20,21 @@ export default function PasswordPage() {
   const [passSuccess, setPassSuccess] = useState("");
   const [passLoading, setPassLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await apiFetch("/identity/security");
-        setStatus(await res.json());
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoadingStatus(false);
-      }
-    };
-    fetchStatus();
+  const fetchStatus = useCallback(async () => {
+    setLoadingStatus(true);
+    setStatusError(false);
+    try {
+      const res = await apiFetch("/identity/security");
+      setStatus(await res.json());
+    } catch (error) {
+      console.error("Unable to load security settings", error);
+      setStatusError(true);
+    } finally {
+      setLoadingStatus(false);
+    }
   }, []);
+
+  useEffect(() => { void fetchStatus(); }, [fetchStatus]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +77,13 @@ export default function PasswordPage() {
         </div>
       </div>
     );
+  }
+
+  if (statusError || !status) {
+    return <div className="w-full max-w-xl mx-auto space-y-5 py-4">
+      <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Go back"><ChevronLeft className="w-5 h-5 text-foreground" /></button>
+      <div role="alert" className="rounded-xl bg-muted p-5 text-sm"><p>Password settings couldn’t be loaded.</p><button type="button" onClick={() => void fetchStatus()} className="mt-3 font-semibold text-brand underline underline-offset-4">Try again</button></div>
+    </div>;
   }
 
   const isSettingPassword = !status?.has_password;
