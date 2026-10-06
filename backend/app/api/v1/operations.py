@@ -14,6 +14,7 @@ Each endpoint accepts an Idempotency-Key header for safe retry behavior.
 from __future__ import annotations
 
 import uuid
+import logging
 from datetime import datetime
 from typing import Annotated
 
@@ -37,6 +38,7 @@ from app.services.internal_transfer import initiate_internal_transfer
 from app.services.recipient_identity import InvalidRecipientIdentifier, RecipientNotFound, resolve_recipient
 
 router = APIRouter(prefix="/operations", tags=["financial-operations"])
+logger = logging.getLogger(__name__)
 
 
 # ─── Shared schemas ───────────────────────────────────────────────────────────
@@ -135,9 +137,10 @@ def _handle_error(e: Exception) -> HTTPException:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "INVALID_OPERATION", "message": str(e)},
         )
+    logger.exception("Unhandled financial operation failure")
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail={"code": "OPERATION_FAILED", "message": str(e)},
+        detail={"code": "OPERATION_FAILED", "message": "The operation could not be completed."},
     )
 
 

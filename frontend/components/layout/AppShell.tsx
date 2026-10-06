@@ -20,8 +20,8 @@ import Image from "next/image";
 import {
   House,
   Target,
-  ListChecks,
   ReceiptText,
+  WalletCards,
   Ellipsis,
   ChevronDown,
   Settings,
@@ -38,17 +38,17 @@ function cn(...inputs: ClassValue[]) {
 // Desktop sidebar navigation — primary destinations only
 const desktopNavItems = [
   { name: "Home", href: "/", icon: House },
-  { name: "Goals", href: "/goals", icon: Target },
-  { name: "Rules", href: "/rules", icon: ListChecks },
   { name: "Transactions", href: "/transactions", icon: ReceiptText },
+  { name: "Goals", href: "/goals", icon: Target },
+  { name: "Accounts", href: "/accounts", icon: WalletCards },
 ];
 
 // Mobile bottom navigation — exactly five, Home leftmost
 const mobileNavItems = [
   { name: "Home", href: "/", icon: House },
-  { name: "Goals", href: "/goals", icon: Target },
-  { name: "Rules", href: "/rules", icon: ListChecks },
   { name: "Transactions", href: "/transactions", icon: ReceiptText },
+  { name: "Goals", href: "/goals", icon: Target },
+  { name: "Accounts", href: "/accounts", icon: WalletCards },
   { name: "More", href: "/settings", icon: Ellipsis },
 ];
 

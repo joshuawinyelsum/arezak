@@ -83,6 +83,7 @@ export default function Home() {
   const [showBalance, setShowBalance] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const [activeFlow, setActiveFlow] = useState<ActiveFlow>(null);
   const [payService, setPayService] = useState<PayShortcut | null>(null);
@@ -96,6 +97,8 @@ export default function Home() {
   useEffect(() => {
     let mounted = true;
     const load = async () => {
+      setError(null);
+      setIsLoading(true);
       try {
         const [accRes, txRes, goalRes] = await Promise.all([
           apiFetch("/accounts"),
@@ -115,15 +118,16 @@ export default function Home() {
 
         if (mounted) setData({ accounts, txs, goals });
       } catch (err: unknown) {
+        if (process.env.NODE_ENV === "development") console.error("Dashboard data load failed", err);
         if (mounted)
-          setError(err instanceof Error ? err.message : "An error occurred");
+          setError("Your financial overview couldn’t be loaded.");
       } finally {
         if (mounted) setIsLoading(false);
       }
     };
     load();
     return () => { mounted = false; };
-  }, [user]);
+  }, [user, retryCount]);
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -141,9 +145,9 @@ export default function Home() {
       <div className="w-full h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
         <AlertCircle className="w-10 h-10 text-destructive mb-4" />
         <p className="text-base font-semibold text-foreground">Unable to load dashboard</p>
-        <p className="text-sm mt-1">{error}</p>
+        <p className="text-sm mt-1">{error || "Your financial overview isn’t available right now."}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => setRetryCount((count) => count + 1)}
           className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
         >
           Retry

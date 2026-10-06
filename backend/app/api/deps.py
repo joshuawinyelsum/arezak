@@ -3,7 +3,6 @@ from fastapi import Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
-from app.core.config import settings
 from app.core.security import decode_access_token
 from app.models.user import User
 
@@ -51,13 +50,24 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    # Dynamically verify onboarding status against current policy
-    requires_phone = not user.phone_verified if settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN else False
-    is_onboarding = requires_phone or not user.handle
-    
-    if is_onboarding:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Complete onboarding first")
-        
+    # Phone verification and a public handle are optional profile data. Neither is
+    # an authentication prerequisite or a reason to deny access to financial data.
+    # Auto-provision a primary account for legacy users who predate account creation.
+    from app.models.account import Account
+    if not db.query(Account).filter_by(user_id=user.id).first():
+        import logging
+        logger = logging.getLogger(__name__)
+        try:
+            from app.services.account_identity import create_account
+            create_account(db, user_id=user.id, name="Main Account", account_type="MAIN")
+            db.commit()
+            db.refresh(user)
+            logger.info("Auto-provisioned Main Account for user %s", user.id)
+        except Exception:
+            db.rollback()
+            logger.exception("Failed to auto-provision account for user %s", user.id)
+            raise
+
     return user
 
 CurrentUser = Annotated[User, Depends(get_current_user)]

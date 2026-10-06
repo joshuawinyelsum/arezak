@@ -12,6 +12,9 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         elevated: "var(--elevated)",
+        surface: {
+          muted: "var(--surface-muted)",
+        },
         card: {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)"
@@ -24,6 +27,7 @@ const config: Config = {
           DEFAULT: "var(--muted)",
           foreground: "var(--muted-foreground)",
         },
+        tertiary: "var(--tertiary-foreground)",
         secondary: {
           DEFAULT: "var(--muted)",
           foreground: "var(--secondary-foreground)",
@@ -54,7 +58,7 @@ const config: Config = {
         }
       },
       fontFamily: {
-        sans: ["var(--font-inter)"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       }
     },

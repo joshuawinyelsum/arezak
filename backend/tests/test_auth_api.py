@@ -107,6 +107,88 @@ def test_registration_and_login_success(client: TestClient, db_session):
     assert me_response.status_code == 200
     assert me_response.json()["email"] == f"user_a_{uid}@example.com"
 
+
+def test_registration_login_and_dashboard_do_not_require_phone_or_handle(client: TestClient):
+    email = f"optional_identity_{uuid.uuid4()}@example.com"
+    headers = {"x-requested-with": "XMLHttpRequest"}
+    registered = client.post(
+        f"{settings.API_V1_STR}/auth/register",
+        json={"email": email, "password": "Password123!", "first_name": "New", "last_name": "User"},
+        headers=headers,
+    )
+    assert registered.status_code == 201, registered.text
+    assert registered.json()["phone_number"] is None
+    assert registered.json()["handle"] is None
+    assert registered.json()["profile_photo_url"] is None
+
+    logged_in = client.post(
+        f"{settings.API_V1_STR}/auth/login",
+        json={"email": email, "password": "Password123!"},
+        headers=headers,
+    )
+    assert logged_in.status_code == 200, logged_in.text
+    cookies = logged_in.cookies
+
+    me = client.get(f"{settings.API_V1_STR}/auth/me", cookies=cookies)
+    assert me.status_code == 200, me.text
+    assert me.json()["status"] == "authenticated"
+    assert me.json()["phone_verified"] is False
+    assert me.json()["handle"] is None
+
+    responses = {}
+    for endpoint in ("/accounts", "/transactions", "/goals", "/identity/me"):
+        response = client.get(f"{settings.API_V1_STR}{endpoint}", cookies=cookies)
+        assert response.status_code == 200, f"{endpoint}: {response.status_code} {response.text}"
+        responses[endpoint] = response.json()
+    assert len(responses["/accounts"]) == 1
+    assert responses["/transactions"] == []
+    assert responses["/goals"] == []
+
+
+def test_phone_verification_flag_never_blocks_authenticated_requests(client: TestClient, monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "PHONE_VERIFICATION_REQUIRED_FOR_LOGIN", True)
+    email = f"unverified_{uuid.uuid4()}@example.com"
+    headers = {"x-requested-with": "XMLHttpRequest"}
+    client.post(
+        f"{settings.API_V1_STR}/auth/register",
+        json={"email": email, "password": "Password123!", "first_name": "Unverified", "last_name": "User"},
+        headers=headers,
+    )
+    login = client.post(
+        f"{settings.API_V1_STR}/auth/login",
+        json={"email": email, "password": "Password123!"},
+        headers=headers,
+    )
+    assert login.status_code == 200
+    assert client.get(f"{settings.API_V1_STR}/accounts", cookies=login.cookies).status_code == 200
+    assert client.get(f"{settings.API_V1_STR}/transactions", cookies=login.cookies).status_code == 200
+
+
+def test_handle_setup_returns_identity_without_phone_verification(client: TestClient):
+    email = f"handle_setup_{uuid.uuid4()}@example.com"
+    headers = {"x-requested-with": "XMLHttpRequest"}
+    registered = client.post(
+        f"{settings.API_V1_STR}/auth/register",
+        json={"email": email, "password": "Password123!", "first_name": "Handle", "last_name": "User"},
+        headers=headers,
+    )
+    assert registered.status_code == 201, registered.text
+
+    handle = f"setup_{uuid.uuid4().hex[:12]}"
+    updated = client.patch(
+        f"{settings.API_V1_STR}/identity/handle",
+        json={"handle": handle},
+        cookies=registered.cookies,
+        headers=headers,
+    )
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["handle"] == f"@{handle}"
+    assert updated.json()["phone_verified"] is False
+    assert len(updated.json()["accounts"]) == 1
+    assert client.get(f"{settings.API_V1_STR}/auth/me", cookies=updated.cookies).json()["status"] == "authenticated"
+
 def test_user_isolation(client: TestClient, db_session):
     from datetime import datetime, timedelta, timezone
     from app.core.security import get_password_hash

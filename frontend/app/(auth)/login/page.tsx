@@ -15,19 +15,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login, status, user } = useAuth();
+  const { login, status } = useAuth();
   const router = useRouter();
 
-          React.useEffect(() => {
-    const isFullyOnboarded = status === "onboarding" && user?.handle;
-    const effectiveStatus = isFullyOnboarded ? "authenticated" : status;
-
-    if (effectiveStatus === "authenticated") {
+  React.useEffect(() => {
+    if (status === "authenticated") {
       router.push("/");
-    } else if (effectiveStatus === "onboarding") {
-      router.push("/setup-handle");
     }
-  }, [status, user?.handle, router]);
+  }, [status, router]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {

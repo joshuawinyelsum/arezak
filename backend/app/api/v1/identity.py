@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+import logging
 
 from fastapi import APIRouter, HTTPException, Response, UploadFile, File
 from pydantic import BaseModel, Field
@@ -17,6 +18,8 @@ from app.services.recipient_identity import (
     normalize_handle,
     resolve_recipient,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/identity", tags=["identity"])
 
@@ -117,38 +120,59 @@ def check_handle_availability(handle: str, db: SessionDep, current_user: AnyAuth
     return HandleAvailabilityResponse(available=True)
 
 
-@router.patch("/handle")
+def _ensure_main_account(db, user_id: uuid.UUID) -> bool:
+    """Create a Main Account for the user if none exists. Returns True if created."""
+    from app.services.account_identity import create_account
+    existing = db.query(Account).filter_by(user_id=user_id).first()
+    if existing:
+        return False
+    try:
+        create_account(db, user_id=user_id, name="Main Account", account_type="MAIN")
+        db.commit()
+        return True
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to auto-provision Main Account for user %s", user_id)
+        raise
+
+
+@router.patch("/handle", response_model=MyIdentityResponse)
 def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: OnboardingUser, response: Response):
     try:
-        try:
-            current_user.handle = normalize_handle(request.handle)
-        except InvalidRecipientIdentifier as exc:
-            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        current_user.handle = normalize_handle(request.handle)
+    except InvalidRecipientIdentifier as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-        try:
-            db.commit()
-        except IntegrityError as exc:
-            db.rollback()
-            raise HTTPException(status_code=409, detail="That handle is already in use.") from exc
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="That handle is already in use.") from exc
+    db.refresh(current_user)
+
+    if current_user.handle:
+        _ensure_main_account(db, current_user.id)
         db.refresh(current_user)
 
-        requires_phone = not current_user.phone_verified if settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN else False
-        is_fully_onboarded = not requires_phone and current_user.handle
+        from app.api.v1.auth import _set_auth_cookie
+        _set_auth_cookie(response, str(current_user.id))
 
-        if is_fully_onboarded and not current_user.accounts:
-            from app.services.account_identity import create_account
-            create_account(db, user_id=current_user.id, name="Main Account", account_type="MAIN")
-            db.commit()
-            db.refresh(current_user)
-
-        if is_fully_onboarded:
-            from app.api.v1.auth import _set_auth_cookie
-            _set_auth_cookie(response, str(current_user.id), is_onboarding=False)
-
-        return get_my_identity(db, current_user)
-    except Exception as e:
-        import traceback
-        return {"error_trace": traceback.format_exc()}
+    # Build identity response inline (can't call get_my_identity because it uses CurrentUser dep)
+    accounts = db.query(Account).filter_by(user_id=current_user.id).order_by(Account.created_at, Account.id).all()
+    return MyIdentityResponse(
+        display_name=current_user.name,
+        handle=f"@{current_user.handle}" if current_user.handle else None,
+        email=current_user.email,
+        profile_photo_url=current_user.profile_photo_url,
+        phone_number=current_user.phone_number if current_user.phone_verified else None,
+        phone_verified=current_user.phone_verified,
+        accounts=[ReceivingAccount(
+            account_id=account.id,
+            account_name=account.name,
+            account_number=account.account_number,
+            qr_payload=f"arezak://receive/{account.qr_token}",
+        ) for account in accounts],
+    )
 
 
 
@@ -187,7 +211,7 @@ def upload_photo(db: SessionDep, current_user: CurrentUser, file: UploadFile = F
         db.refresh(current_user)
         return get_my_identity(db, current_user)
     except StorageConfigurationError as exc:
-        raise HTTPException(status_code=501, detail=str(exc)) from exc
+        raise HTTPException(status_code=503, detail="Profile photo storage is temporarily unavailable.") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

@@ -4,30 +4,31 @@
 
 @layer base {
   :root {
-    /* Surfaces */
-    --background: #f8fafc;
+    color-scheme: light;
+    /* Semantic light palette: warm neutral canvas, clean raised surfaces. */
+    --background: #f7f7f4;
     --elevated: #ffffff;
     --card: #ffffff;
-    --card-foreground: #0f172a;
-    --input: #f1f5f9;
+    --card-foreground: #202522;
+    --surface-muted: #f0f1ed;
+    --input: #f3f4f0;
     
-    /* Text */
-    --foreground: #0f172a;
-    --secondary-foreground: #475569;
-    --muted-foreground: #64748b;
+    --foreground: #202522;
+    --secondary-foreground: #515b55;
+    --muted-foreground: #707a73;
+    --tertiary-foreground: #8b948e;
     
-    /* Borders */
-    --border: #e2e8f0;
-    --divider: #f1f5f9;
-    --ring: #3157E8;
+    --border: #e5e8e2;
+    --divider: #eceee9;
+    --ring: #3157e8;
     
     /* States */
-    --muted: #f1f5f9;
-    --accent: #f8fafc;
-    --accent-foreground: #0f172a;
+    --muted: #f0f1ed;
+    --accent: #eef1ff;
+    --accent-foreground: #3157e8;
     
     /* Actions */
-    --primary: #0f172a;
+    --primary: #202522;
     --primary-foreground: #ffffff;
     --brand: #3157E8;
     --brand-foreground: #ffffff;
@@ -42,41 +43,42 @@
   }
   
   .dark {
-    /* Surfaces */
-    --background: #020617;
-    --elevated: #0f172a;
-    --card: #0f172a;
-    --card-foreground: #f8fafc;
-    --input: #1e293b;
+    color-scheme: dark;
+    /* Deep charcoal surfaces preserve hierarchy without pure black. */
+    --background: #151817;
+    --elevated: #222725;
+    --card: #1c211f;
+    --card-foreground: #edf1ed;
+    --surface-muted: #242a27;
+    --input: #242a27;
     
-    /* Text */
-    --foreground: #f8fafc;
-    --secondary-foreground: #cbd5e1;
-    --muted-foreground: #94a3b8;
+    --foreground: #edf1ed;
+    --secondary-foreground: #c4ccc6;
+    --muted-foreground: #9aa59d;
+    --tertiary-foreground: #77827b;
     
-    /* Borders */
-    --border: #1e293b;
-    --divider: rgba(255, 255, 255, 0.05);
-    --ring: #3157E8;
+    --border: #303733;
+    --divider: rgba(237, 241, 237, 0.07);
+    --ring: #89a0ff;
     
     /* States */
-    --muted: #1e293b;
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
+    --muted: #242a27;
+    --accent: #293342;
+    --accent-foreground: #aabaff;
     
     /* Actions */
-    --primary: #f8fafc;
-    --primary-foreground: #020617;
-    --brand: #3b82f6; /* Lighter blue for dark mode */
+    --primary: #edf1ed;
+    --primary-foreground: #151817;
+    --brand: #91a6ff;
     --brand-foreground: #ffffff;
     
     /* Status */
-    --destructive: rgba(127, 29, 29, 0.3);
-    --destructive-foreground: #f87171;
-    --success: rgba(20, 83, 45, 0.3);
-    --success-foreground: #4ade80;
-    --warning: rgba(113, 63, 18, 0.3);
-    --warning-foreground: #facc15;
+    --destructive: rgba(153, 54, 54, 0.18);
+    --destructive-foreground: #f28e8e;
+    --success: rgba(40, 120, 76, 0.18);
+    --success-foreground: #86d5a7;
+    --warning: rgba(161, 113, 38, 0.18);
+    --warning-foreground: #e8c477;
   }
 }
 
@@ -89,5 +91,16 @@
 @layer utilities {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

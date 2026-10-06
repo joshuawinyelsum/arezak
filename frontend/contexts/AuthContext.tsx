@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
 
-export type AuthStatus = "loading" | "authenticated" | "onboarding" | "unauthenticated" | "error";
+export type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "error";
 
 export interface User {
   id: string;
@@ -15,7 +15,7 @@ export interface User {
   phone_verification_required: boolean;
   profile_photo_url: string | null;
   handle: string | null;
-  status: "onboarding" | "authenticated";
+  status: "authenticated";
 }
 
 interface AuthContextValue {
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await apiFetch("/auth/me");
       const userData = await res.json();
       setUser(userData);
-      setStatus(userData.status || "authenticated");
+      setStatus("authenticated");
     } catch (err: any) {
       if (err.status === 401 || err.status === 403) {
         setUser(null);

@@ -6,21 +6,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
-  const { user, status, refreshUser } = useAuth();
+  const { status, refreshUser } = useAuth();
   const router = useRouter();
 
-  const isFullyOnboarded = status === "onboarding" && user?.handle;
-  const effectiveStatus = isFullyOnboarded ? "authenticated" : status;
-
   useEffect(() => {
-    if (effectiveStatus === "unauthenticated") {
+    if (status === "unauthenticated") {
       router.push("/login");
-    } else if (effectiveStatus === "authenticated") {
+    } else if (status === "authenticated") {
       router.push("/");
     }
-  }, [effectiveStatus, router]);
+  }, [status, router]);
 
-  if (effectiveStatus === "loading") {
+  if (status === "loading") {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-muted">
         <Loader2 className="w-8 h-8 animate-spin text-brand" />
@@ -28,7 +25,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
     );
   }
   
-  if (effectiveStatus === "error") {
+  if (status === "error") {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-muted">
         <p className="text-muted-foreground font-medium">We couldn&apos;t load your session.</p>
@@ -40,10 +37,6 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
         </button>
       </div>
     );
-  }
-
-  if (effectiveStatus === "onboarding") {
-    return <>{children}</>;
   }
 
   return (

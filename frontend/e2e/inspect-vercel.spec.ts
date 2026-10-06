@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("inspect vercel staging", async ({ page }) => {
-  const reqs = [];
+  const reqs: string[] = [];
   page.on("request", req => reqs.push(req.url()));
   page.on("response", res => console.log("RES:", res.status(), res.url()));
   page.on("console", msg => console.log("LOG:", msg.text()));

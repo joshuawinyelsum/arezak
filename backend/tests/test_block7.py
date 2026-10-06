@@ -37,7 +37,7 @@ def test_otp_expiry_and_limits(client: TestClient, db_session):
     # This requires a multipart file
     # If storage is missing, returns 501
     res = client.put(f"{settings.API_V1_STR}/identity/profile/photo", cookies=cookies, files={"file": ("test.jpg", b"fake image bytes", "image/jpeg")}, headers={"x-requested-with": "XMLHttpRequest"})
-    assert res.status_code == 501
+    assert res.status_code == 503
 
 def test_delete_profile_photo(client: TestClient, db_session, monkeypatch):
     from app.services.storage import storage_service

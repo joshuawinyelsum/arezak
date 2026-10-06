@@ -4,10 +4,16 @@ from __future__ import annotations
 import logging
 import uuid
 import os
-import boto3
-from botocore.exceptions import ClientError
 from fastapi import UploadFile
 from pydantic_settings import BaseSettings
+
+try:
+    import boto3
+    from botocore.exceptions import BotoCoreError, ClientError
+except ImportError:  # Storage remains optional for environments without upload support.
+    boto3 = None
+    BotoCoreError = Exception
+    ClientError = Exception
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +27,7 @@ class StorageService:
         self.access_key = os.getenv("STORAGE_ACCESS_KEY") or os.getenv("AWS_ACCESS_KEY_ID")
         self.secret_key = os.getenv("STORAGE_SECRET_KEY") or os.getenv("AWS_SECRET_ACCESS_KEY")
         
-        self.is_configured = bool(self.bucket and self.access_key and self.secret_key)
+        self.is_configured = bool(self.bucket and self.access_key and self.secret_key and boto3)
         
         if self.is_configured:
             self.s3_client = boto3.client(
@@ -35,8 +41,13 @@ class StorageService:
 
     def upload_profile_photo(self, user_id: uuid.UUID, file: UploadFile) -> str:
         """Upload a profile photo, validating MIME and size."""
-        if file.content_type not in ["image/jpeg", "image/png"]:
-            raise ValueError("Only JPEG and PNG images are supported.")
+        supported_types = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
+        }
+        if file.content_type not in supported_types:
+            raise ValueError("Only JPEG, PNG and WEBP images are supported.")
 
         if file.size and file.size > 5 * 1024 * 1024:
             raise ValueError("File size must be under 5MB.")
@@ -46,11 +57,11 @@ class StorageService:
         if not header:
             raise ValueError("Empty file provided.")
 
-        if not self.is_configured:
+        if not self.is_configured or self.s3_client is None:
             logger.error("Storage credentials are not configured. Profile photo upload failed.")
             raise StorageConfigurationError("Profile photo storage is not configured.")
             
-        file_ext = "jpg" if file.content_type == "image/jpeg" else "png"
+        file_ext = supported_types[file.content_type]
         file_name = f"profiles/{user_id}/photo_{uuid.uuid4().hex[:8]}.{file_ext}"
         
         try:
@@ -63,9 +74,9 @@ class StorageService:
                     "ACL": "public-read"
                 }
             )
-        except ClientError as e:
-            logger.error(f"S3 upload failed: {e}")
-            raise StorageConfigurationError("Failed to upload to cloud storage.")
+        except BotoCoreError as exc:
+            logger.exception("Profile photo upload to object storage failed")
+            raise StorageConfigurationError("Failed to upload to cloud storage.") from exc
         
         return f"https://{self.bucket}.s3.{self.region}.amazonaws.com/{file_name}"
 

@@ -53,6 +53,7 @@ export default function GoalsPage() {
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const [goalsRes, accRes] = await Promise.all([
         apiFetch("/goals"),
@@ -66,7 +67,8 @@ export default function GoalsPage() {
         setAccountId(aData[0].id);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to load data.");
+      if (process.env.NODE_ENV === "development") console.error("Goal data load failed", err);
+      setError("Goals couldn’t be loaded. Try again.");
     } finally {
       setIsLoading(false);
     }

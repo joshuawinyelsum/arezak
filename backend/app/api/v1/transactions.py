@@ -4,6 +4,7 @@ import uuid
 from typing import Annotated, List
 from datetime import datetime
 from sqlalchemy import or_
+import logging
 
 from app.api.deps import SessionDep, CurrentUser
 from app.services.transaction_service import process_income, process_expense, process_outbound
@@ -13,6 +14,7 @@ from app.models.ledger_entry import LedgerEntry
 from app.rules.decision import ConstraintViolationException
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
+logger = logging.getLogger(__name__)
 
 class Money(BaseModel):
     amount_pesewas: int
@@ -113,8 +115,9 @@ def add_income(
                 "resource_id": e.decision.resource_id
             }
         )
-    except Exception as e:
+    except Exception:
         db.rollback()
+        logger.exception("Income transaction failed for user %s", current_user.id)
         raise HTTPException(status_code=500, detail={"code": "FINANCIAL_OPERATION_FAILED", "message": "Failed to process transaction."})
 
 @router.post("/outbound", response_model=TransactionResponse)
@@ -150,9 +153,10 @@ def add_outbound(
                 "resource_id": e.decision.resource_id
             }
         )
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail={"code": "FINANCIAL_OPERATION_FAILED", "message": str(e)})
+        logger.exception("Outbound transaction failed for user %s", current_user.id)
+        raise HTTPException(status_code=500, detail={"code": "FINANCIAL_OPERATION_FAILED", "message": "Failed to process transaction."})
 
 @router.post("/expense", response_model=TransactionResponse)
 def add_expense(
@@ -177,8 +181,9 @@ def add_expense(
                 "resource_id": e.decision.resource_id
             }
         )
-    except Exception as e:
+    except Exception:
         db.rollback()
+        logger.exception("Expense transaction failed for user %s", current_user.id)
         raise HTTPException(status_code=500, detail={"code": "FINANCIAL_OPERATION_FAILED", "message": "Failed to process transaction."})
 
 @router.get("", response_model=List[TransactionResponse])

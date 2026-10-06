@@ -133,8 +133,8 @@ export default function ProfilePage() {
       await refreshUser();
       setSuccess("Photo updated successfully.");
     } catch (err: any) {
-      if (err instanceof ApiError && err.status === 501) {
-        setError("Cloud storage is not configured on this server.");
+      if (err instanceof ApiError && err.status === 503) {
+        setError("Photo uploads are temporarily unavailable. Please try again later.");
       } else {
         setError("Failed to upload photo.");
       }

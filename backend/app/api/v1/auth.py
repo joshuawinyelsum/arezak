@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
-from app.api.deps import SessionDep, CurrentUser, OnboardingUser
+from app.api.deps import SessionDep, OnboardingUser
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.user import User
 from app.models.provider_identity import ProviderIdentity
@@ -17,13 +17,9 @@ from app.services.social_auth import validate_google_token, validate_apple_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-def _is_user_onboarding(user: User) -> bool:
-    requires_phone = not user.phone_verified if settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN else False
-    return requires_phone or not user.handle
-
-def _set_auth_cookie(response: Response, user_id: str, is_onboarding: bool = False):
-    claims = {"scp": "onboarding"} if is_onboarding else {}
-    access_token = create_access_token(subject=user_id, claims=claims)
+def _set_auth_cookie(response: Response, user_id: str):
+    # Optional identity fields never limit an authenticated session.
+    access_token = create_access_token(subject=user_id)
     is_secure = settings.ENVIRONMENT in ("staging", "production")
     response.set_cookie(
         key="access_token",
@@ -67,8 +63,7 @@ def register(user_in: UserCreate, db: SessionDep, response: Response):
     db.commit()
     db.refresh(user)
     
-    # Give onboarding token since they haven't verified phone yet
-    _set_auth_cookie(response, str(user.id), is_onboarding=_is_user_onboarding(user))
+    _set_auth_cookie(response, str(user.id))
     return user
 
 @router.post("/login", response_model=MessageResponse)
@@ -77,9 +72,7 @@ def login(login_data: LoginRequest, db: SessionDep, response: Response):
     if not user or not user.password_hash or not verify_password(login_data.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
         
-    # Determine if user finished onboarding (phone verified and handle set)
-    is_onboarding = _is_user_onboarding(user)
-    _set_auth_cookie(response, str(user.id), is_onboarding=is_onboarding)
+    _set_auth_cookie(response, str(user.id))
     return {"message": "Successfully logged in"}
 
 @router.post("/logout", response_model=MessageResponse)
@@ -115,7 +108,7 @@ def verify_phone(req: VerifyPhoneRequest, db: SessionDep, current_user: Onboardi
         # Check if account already exists to be safe
         if not current_user.accounts:
             create_account(db, user_id=current_user.id, name="Main Account", account_type="MAIN")
-        _set_auth_cookie(response, str(current_user.id), is_onboarding=False)
+        _set_auth_cookie(response, str(current_user.id))
         
     db.commit()
     return {"message": "Phone verified successfully"}
@@ -165,8 +158,7 @@ def social_auth(req: SocialAuthRequest, db: SessionDep, response: Response):
         db.commit()
         db.refresh(user)
         
-    is_onboarding = _is_user_onboarding(user)
-    _set_auth_cookie(response, str(user.id), is_onboarding=is_onboarding)
+    _set_auth_cookie(response, str(user.id))
     return {"message": "Social authentication successful"}
 
 
@@ -185,8 +177,13 @@ def get_me(request: Request, db: SessionDep):
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+    try:
+        user_uuid = uuid.UUID(str(user_id))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=401, detail="Invalid token") from exc
         
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id == user_uuid).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
         
@@ -199,9 +196,9 @@ def get_me(request: Request, db: SessionDep):
         "handle": user.handle,
         "phone_number": user.phone_number,
         "phone_verified": user.phone_verified,
-        "phone_verification_required": settings.PHONE_VERIFICATION_REQUIRED_FOR_LOGIN,
+        "phone_verification_required": False,
         "profile_photo_url": user.profile_photo_url,
-        "status": "onboarding" if _is_user_onboarding(user) else "authenticated"
+        "status": "authenticated"
     }
 
 from app.schemas.auth import RequestPasswordResetRequest, ConfirmPasswordResetRequest
@@ -225,7 +222,12 @@ def reset_password(req: ConfirmPasswordResetRequest, db: SessionDep):
     if not user_id or not pwd_prefix:
         raise HTTPException(status_code=400, detail="Invalid reset token structure")
         
-    user = db.query(User).filter(User.id == user_id).first()
+    try:
+        user_uuid = uuid.UUID(str(user_id))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="Invalid reset token structure") from exc
+
+    user = db.query(User).filter(User.id == user_uuid).first()
     if not user or not user.password_hash:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
         

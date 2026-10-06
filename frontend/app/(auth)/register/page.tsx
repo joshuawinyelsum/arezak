@@ -20,19 +20,14 @@ export default function RegisterPage() {
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { register, status, user } = useAuth();
+  const { register, status } = useAuth();
   const router = useRouter();
 
-          useEffect(() => {
-    const isFullyOnboarded = status === "onboarding" && user?.handle;
-    const effectiveStatus = isFullyOnboarded ? "authenticated" : status;
-
-    if (effectiveStatus === "authenticated") {
+  useEffect(() => {
+    if (status === "authenticated") {
       router.push("/");
-    } else if (effectiveStatus === "onboarding") {
-      router.push("/setup-handle");
     }
-  }, [status, user?.handle, router]);
+  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +45,8 @@ export default function RegisterPage() {
         first_name: firstName, 
         last_name: lastName, 
         email, 
-        phone_number: phone, 
-        handle, 
+        phone_number: phone.trim() || null,
+        handle: handle.trim() || null,
         password 
       });
     } catch (err: any) {
@@ -96,13 +91,13 @@ export default function RegisterPage() {
             </div>
             
             <div>
-               <label className="block text-sm font-semibold text-foreground mb-1.5">Phone number</label>
-               <input type="tel" placeholder="+233..." required value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={isLoading} />
+               <label className="block text-sm font-semibold text-foreground mb-1.5">Phone number <span className="font-normal text-muted-foreground">(optional)</span></label>
+               <input type="tel" placeholder="+233..." value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={isLoading} />
             </div>
             
             <div>
-               <label className="block text-sm font-semibold text-foreground mb-1.5">@handle</label>
-               <input type="text" placeholder="username" required value={handle} onChange={(e) => setHandle(e.target.value)} className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={isLoading} />
+               <label className="block text-sm font-semibold text-foreground mb-1.5">@handle <span className="font-normal text-muted-foreground">(optional)</span></label>
+               <input type="text" placeholder="username" value={handle} onChange={(e) => setHandle(e.target.value)} className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand" disabled={isLoading} />
             </div>
             
             <div>

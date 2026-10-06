@@ -33,12 +33,15 @@ export default function AccountsPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
 
   const loadAccounts = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const res = await apiFetch("/accounts");
       const data = await res.json();
       setAccounts(data);
     } catch (err: any) {
-      setError(err.message || "Failed to load accounts.");
+      if (process.env.NODE_ENV === "development") console.error("Account data load failed", err);
+      setError("Accounts couldn’t be loaded. Try again.");
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +101,7 @@ export default function AccountsPage() {
           <p className="font-medium">Failed to load accounts</p>
           <p className="text-sm mt-1 opacity-80">{error}</p>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={loadAccounts}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
           >
             Retry

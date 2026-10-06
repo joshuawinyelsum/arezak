@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "Arezak - Money Governed by Rules",
@@ -39,7 +36,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} font-sans antialiased overflow-hidden h-screen w-full bg-background text-foreground`}>
+      <body className="font-sans antialiased overflow-hidden h-screen w-full bg-background text-foreground">
         <AuthProvider>
           {children}
         </AuthProvider>

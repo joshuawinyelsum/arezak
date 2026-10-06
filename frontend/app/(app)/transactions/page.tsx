@@ -56,6 +56,7 @@ export default function TransactionsPage() {
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const [txRes, accRes] = await Promise.all([
         apiFetch("/transactions"),
@@ -69,7 +70,8 @@ export default function TransactionsPage() {
         setAccountId(accData[0].id);
       }
     } catch (err: any) {
-      setError(err.message || "Failed to load transactions.");
+      if (process.env.NODE_ENV === "development") console.error("Transaction data load failed", err);
+      setError("Transactions couldn’t be loaded. Try again.");
     } finally {
       setIsLoading(false);
     }
@@ -218,10 +220,10 @@ export default function TransactionsPage() {
                        const subtitleLabel = item.description?.trim() ? pres.label : null;
                        
                        return (
-                       <div key={item.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-muted transition-colors group border border-transparent hover:border-slate-100">
+                       <div key={item.id} className="flex items-center justify-between px-2 py-4 border-b border-divider hover:bg-muted/40 transition-colors group">
                           <div className="flex items-center gap-4">
-                             <div className={cn("w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform", bg, color)}>
-                                <Icon className="w-5 h-5" />
+                             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", bg, color)}>
+                                <Icon className="w-[18px] h-[18px]" />
                              </div>
                                <div className="min-w-0">
                                   <div className="font-semibold text-sm text-foreground truncate">{primaryLabel}</div>

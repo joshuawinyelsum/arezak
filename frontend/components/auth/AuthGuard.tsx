@@ -6,25 +6,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, status, refreshUser } = useAuth();
+  const { status, refreshUser } = useAuth();
   const router = useRouter();
 
-  // If the backend returns onboarding but there's no actual onboarding task left,
-  // we must consider the user authenticated to prevent an infinite spinner loop.
-  const isFullyOnboarded = status === "onboarding" && user?.handle;
-  const effectiveStatus = isFullyOnboarded ? "authenticated" : status;
-
   useEffect(() => {
-    if (effectiveStatus === "unauthenticated") {
+    if (status === "unauthenticated") {
       router.push("/login");
-    } else if (effectiveStatus === "onboarding") {
-      if (!user?.handle) {
-        router.push("/setup-handle");
-      }
     }
-  }, [effectiveStatus, router, user?.handle]);
+  }, [status, router]);
 
-  if (effectiveStatus === "loading") {
+  if (status === "loading") {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-muted">
         <Loader2 className="w-8 h-8 animate-spin text-brand" />
@@ -32,7 +23,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (effectiveStatus === "error") {
+  if (status === "error") {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-muted">
         <p className="text-muted-foreground font-medium">We couldn&apos;t load your session.</p>
@@ -46,7 +37,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (effectiveStatus === "authenticated") {
+  if (status === "authenticated") {
     return <>{children}</>;
   }
 
