@@ -21,7 +21,7 @@ Repair auth/session and data reliability, then verify the premium mobile-first U
 ## Current iteration
 - Goal: guarantee stalled API calls exit loading state and audit critical secondary data screens.
 - Changes: shared API requests now abort after 20 seconds while preserving caller cancellation; receive and security views show explicit recoverable errors; goal detail clears stale errors, hides raw load failures, and supports retry; receive distinguishes zero receiving accounts.
-- Verification: `tsc --noEmit` passed; `npm run lint` passed with the existing SocialAuth hook warning; production build passed (24 routes generated). Targeted pytest did not complete: test execution stalled at the first CORS TestClient request and was interrupted; no backend code changed in this iteration.
+- Verification: `tsc --noEmit` passed; `npm run lint` passed with the existing SocialAuth hook warning; production build passed (24 routes generated). Targeted pytest did not complete: test execution stalled at the first CORS TestClient request and was interrupted; no backend code changed in this iteration. Playwright could not launch because its Chromium executable is not installed. The desktop browser tool could not reach the local preview (`ERR_CONNECTION_TIMED_OUT`).
 - Decision: keep the frontend changes; their targeted TS/lint/build checks pass. Browser verification remains outstanding.
-- Next: complete end-to-end browser checks in a safe local setup if available; audit remaining screens and deployment constraints without modifying user diagnostics.
-- Remaining blocker: no evidence yet from a complete browser flow or configured object storage/deployment.
+- Next: provide a reachable browser runtime and test-safe backend/database environment, then complete authentication, data, upload, theme and viewport flows; verify deployment only when credentials/access are available.
+- Remaining blockers: no complete browser flow; no runtime verification of configured object storage; no deployment credentials/access. The checked-in Playwright auth spec contains obsolete OTP/onboarding expectations and must be updated before it can serve as regression coverage.
