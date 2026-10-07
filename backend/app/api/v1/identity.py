@@ -12,6 +12,7 @@ from sqlalchemy import select, func
 from app.api.deps import CurrentUser, SessionDep, OnboardingUser, AnyAuthUser
 from app.models.account import Account
 from app.models.user import User
+from app.services.storage import storage_service, StorageConfigurationError
 from app.services.recipient_identity import (
     InvalidRecipientIdentifier,
     RecipientNotFound,
@@ -56,7 +57,6 @@ class RecipientLookupResponse(BaseModel):
 class ProfileUpdateRequest(BaseModel):
     first_name: str | None = Field(default=None, min_length=1, max_length=255)
     last_name: str | None = Field(default=None, min_length=1, max_length=255)
-    profile_photo_url: str | None = Field(default=None, max_length=1024)
     handle: str | None = Field(default=None, min_length=3, max_length=31)
 
 class HandleUpdateRequest(BaseModel):
@@ -74,7 +74,7 @@ def get_my_identity(db: SessionDep, current_user: CurrentUser):
         display_name=current_user.name,
         handle=f"@{current_user.handle}" if current_user.handle else None,
         email=current_user.email,
-        profile_photo_url=current_user.profile_photo_url,
+        profile_photo_url=storage_service.public_url(current_user.profile_photo_url),
         # Do not publish phone numbers until an explicit verification flow exists.
         phone_number=current_user.phone_number if current_user.phone_verified else None,
         phone_verified=current_user.phone_verified,
@@ -163,7 +163,7 @@ def update_handle(request: HandleUpdateRequest, db: SessionDep, current_user: On
         display_name=current_user.name,
         handle=f"@{current_user.handle}" if current_user.handle else None,
         email=current_user.email,
-        profile_photo_url=current_user.profile_photo_url,
+        profile_photo_url=storage_service.public_url(current_user.profile_photo_url),
         phone_number=current_user.phone_number if current_user.phone_verified else None,
         phone_verified=current_user.phone_verified,
         accounts=[ReceivingAccount(
@@ -182,8 +182,6 @@ def update_profile(request: ProfileUpdateRequest, db: SessionDep, current_user: 
         current_user.first_name = request.first_name
     if request.last_name is not None:
         current_user.last_name = request.last_name
-    if request.profile_photo_url is not None:
-        current_user.profile_photo_url = request.profile_photo_url
     if request.handle is not None:
         try:
             normalized = normalize_handle(request.handle)
@@ -203,10 +201,11 @@ def update_profile(request: ProfileUpdateRequest, db: SessionDep, current_user: 
 
 @router.put("/profile/photo", response_model=MyIdentityResponse)
 def upload_photo(db: SessionDep, current_user: CurrentUser, file: UploadFile = File(...)):
-    from app.services.storage import storage_service, StorageConfigurationError
     try:
-        url = storage_service.upload_profile_photo(current_user.id, file)
-        current_user.profile_photo_url = url
+        key = storage_service.upload_profile_photo(
+            current_user.id, file, previous_reference=current_user.profile_photo_url
+        )
+        current_user.profile_photo_url = key
         db.commit()
         db.refresh(current_user)
         return get_my_identity(db, current_user)
@@ -217,7 +216,6 @@ def upload_photo(db: SessionDep, current_user: CurrentUser, file: UploadFile = F
 
 @router.delete("/profile/photo", response_model=MyIdentityResponse)
 def remove_photo(db: SessionDep, current_user: CurrentUser):
-    from app.services.storage import storage_service
     if current_user.profile_photo_url:
         storage_service.delete_profile_photo(current_user.profile_photo_url)
         current_user.profile_photo_url = None

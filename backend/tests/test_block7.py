@@ -33,10 +33,11 @@ def test_otp_expiry_and_limits(client: TestClient, db_session):
     res = client.post(f"{settings.API_V1_STR}/auth/verify-phone", json={"phone_number": "+233240000013", "otp": "123456"}, cookies=cookies, headers={"x-requested-with": "XMLHttpRequest"})
     cookies = res.cookies
     
-    # Upload photo
-    # This requires a multipart file
-    # If storage is missing, returns 501
-    res = client.put(f"{settings.API_V1_STR}/identity/profile/photo", cookies=cookies, files={"file": ("test.jpg", b"fake image bytes", "image/jpeg")}, headers={"x-requested-with": "XMLHttpRequest"})
+    # Upload photo. The bytes must be a real JPEG: content is validated against
+    # the declared type, so placeholder text is rejected as a bad request long
+    # before storage is consulted. With no storage configured, this 503s.
+    jpeg = bytes.fromhex("ffd8ff") + b" body"
+    res = client.put(f"{settings.API_V1_STR}/identity/profile/photo", cookies=cookies, files={"file": ("test.jpg", jpeg, "image/jpeg")}, headers={"x-requested-with": "XMLHttpRequest"})
     assert res.status_code == 503
 
 def test_delete_profile_photo(client: TestClient, db_session, monkeypatch):

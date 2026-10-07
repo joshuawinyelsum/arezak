@@ -44,21 +44,28 @@ def test_identity_allows_missing_optional_fields(client: TestClient, db_session)
     assert auth_me.json()["phone_verified"] is False
 
 
-def test_profile_photo_upload_returns_persisted_identity(client: TestClient, db_session, monkeypatch):
+def test_profile_photo_upload_stores_key_and_returns_public_url(client: TestClient, db_session, monkeypatch):
+    """Uploads persist an object key; the API renders it as a loadable URL."""
     from app.api.deps import get_db
 
     client.app.dependency_overrides[get_db] = lambda: db_session
     user, cookies = _authenticated_user(db_session)
-    user.profile_photo_url = "https://cdn.example.test/previous.webp"
+    user.profile_photo_url = "profiles/old/previous.webp"
     db_session.commit()
 
+    seen = {}
+
     class MockStorage:
-        def upload_profile_photo(self, user_id, file):
+        def upload_profile_photo(self, user_id, file, previous_reference=None):
             assert user_id == user.id
             assert file.content_type == "image/webp"
-            return "https://cdn.example.test/profile.webp"
+            seen["previous_reference"] = previous_reference
+            return "profiles/new/photo_abc.webp"
 
-    monkeypatch.setattr("app.services.storage.storage_service", MockStorage())
+        def public_url(self, reference):
+            return None if not reference else f"https://cdn.example.test/{reference}"
+
+    monkeypatch.setattr("app.api.v1.identity.storage_service", MockStorage())
     response = client.put(
         f"{settings.API_V1_STR}/identity/profile/photo",
         cookies=cookies,
@@ -67,9 +74,48 @@ def test_profile_photo_upload_returns_persisted_identity(client: TestClient, db_
     )
 
     assert response.status_code == 200, response.text
-    assert response.json()["profile_photo_url"] == "https://cdn.example.test/profile.webp"
+    # The response carries a URL the browser can load...
+    assert response.json()["profile_photo_url"] == "https://cdn.example.test/profiles/new/photo_abc.webp"
+    # ...while the row stores only the key, so the storage host can change.
     db_session.refresh(user)
-    assert user.profile_photo_url == response.json()["profile_photo_url"]
+    assert user.profile_photo_url == "profiles/new/photo_abc.webp"
+    # The superseded object is handed over so it can be removed.
+    assert seen["previous_reference"] == "profiles/old/previous.webp"
+
+
+def test_profile_photo_rejects_content_that_is_not_really_an_image(client: TestClient, db_session):
+    """A declared image content type must not be enough to get a file stored."""
+    from app.api.deps import get_db
+
+    client.app.dependency_overrides[get_db] = lambda: db_session
+    _, cookies = _authenticated_user(db_session)
+
+    response = client.put(
+        f"{settings.API_V1_STR}/identity/profile/photo",
+        cookies=cookies,
+        files={"file": ("payload.png", bytes.fromhex("4d5a9000") + b" windows executable", "image/png")},
+        headers={"x-requested-with": "XMLHttpRequest"},
+    )
+
+    assert response.status_code == 400, response.text
+    assert "not a valid" in response.json()["detail"]
+
+
+def test_profile_photo_upload_unconfigured_storage_is_unavailable_not_an_error(client: TestClient, db_session):
+    """With no storage configured the endpoint reports 503, never a 500."""
+    from app.api.deps import get_db
+
+    client.app.dependency_overrides[get_db] = lambda: db_session
+    _, cookies = _authenticated_user(db_session)
+
+    response = client.put(
+        f"{settings.API_V1_STR}/identity/profile/photo",
+        cookies=cookies,
+        files={"file": ("profile.png", bytes.fromhex("89504e470d0a1a0a") + b"body", "image/png")},
+        headers={"x-requested-with": "XMLHttpRequest"},
+    )
+
+    assert response.status_code == 503, response.text
 
 
 def test_profile_photo_rejects_invalid_type_and_oversized_files(client: TestClient, db_session):

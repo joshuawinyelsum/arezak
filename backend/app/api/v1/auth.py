@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Response
@@ -14,6 +15,7 @@ from app.services.recipient_identity import normalize_handle
 from app.services.account_identity import create_account
 from app.services.otp_service import generate_and_send_otp, verify_otp, OTPRateLimitExceeded, OTPDeliveryFailed
 from app.services.social_auth import validate_google_token, validate_apple_token
+from app.services.storage import storage_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -115,15 +117,34 @@ def verify_phone(req: VerifyPhoneRequest, db: SessionDep, current_user: Onboardi
 
 @router.post("/social", response_model=MessageResponse)
 def social_auth(req: SocialAuthRequest, db: SessionDep, response: Response):
+    provider = req.provider.lower()
     try:
-        if req.provider.lower() == "google":
+        if provider == "google":
             identity_data = validate_google_token(req.token)
-        elif req.provider.lower() == "apple":
-            identity_data = validate_apple_token(req.token, expected_nonce=req.nonce, first_name=req.first_name, last_name=req.last_name)
+        elif provider == "apple":
+            identity_data = validate_apple_token(
+                req.token,
+                expected_nonce=req.nonce,
+                first_name=req.first_name,
+                last_name=req.last_name,
+            )
         else:
-            raise ValueError("Unsupported provider")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+            raise HTTPException(status_code=400, detail="Unsupported provider")
+    except NotImplementedError as exc:
+        # The provider is not configured server-side. That is a deployment
+        # state, not a bad request, and the client is told nothing about which
+        # setting is missing.
+        logging.getLogger(__name__).error("Social auth unavailable for %s: %s", provider, exc)
+        raise HTTPException(
+            status_code=501,
+            detail=f"{provider.title()} sign-in is not available in this environment.",
+        ) from exc
+    except ValueError as exc:
+        logging.getLogger(__name__).warning("Rejected %s token: %s", provider, exc)
+        raise HTTPException(
+            status_code=400,
+            detail="We could not verify that sign-in. Please try again.",
+        ) from exc
         
     identity = db.query(ProviderIdentity).filter(
         ProviderIdentity.provider == req.provider,
@@ -197,7 +218,7 @@ def get_me(request: Request, db: SessionDep):
         "phone_number": user.phone_number,
         "phone_verified": user.phone_verified,
         "phone_verification_required": False,
-        "profile_photo_url": user.profile_photo_url,
+        "profile_photo_url": storage_service.public_url(user.profile_photo_url),
         "status": "authenticated"
     }
 

@@ -6,7 +6,7 @@ alembic
 pydantic[email]
 pydantic-settings
 argon2-cffi
-pyjwt
+pyjwt[crypto]
 python-multipart
 
 # Testing
@@ -15,3 +15,4 @@ httpx
 pytest-asyncio
 
 boto3==1.34.69
+google-auth

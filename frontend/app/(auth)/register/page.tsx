@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SocialAuth } from "@/components/SocialAuth";
@@ -20,14 +19,9 @@ export default function RegisterPage() {
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { register, status } = useAuth();
-  const router = useRouter();
+  // Redirecting away once authenticated belongs to the (auth) layout.
+  const { register } = useAuth();
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/");
-    }
-  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
