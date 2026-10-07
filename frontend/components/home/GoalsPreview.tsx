@@ -36,20 +36,20 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
   );
 
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-foreground">Your Goals</h2>
+    <section className="goals-preview" aria-labelledby="goals-preview-title">
+      <div className="goals-preview-heading">
+        <div><span className="section-kicker">PURPOSE / PROGRESS</span><h2 id="goals-preview-title">Your goals</h2></div>
         <Link
           href="/goals"
-          className="flex items-center gap-0.5 text-xs text-brand font-medium hover:underline"
+          className="text-link"
         >
           See all <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       {activeGoals.length === 0 ? (
-        <div className="flex flex-col items-center text-center py-6 gap-3">
-          <Target className="w-8 h-8 text-muted-foreground/20" />
+        <div className="goals-preview-empty">
+          <Target className="w-5 h-5" aria-hidden="true" />
           <div>
             <p className="text-sm font-medium text-foreground">No goals yet</p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -58,13 +58,13 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
           </div>
           <Link
             href="/goals/create"
-            className="mt-1 px-4 py-2 bg-brand text-white text-xs font-semibold rounded-xl hover:bg-brand-hover transition-colors"
+            className="text-link"
           >
             Create a goal
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="goal-lines">
           {activeGoals.slice(0, 3).map((goal) => {
             const progress =
               goal.target_amount > 0
@@ -79,32 +79,32 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
               <Link
                 key={goal.id}
                 href={`/goals/${goal.id}`}
-                className="block group"
+                className="goal-line group"
               >
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-sm font-semibold text-foreground group-hover:text-brand transition-colors">
+                <div className="goal-line-top">
+                  <span className="goal-name">
                     {goal.name}
                   </span>
                   <div className="flex items-center gap-2">
                     {isAchieved && (
                       <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                        Done
+                        Completed
                       </span>
                     )}
-                    <span className="text-xs text-muted-foreground font-medium">
+                    <span className="goal-percent">
                       {progress}%
                     </span>
                   </div>
                 </div>
-                <div className="w-full h-1.5 bg-input rounded-full overflow-hidden">
+                <div className="goal-track" role="progressbar" aria-label={`${goal.name} progress`} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
                   <div
-                    className={`h-full rounded-full transition-all duration-700 ${
+                    className={`goal-fill transition-all duration-700 ${
                       isAchieved ? "bg-success-foreground" : "bg-brand"
                     }`}
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <div className="mt-1.5 text-[11px] text-muted-foreground">
+                <div className="goal-line-amount">
                   {formatPesewas(goal.current_amount)} of{" "}
                   {formatPesewas(goal.target_amount)}
                 </div>

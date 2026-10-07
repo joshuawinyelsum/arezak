@@ -25,6 +25,8 @@ export default function ProfilePage() {
     handle !== (user?.handle || "");
 
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [photoOverride, setPhotoOverride] = useState<string | null | undefined>(undefined);
+  const profilePhotoUrl = photoOverride === undefined ? user?.profile_photo_url : photoOverride;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Phone Change State
@@ -124,19 +126,25 @@ export default function ProfilePage() {
     formData.append("file", file);
 
     try {
-      await apiFetch("/identity/profile/photo", {
+      const response = await apiFetch("/identity/profile/photo", {
         method: "PUT",
         body: formData,
         // Do NOT set Content-Type — let browser set multipart boundary automatically
         headers: {},
       });
+      const updatedProfile = await response.json();
+      if (typeof updatedProfile.profile_photo_url === "string") {
+        setPhotoOverride(updatedProfile.profile_photo_url);
+      }
       await refreshUser();
       setSuccess("Photo updated successfully.");
     } catch (err: any) {
       if (err instanceof ApiError && err.status === 503) {
-        setError("Photo uploads are temporarily unavailable. Please try again later.");
+        setError(`${err.message} Check that STORAGE_BUCKET, STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY are configured for this environment.`);
+      } else if (err instanceof ApiError) {
+        setError(err.message || "The photo could not be uploaded.");
       } else {
-        setError("Failed to upload photo.");
+        setError(err instanceof Error ? err.message : "The photo could not be uploaded.");
       }
     } finally {
       setPhotoLoading(false);
@@ -153,6 +161,7 @@ export default function ProfilePage() {
       await apiFetch("/identity/profile/photo", {
         method: "DELETE",
       });
+      setPhotoOverride(null);
       await refreshUser();
       setSuccess("Photo removed successfully.");
     } catch {
@@ -236,13 +245,13 @@ export default function ProfilePage() {
       )}
 
       {/* Photo section */}
-      <div className="bg-card border border-border rounded-[24px] p-8 shadow-sm flex flex-col items-center gap-5">
-        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+      <div className="profile-photo-module bg-card border border-border rounded-[24px] p-8 shadow-sm flex flex-col items-center gap-5">
+        <div className="relative group">
           <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center overflow-hidden border-4 border-card shadow-sm relative">
             {photoLoading ? (
               <Loader2 className="w-8 h-8 text-brand animate-spin" />
-            ) : user?.profile_photo_url ? (
-              <Image src={user.profile_photo_url} alt="Profile" fill className="object-cover" unoptimized />
+            ) : profilePhotoUrl ? (
+              <Image src={profilePhotoUrl} alt="Profile" fill className="object-cover" unoptimized onError={() => { setPhotoOverride(null); setError("The saved photo could not be loaded. Check that avatar objects are publicly readable."); }} />
             ) : (
               <span className="text-3xl font-bold text-brand">{initials}</span>
             )}
@@ -270,7 +279,7 @@ export default function ProfilePage() {
           >
             <UploadCloud className="w-4 h-4" /> Upload new
           </button>
-          {user?.profile_photo_url && (
+          {profilePhotoUrl && (
             <button
               type="button"
               onClick={handleRemovePhoto}

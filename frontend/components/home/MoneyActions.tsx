@@ -73,7 +73,7 @@ export function MoneyActions({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2 min-[390px]:grid-cols-4 md:gap-3">
+    <div className="money-actions-grid">
       {actions.map((action) => {
         const disabled = !hasAccount;
         return (
@@ -82,7 +82,7 @@ export function MoneyActions({
             onClick={handlers[action.key]}
             disabled={disabled}
             aria-label={`${action.label}: ${action.description}`}
-            className="group flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 transition-colors hover:border-border hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-28"
+            className="money-action group"
           >
             <action.icon className="h-5 w-5 text-brand" strokeWidth={1.8} aria-hidden="true" />
             <div className="text-center">

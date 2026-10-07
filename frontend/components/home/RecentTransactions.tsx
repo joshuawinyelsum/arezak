@@ -62,9 +62,9 @@ export function RecentTransactions({
   const recent = transactions.slice(0, 5);
 
   return (
-    <section className="rounded-xl border border-border bg-card p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-foreground">Recent Transactions</h2>
+    <section className="home-recent-list" aria-labelledby="home-recent-title">
+      <div className="home-recent-heading">
+        <h2 id="home-recent-title">Recent activity</h2>
         <Link
           href="/transactions"
           className="flex items-center gap-0.5 text-xs text-brand font-medium hover:underline"
@@ -74,7 +74,7 @@ export function RecentTransactions({
       </div>
 
       {recent.length === 0 ? (
-        <div className="flex flex-col items-center text-center py-6 gap-3">
+        <div className="home-recent-empty">
           <Receipt className="w-8 h-8 text-muted-foreground/30" />
           <div>
             <p className="text-sm font-medium text-foreground">
@@ -86,7 +86,7 @@ export function RecentTransactions({
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="home-recent-rows">
           {recent.map((tx) => {
             const pres = mapTransaction(tx.type);
             const Icon = ICON_MAP[pres.iconName] ?? CreditCard;

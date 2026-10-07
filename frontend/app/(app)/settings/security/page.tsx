@@ -39,11 +39,11 @@ export default function SecurityPage() {
 
       <div className="space-y-6">
         {statusError && <div role="alert" className="rounded-xl bg-muted p-4 text-sm"><p>Security settings couldn’t be loaded.</p><button type="button" onClick={() => void fetchStatus()} className="mt-2 font-semibold text-brand underline underline-offset-4">Try again</button></div>}
-        <section>
+        <section className="security-group">
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
             <Key className="w-4 h-4" /> Password & Authentication
           </h2>
-          <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden">
+          <div className="security-rows">
              
              {/* Password Row */}
              <Link href="/settings/security/password" className="block w-full p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
@@ -60,11 +60,11 @@ export default function SecurityPage() {
           </div>
         </section>
 
-        <section>
+        <section className="security-group">
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
             <Shield className="w-4 h-4" /> Connected Accounts
           </h2>
-          <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden">
+          <div className="security-rows">
              
              {/* Google Row */}
              <div className="flex items-center justify-between p-5">

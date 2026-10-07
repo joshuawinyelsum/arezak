@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, X, AlertCircle } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { Modal } from "@/components/ui/Modal";
 
 export function TransactionActionModal({ isOpen, onClose, transaction, mode, onSuccess }: any) {
   const [amountStr, setAmountStr] = useState("");
@@ -69,9 +70,8 @@ export function TransactionActionModal({ isOpen, onClose, transaction, mode, onS
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl relative">
-        <button onClick={onClose} className="absolute right-6 top-6 text-muted-foreground hover:text-card-foreground">
+    <Modal open ariaLabel={mode === "correct" ? "Correct transaction" : "Edit transaction metadata"} onClose={() => { if (!isLoading) onClose(); }} closeOnBackdrop={!isLoading} panelClassName="goal-modal-panel">
+        <button onClick={onClose} disabled={isLoading} aria-label="Close transaction dialog" className="absolute right-6 top-6 text-muted-foreground hover:text-card-foreground disabled:opacity-50">
           <X className="w-5 h-5" />
         </button>
         <h2 className="text-xl font-bold mb-4">{mode === "correct" ? "Correct Transaction" : "Edit Metadata"}</h2>
@@ -86,18 +86,18 @@ export function TransactionActionModal({ isOpen, onClose, transaction, mode, onS
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === "correct" ? (
             <div>
-              <label className="block text-sm font-semibold mb-1">New Amount (GH₵)</label>
-              <input type="number" step="0.01" value={amountStr} onChange={e => setAmountStr(e.target.value)} required className="w-full p-3 border border-border bg-muted rounded-xl" />
+              <label htmlFor="transaction-new-amount" className="block text-sm font-semibold mb-1">New Amount (GH₵)</label>
+              <input id="transaction-new-amount" type="number" step="0.01" value={amountStr} onChange={e => setAmountStr(e.target.value)} required className="w-full p-3 border border-border bg-muted rounded-xl" />
             </div>
           ) : (
             <>
               <div>
-                <label className="block text-sm font-semibold mb-1">Funding Source</label>
-                <input type="text" value={fundingSource} onChange={e => setFundingSource(e.target.value)} className="w-full p-3 border border-border bg-muted rounded-xl" placeholder="e.g. Bank Transfer" />
+                <label htmlFor="transaction-funding-source" className="block text-sm font-semibold mb-1">Funding Source</label>
+                <input id="transaction-funding-source" type="text" value={fundingSource} onChange={e => setFundingSource(e.target.value)} className="w-full p-3 border border-border bg-muted rounded-xl" placeholder="e.g. Bank Transfer" />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-1">Note</label>
-                <input type="text" value={note} onChange={e => setNote(e.target.value)} className="w-full p-3 border border-border bg-muted rounded-xl" placeholder="Extra details" />
+                <label htmlFor="transaction-note" className="block text-sm font-semibold mb-1">Note</label>
+                <input id="transaction-note" type="text" value={note} onChange={e => setNote(e.target.value)} className="w-full p-3 border border-border bg-muted rounded-xl" placeholder="Extra details" />
               </div>
             </>
           )}
@@ -105,8 +105,7 @@ export function TransactionActionModal({ isOpen, onClose, transaction, mode, onS
             {isLoading ? "Saving..." : (mode === "correct" ? "Confirm Correction" : "Save Metadata")}
           </button>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

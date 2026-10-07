@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Lock, Bell, HelpCircle, Info, ChevronRight, LogOut, User, Palette, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,14 @@ const settingsGroups = [
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [appearance, setAppearance] = useState("System");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("arezak_theme");
+    if (saved === "light" || saved === "dark" || saved === "system") {
+      setAppearance(saved[0].toUpperCase() + saved.slice(1));
+    }
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -47,7 +55,7 @@ export default function SettingsPage() {
       </header>
 
       {/* Edit Profile Row */}
-      <Link href="/settings/profile" className="block bg-card border border-border rounded-[24px] p-5 shadow-sm hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+      <Link href="/settings/profile" className="identity-link">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center shrink-0 overflow-hidden relative">
             {user?.profile_photo_url ? (
@@ -68,7 +76,7 @@ export default function SettingsPage() {
       </Link>
 
       {/* Arezak Account Row */}
-      <Link href="/receive" className="block rounded-[24px] border border-border bg-card p-5 shadow-sm hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+      <Link href="/receive" className="receive-link">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
             <WalletCards className="h-6 w-6" aria-hidden="true" />
@@ -85,9 +93,9 @@ export default function SettingsPage() {
 
       {/* Settings Groups */}
       {settingsGroups.map((group) => (
-        <div key={group.title}>
+        <section className="you-group" key={group.title}>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">{group.title}</p>
-          <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden">
+          <div className="you-group-rows">
             {group.items.map((item, index) => {
               const inner = (
                 <div className="flex items-center w-full justify-between">
@@ -98,7 +106,7 @@ export default function SettingsPage() {
                     <span className="font-semibold text-card-foreground">{item.label}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {(item as any).value && <span className="text-sm text-muted-foreground font-medium">{(item as any).value}</span>}
+                    {(item as any).value && <span className="text-sm text-muted-foreground font-medium">{item.id === "appearance" ? appearance : (item as any).value}</span>}
                     {item.available ? (
                       <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     ) : (
@@ -124,11 +132,11 @@ export default function SettingsPage() {
               );
             })}
           </div>
-        </div>
+        </section>
       ))}
 
       {/* Logout Row */}
-      <div className="bg-card border border-red-500/20 rounded-[24px] shadow-sm overflow-hidden mt-8">
+      <div className="logout-control">
         <button onClick={handleLogout} disabled={isLoggingOut} className="w-full flex items-center justify-between p-4 text-left hover:bg-destructive transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:bg-destructive">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-destructive flex items-center justify-center shrink-0">

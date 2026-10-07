@@ -161,68 +161,62 @@ export default function Home() {
   // INVARIANT: totalSum = totalAvailable + totalProtected (verified in backend)
   // Available = available_balance  |  Protected = locked + reserved
   let totalAvailable = 0;
+  let totalReserved = 0;
+  let totalLocked = 0;
   let totalProtected = 0;
   let totalSum = 0;
 
   data.accounts.forEach((acc) => {
     totalAvailable += acc.available_balance.amount_pesewas;
+    totalReserved += acc.reserved_balance.amount_pesewas;
+    totalLocked += acc.locked_balance.amount_pesewas;
     totalProtected += acc.locked_balance.amount_pesewas + acc.reserved_balance.amount_pesewas;
     totalSum += acc.total_balance.amount_pesewas;
   });
 
   const fmt = (pesewas: number) => formatPesewas(pesewas, !showBalance);
 
-  const firstName = user?.first_name?.split(" ")[0] ?? "there";
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="page-frame home-page pb-4">
       {/* ── Greeting ── */}
       <header className="page-heading home-heading">
-        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / HOME</p><h1>Good to see you, {firstName}.</h1>
-        <p>Your money, organized around what matters.</p></div>
+        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / HOME</p><h1>Your money, in view.</h1>
+        <p>Available to spend. Protected for a purpose.</p></div>
         <Link href="/accounts" className="text-link home-money-link">Money details <ArrowRight size={15} /></Link>
       </header>
 
       {/* ── Responsive layout ── */}
       {/*   Mobile: single column, items stack in priority order            */}
       {/*   Desktop (lg): two columns — left primary, right ecosystem       */}
-      <div className="home-layout">
-
-        {/* Primary balance, actions, quick payment access, and goals. */}
-        <div className="home-primary">
-
-          {/* 1. VAULT — Total Balance → Available + Protected */}
-          <Vault
+      <Vault
             totalSum={totalSum}
             totalAvailable={totalAvailable}
             totalProtected={totalProtected}
+            totalReserved={totalReserved}
+            totalLocked={totalLocked}
             showBalance={showBalance}
             onToggleBalance={() => setShowBalance((v) => !v)}
             formatPesewas={fmt}
           />
 
-          {/* 2. MONEY ACTIONS — Send · Fund · Pay · Withdraw */}
-          <MoneyActions
+      <div className="home-layout">
+        <div className="home-secondary">
+          <div className="home-goals"><GoalsPreview goals={data.goals} formatPesewas={fmt} /></div>
+          <div className="home-recent"><RecentTransactions transactions={data.txs} showBalance={showBalance} /></div>
+        </div>
+        <div className="home-primary">
+          <section className="home-action-section" aria-labelledby="money-actions-title">
+            <div className="home-section-heading"><div><span className="section-kicker">MONEY / ACTIONS</span><h2 id="money-actions-title">Money actions</h2></div></div>
+            <MoneyActions
             hasAccount={data.accounts.length > 0}
             onFund={() => setActiveFlow("fund")}
             onSend={() => setActiveFlow("send")}
             onPay={() => { setPayService(null); setActiveFlow("pay"); }}
             onWithdraw={() => setActiveFlow("withdraw")}
-          />
-
+            />
+          </section>
           <QuickPay onSelect={(service) => { setPayService(service); setActiveFlow("pay"); }} />
-
-          {/* 3. GOALS — visible on mobile here (moves to right col on desktop) */}
-          <div className="home-goals"><GoalsPreview goals={data.goals} formatPesewas={fmt} /></div>
-
-        </div>
-
-        {/* Goals and transaction history provide real account context. */}
-        <div className="home-secondary">
-
-          {/* Recent meaningful activity from the transaction API. */}
-          <div className="home-recent"><RecentTransactions transactions={data.txs} showBalance={showBalance} /></div>
-
         </div>
       </div>
 

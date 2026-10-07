@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { GoalEditModal } from "@/components/GoalEditModal";
+import { Modal } from "@/components/ui/Modal";
 
 type Money = {
   amount_pesewas: number;
@@ -85,8 +86,8 @@ export default function GoalsPage() {
     setModalError(null);
   };
 
-  const closeModal = () => {
-    if (isSubmitting) return;
+  const closeModal = (force = false) => {
+    if (isSubmitting && !force) return;
     setSelectedGoal(null);
     setModalMode(null);
   };
@@ -121,7 +122,7 @@ export default function GoalsPage() {
       }
 
       await loadData();
-      closeModal();
+      closeModal(true);
     } catch (err: any) {
       setModalError(err.message || "An unexpected error occurred.");
     } finally {
@@ -149,7 +150,7 @@ export default function GoalsPage() {
       }
 
       await loadData();
-      closeModal();
+      closeModal(true);
     } catch (err: any) {
       setModalError(err.message || "Action failed.");
     } finally {
@@ -170,8 +171,8 @@ export default function GoalsPage() {
   const filteredGoals = activeTab === "active" ? activeGoals : completedGoals;
 
   const tabs = [
-     { id: "active", label: `Active goals (${activeGoals.length})` },
-     { id: "completed", label: `Completed goals (${completedGoals.length})` }
+     { id: "active", label: `Current goals (${activeGoals.length})` },
+     { id: "completed", label: `Past goals (${completedGoals.length})` }
   ];
 
   return (
@@ -205,18 +206,18 @@ export default function GoalsPage() {
       </div>
 
       {error ? (
-         <div className="bg-destructive/10 text-destructive-foreground p-6 rounded-2xl flex flex-col items-center justify-center border border-destructive/20">
-            <AlertCircle className="w-8 h-8 mb-3" />
+         <div className="state-panel state-error" role="alert">
+            <span className="state-symbol"><AlertCircle /></span>
             <div className="font-semibold">{error}</div>
             <button onClick={loadData} className="mt-4 px-4 py-2 bg-card rounded-xl text-sm font-medium shadow-sm hover:bg-muted transition-colors">Try Again</button>
          </div>
       ) : isLoading ? (
-         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <Loader2 className="w-8 h-8 animate-spin mb-4" />
-            <p className="text-sm font-medium">Loading goals...</p>
+         <div className="state-panel" role="status" aria-live="polite">
+            <span className="state-symbol"><Loader2 className="animate-spin" /></span>
+            <p className="section-kicker">PLANNING / SYNC</p><p className="text-sm font-semibold">Loading your goals</p>
          </div>
       ) : filteredGoals.length === 0 ? (
-         <div className="bg-card border border-border rounded-[24px] p-12 flex flex-col items-center justify-center text-center shadow-sm">
+         <div className="goals-empty-state">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                <Target className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -230,7 +231,7 @@ export default function GoalsPage() {
               const percentage = goal.target_amount > 0 ? Math.floor((goal.current_amount / goal.target_amount) * 100) : 0;
               
               return (
-                <div key={goal.id} className="bg-card border border-border rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
+                <div key={goal.id} className="goal-module group flex flex-col justify-between">
                      <div>
                           <div className="flex items-center justify-between mb-5">
                              <div className="flex items-center gap-3">
@@ -247,7 +248,9 @@ export default function GoalsPage() {
                              <div>
                                 {goal.status === "ACTIVE" && <span className="bg-blue-50 text-blue-600 text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Saving</span>}
                                 {goal.status === "ACHIEVED" && <span className="bg-success text-success-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Target reached</span>}
-                                {(goal.status === "RELEASED" || goal.status === "ARCHIVED" || goal.status === "CANCELLED") && <span className="bg-input text-muted-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
+                                {goal.status === "RELEASED" && <span className="bg-input text-muted-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Completed</span>}
+                                {goal.status === "ARCHIVED" && <span className="bg-input text-muted-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Archived</span>}
+                                {goal.status === "CANCELLED" && <span className="bg-input text-muted-foreground text-[10px] px-2.5 py-1 rounded-md uppercase tracking-wider font-bold">Closed</span>}
                              </div>
                           </div>
 
@@ -262,13 +265,13 @@ export default function GoalsPage() {
                              </div>
                           </div>
                           
-                          <div className="w-full bg-input rounded-full h-2.5 overflow-hidden mb-2">
+                          <div className="goal-page-track" role="progressbar" aria-label={`${goal.name} progress`} aria-valuenow={Math.min(percentage, 100)} aria-valuemin={0} aria-valuemax={100}>
                              <div 
-                                className={cn("h-full rounded-full transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-success0" : "bg-brand")}
+                                className={cn("goal-page-fill transition-all duration-1000", goal.status === "ACHIEVED" ? "bg-success-foreground" : "bg-brand")}
                                 style={{ width: `${Math.min(percentage, 100)}%` }}
                              ></div>
                           </div>
-                          <div className="text-xs text-muted-foreground font-medium">{percentage}% protected</div>
+                          <div className="text-xs text-muted-foreground font-medium">{percentage}% complete{goal.unlock_date ? ` · Unlocks ${new Date(goal.unlock_date).toLocaleDateString("en-GH", { day: "numeric", month: "short", year: "numeric" })}` : ""}</div>
                      </div>
                      
                      <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2">
@@ -293,13 +296,14 @@ export default function GoalsPage() {
                                 onClick={() => openModal(goal, "release")}
                                 className="flex-1 flex items-center justify-center gap-1.5 bg-success text-green-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-100 transition-colors"
                              >
-                                Move to available
+                                Withdraw from Goal
                              </button>
                           )}
 
                           {goal.status === "ACTIVE" && goal.current_amount === 0 && (
                              <button 
                                 onClick={() => openModal(goal, "delete")}
+                                aria-label={`Delete ${goal.name}`}
                                 className="flex items-center justify-center gap-1.5 bg-destructive/10 text-destructive-foreground px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
                                 title="Delete goal"
                              >
@@ -315,17 +319,17 @@ export default function GoalsPage() {
 
       {/* Modal Overlay */}
       {selectedGoal && modalMode && modalMode !== "edit" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
+        <Modal open ariaLabel={modalMode === "delete" ? "Delete goal" : modalMode === "release" ? "Withdraw from Goal" : "Add money to goal"} onClose={closeModal} closeOnBackdrop={!isSubmitting} panelClassName="goal-modal-panel">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-foreground">
                    {modalMode === "contribute" && "Add money"}
-                   {modalMode === "release" && "Move to available"}
+                   {modalMode === "release" && "Withdraw from Goal"}
                    {modalMode === "delete" && "Delete goal"}
                 </h2>
               <button 
-                onClick={closeModal}
+                onClick={() => closeModal()}
                 disabled={isSubmitting}
+                aria-label="Close goal dialog"
                 className="text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
@@ -347,8 +351,9 @@ export default function GoalsPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-foreground mb-1.5">From Account</label>
+                     <label htmlFor="goal-contribute-account" className="block text-sm font-semibold text-foreground mb-1.5">From Account</label>
                      <select 
+                        id="goal-contribute-account"
                         value={accountId}
                         onChange={(e) => setAccountId(e.target.value)}
                         disabled={isSubmitting || accounts.length === 0}
@@ -362,8 +367,9 @@ export default function GoalsPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
+                     <label htmlFor="goal-contribute-amount" className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
                      <input 
+                        id="goal-contribute-amount"
                         type="number"
                         step="0.01"
                         min="0.01"
@@ -393,7 +399,7 @@ export default function GoalsPage() {
             {modalMode === "release" && (
                <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                     This will complete your <strong>{selectedGoal.name}</strong> goal and make <strong>GH₵{formatPesewas(selectedGoal.locked_amount)}</strong> available to spend.
+                     Withdraw <strong>GH₵{formatPesewas(selectedGoal.locked_amount)}</strong> from <strong>{selectedGoal.name}</strong> to Available. This will mark the goal complete.
                   </p>
 
                   <div className="flex flex-col gap-2 mt-4">
@@ -402,10 +408,10 @@ export default function GoalsPage() {
                         disabled={isSubmitting}
                         className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-brand/90"
                      >
-                        {isSubmitting ? "Moving..." : "Move to available"}
+                        {isSubmitting ? "Withdrawing..." : "Withdraw from Goal"}
                      </button>
                      <button 
-                        onClick={closeModal}
+                        onClick={() => closeModal()}
                         disabled={isSubmitting}
                         className="w-full bg-card border border-border text-card-foreground font-semibold rounded-xl py-3.5 transition-all hover:bg-muted"
                      >
@@ -429,8 +435,7 @@ export default function GoalsPage() {
                   </button>
                </div>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
 
       {selectedGoal && modalMode === "edit" && (

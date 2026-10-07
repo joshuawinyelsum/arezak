@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, Monitor, Moon, Sun } from "lucide-react";
+import { ChevronLeft, Monitor, Moon, Sun, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Theme = "light" | "dark" | "system";
@@ -27,39 +27,20 @@ export default function AppearancePage() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 animate-in fade-in duration-300 pb-12">
-      <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <ChevronLeft className="w-5 h-5 text-foreground" />
-        </button>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Appearance</h1>
-      </div>
-
-      <div className="bg-card border border-border rounded-[24px] shadow-sm overflow-hidden divide-y divide-border">
-        <button onClick={() => handleThemeChange("light")} className="w-full flex items-center justify-between p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-warning text-warning-foreground flex items-center justify-center"><Sun className="w-5 h-5" /></div>
-            <span className="font-semibold text-card-foreground">Light</span>
-          </div>
-          {theme === "light" && <div className="w-2.5 h-2.5 rounded-full bg-brand"></div>}
-        </button>
-        
-        <button onClick={() => handleThemeChange("dark")} className="w-full flex items-center justify-between p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-info text-accent-foreground flex items-center justify-center"><Moon className="w-5 h-5" /></div>
-            <span className="font-semibold text-card-foreground">Dark</span>
-          </div>
-          {theme === "dark" && <div className="w-2.5 h-2.5 rounded-full bg-brand"></div>}
-        </button>
-        
-        <button onClick={() => handleThemeChange("system")} className="w-full flex items-center justify-between p-5 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:bg-accent">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground"><Monitor className="w-5 h-5" /></div>
-            <span className="font-semibold text-card-foreground">System</span>
-          </div>
-          {theme === "system" && <div className="w-2.5 h-2.5 rounded-full bg-brand"></div>}
-        </button>
-      </div>
+    <div className="page-frame appearance-page pb-12">
+      <header className="page-heading"><div><p className="page-eyebrow">YOUR SPACE / PREFERENCES</p><h1>Appearance</h1><p>Choose how Arezak looks on this device.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
+      <section aria-label="Color theme" className="theme-options">
+        {([
+          { id: "light" as const, label: "Light", note: "Clear surfaces", Icon: Sun },
+          { id: "dark" as const, label: "Dark", note: "Deep Arezak blue", Icon: Moon },
+          { id: "system" as const, label: "System", note: "Follow your device", Icon: Monitor },
+        ]).map(({ id, label, note, Icon }) => <button key={id} type="button" aria-pressed={theme === id} onClick={() => handleThemeChange(id)} className={`theme-option ${theme === id ? "is-selected" : ""}`}>
+          <span className={`theme-preview theme-preview-${id}`}><span /><i /></span>
+          <span className="theme-option-copy"><b><Icon size={15} aria-hidden="true" />{label}</b><small>{note}</small></span>
+          <span className="theme-check" aria-hidden="true">{theme === id && <Check size={14} />}</span>
+        </button>)}
+      </section>
+      <p className="theme-note">Your selection is saved on this device. System mode follows your device’s light or dark appearance.</p>
     </div>
   );
 }

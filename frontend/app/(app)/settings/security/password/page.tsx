@@ -68,7 +68,7 @@ export default function PasswordPage() {
 
   if (loadingStatus) {
     return (
-      <div className="w-full max-w-xl mx-auto space-y-6 pb-12 pt-4">
+      <div className="page-frame security-password-page space-y-6 pb-12 pt-4">
         <div className="flex items-center gap-3">
           <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full transition-colors">
             <ChevronLeft className="w-5 h-5 text-foreground" />
@@ -80,7 +80,7 @@ export default function PasswordPage() {
   }
 
   if (statusError || !status) {
-    return <div className="w-full max-w-xl mx-auto space-y-5 py-4">
+    return <div className="page-frame security-password-page space-y-5 py-4">
       <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Go back"><ChevronLeft className="w-5 h-5 text-foreground" /></button>
       <div role="alert" className="rounded-xl bg-muted p-5 text-sm"><p>Password settings couldn’t be loaded.</p><button type="button" onClick={() => void fetchStatus()} className="mt-3 font-semibold text-brand underline underline-offset-4">Try again</button></div>
     </div>;
@@ -89,17 +89,10 @@ export default function PasswordPage() {
   const isSettingPassword = !status?.has_password;
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 animate-in fade-in duration-300 pb-12">
-      <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <ChevronLeft className="w-5 h-5 text-foreground" />
-        </button>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">
-           {isSettingPassword ? "Set Password" : "Change Password"}
-        </h1>
-      </div>
+    <div className="page-frame security-password-page space-y-6 pb-12">
+      <header className="page-heading"><div><p className="page-eyebrow">YOUR SPACE / SECURITY</p><h1>{isSettingPassword ? "Set password" : "Change password"}</h1><p>Keep your Arezak account protected.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
 
-      <form onSubmit={handlePasswordChange} className="bg-card border border-border rounded-[24px] p-6 sm:p-8 shadow-sm space-y-5">
+      <form onSubmit={handlePasswordChange} className="security-password-form">
         {passError && <div className="bg-destructive text-destructive-foreground p-4 rounded-xl text-sm font-medium">{passError}</div>}
         {passSuccess && <div className="bg-success text-success-foreground p-4 rounded-xl text-sm font-medium">{passSuccess}</div>}
         

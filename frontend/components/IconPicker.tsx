@@ -6,6 +6,7 @@ import { Search, X } from "lucide-react";
 import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { cn } from "@/lib/utils";
 import { Icon } from "./Icon";
+import { Modal } from "@/components/ui/Modal";
 
 type IconPickerProps = {
   value: string;
@@ -36,8 +37,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in">
-      <div className="bg-card w-full sm:w-[500px] h-[85vh] sm:h-[600px] sm:max-h-[85vh] rounded-t-[32px] sm:rounded-[24px] shadow-xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95">
+    <Modal open={isOpen} ariaLabel="Choose goal icon" onClose={onClose} panelClassName="icon-picker-panel">
         
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
@@ -48,6 +48,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
           <button 
             onClick={onClose}
             className="p-2 rounded-full hover:bg-input text-muted-foreground transition-colors"
+            aria-label="Close icon picker"
           >
             <X className="w-5 h-5" />
           </button>
@@ -60,6 +61,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
             <input 
               type="text"
               placeholder="Search icons..."
+              aria-label="Search icons"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-muted border border-border rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
@@ -76,6 +78,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
                 {group.icons.map(iconName => (
                   <button
                     key={iconName}
+                    aria-label={`Choose ${iconName} icon`}
                     onClick={() => {
                       onChange(iconName);
                       onClose();
@@ -100,8 +103,7 @@ export function IconPicker({ value, onChange, isOpen, onClose }: IconPickerProps
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

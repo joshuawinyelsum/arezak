@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { FundAccountModal } from "@/components/FundAccountModal";
 import { TransactionActionModal } from "@/components/TransactionActionModal";
+import { Modal } from "@/components/ui/Modal";
 import { mapTransaction, isCredit, isDebit } from "@/lib/transactions/mapper";
 
 
@@ -24,6 +25,7 @@ interface Transaction {
   description: string;
   funding_source?: string;
   note?: string;
+  direction?: "INCOMING" | "OUTGOING";
 }
 
 export default function TransactionsPage() {
@@ -86,7 +88,7 @@ export default function TransactionsPage() {
   };
 
   // Group transactions by date string
-  const groupedTransactions = transactions.reduce((acc, tx) => {
+  const groupedTransactions = [...transactions].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).reduce((acc, tx) => {
     const dateStr = new Date(tx.created_at).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     if (!acc[dateStr]) acc[dateStr] = [];
     acc[dateStr].push(tx);
@@ -108,9 +110,11 @@ export default function TransactionsPage() {
 
   const filteredGroups = Object.entries(groupedTransactions).map(([date, txs]) => {
     const filteredTxs = txs.filter(tx => {
-      const matchesTab = activeTab === "all" || (activeTab === "income" && isCredit(tx.type)) || (activeTab === "expenses" && isDebit(tx.type));
+      const credit = isCredit(tx.type) || tx.direction === "INCOMING";
+      const debit = isDebit(tx.type) || tx.direction === "OUTGOING";
+      const matchesTab = activeTab === "all" || (activeTab === "income" && credit) || (activeTab === "expenses" && debit);
       const query = search.trim().toLowerCase();
-      const matchesSearch = !query || `${tx.description ?? ""} ${tx.note ?? ""} ${mapTransaction(tx.type).label} ${tx.type}`.toLowerCase().includes(query);
+      const matchesSearch = !query || `${tx.description ?? ""} ${tx.note ?? ""} ${tx.funding_source ?? ""} ${mapTransaction(tx.type).label} ${tx.type}`.toLowerCase().includes(query);
       return matchesTab && matchesSearch;
     });
     return { date, txs: filteredTxs };
@@ -121,7 +125,7 @@ export default function TransactionsPage() {
       
       {/* Header */}
       <header className="page-heading">
-        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / ACTIVITY</p><h1>Activity</h1><p>Every movement, in one clear timeline.</p></div>
+        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / ACTIVITY</p><h1>Activity</h1><p>Money in and out, organized by day.</p></div>
           <div className="flex gap-2">
              <button 
                onClick={() => {
@@ -134,7 +138,7 @@ export default function TransactionsPage() {
                aria-label="Add Expense"
              >
                <Minus className="w-4 h-4 md:mr-1.5" />
-               <span className="hidden md:inline text-sm font-semibold">Expense</span>
+               <span className="text-xs font-semibold">Expense</span>
              </button>
              <button 
                onClick={() => setShowFundModal(true)}
@@ -142,7 +146,7 @@ export default function TransactionsPage() {
                aria-label="Fund Account"
              >
                <Plus className="w-4 h-4 md:mr-1.5" />
-               <span className="hidden md:inline text-sm font-semibold">Fund Account</span>
+               <span className="text-xs font-semibold">Add money</span>
              </button>
           </div>
       </header>
@@ -160,6 +164,7 @@ export default function TransactionsPage() {
            <button 
              key={tab.id}
              onClick={() => setActiveTab(tab.id)}
+             aria-pressed={activeTab === tab.id}
              className={cn(
                "flex-1 py-1.5 rounded-lg text-sm font-semibold transition-all",
                activeTab === tab.id 
@@ -173,15 +178,15 @@ export default function TransactionsPage() {
       </div>
 
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-          <Loader2 className="w-8 h-8 animate-spin mb-4" />
-          <p className="text-sm font-medium">Loading transactions...</p>
+        <div className="state-panel" role="status" aria-live="polite">
+          <span className="state-symbol"><Loader2 className="animate-spin" /></span>
+          <p className="section-kicker">ACTIVITY / SYNC</p><p className="text-sm font-semibold">Loading your activity</p>
         </div>
       )}
 
       {!isLoading && error && (
-        <div className="bg-destructive/10 text-destructive-foreground p-6 rounded-2xl flex flex-col items-center text-center">
-          <AlertCircle className="w-8 h-8 mb-2" />
+        <div className="state-panel state-error" role="alert">
+          <span className="state-symbol"><AlertCircle /></span>
           <p className="font-medium">Failed to load transactions</p>
           <p className="text-sm mt-1 opacity-80">{error}</p>
           <button 
@@ -194,7 +199,7 @@ export default function TransactionsPage() {
       )}
 
       {!isLoading && !error && filteredGroups.length === 0 && (
-        <div className="bg-muted border border-border p-10 rounded-2xl flex flex-col items-center text-center mt-6">
+        <div className="state-panel mt-6">
           <PieChart className="w-12 h-12 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-semibold text-foreground">No transactions</h3>
           <p className="text-muted-foreground text-sm mt-1 mb-6">You don&apos;t have any transactions here yet.</p>
@@ -211,32 +216,31 @@ export default function TransactionsPage() {
                     {group.txs.map(item => {
                        const { Icon, bg, color } = getIconForType(item.type);
                        const pres = mapTransaction(item.type);
-                       const isPositive = pres.direction === "credit";
+                       const isPositive = pres.direction === "credit" || item.direction === "INCOMING";
                        // Primary label: user's description if present, else mapped label
                        const primaryLabel = item.description?.trim() || pres.label;
                        // Subtitle: mapped label (when description is the title), plus note
                        const subtitleLabel = item.description?.trim() ? pres.label : null;
                        
                        return (
-                       <div key={item.id} className="flex items-center justify-between px-2 py-4 border-b border-divider hover:bg-muted/40 transition-colors group">
+                       <article key={item.id} className={`activity-entry ${isPositive ? "is-credit" : "is-debit"}`}>
                           <div className="flex items-center gap-4">
                              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", bg, color)}>
                                 <Icon className="w-[18px] h-[18px]" />
                              </div>
                                <div className="min-w-0">
                                   <div className="font-semibold text-sm text-foreground truncate">{primaryLabel}</div>
-                                  <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                                    {subtitleLabel && <span>{subtitleLabel}</span>}
-                                    {subtitleLabel && item.note && <span className="w-1 h-1 rounded-full bg-border shrink-0" />}
-                                    {item.note && <span className="truncate">{item.note}</span>}
+                                  <div className="activity-meta">
+                                    <span>{subtitleLabel || pres.label}</span>
+                                    <span aria-hidden="true" className="activity-meta-dot" />
+                                    <time dateTime={item.created_at}>{new Date(item.created_at).toLocaleTimeString("en-GH", { hour: "numeric", minute: "2-digit" })}</time>
+                                    {item.funding_source && <><span aria-hidden="true" className="activity-meta-dot" /><span className="truncate">{item.funding_source}</span></>}
+                                    {item.note && <><span aria-hidden="true" className="activity-meta-dot" /><span className="truncate">{item.note}</span></>}
                                   </div>
                                </div>
                           </div>
                             <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
-                               <div className={cn(
-                                  "font-semibold text-sm",
-                                  isPositive ? "text-success-foreground" : "text-foreground"
-                               )}>
+                               <div className={`activity-amount ${isPositive ? "is-credit" : "is-debit"}`}>
                                   {isPositive ? "+" : "-"} GH₵{formatPesewas(item.amount.amount_pesewas)}
                                </div>
                                {(item.type === "INCOME" || item.type === "EXPENSE") && (
@@ -256,7 +260,7 @@ export default function TransactionsPage() {
                                   </div>
                                )}
                             </div>
-                       </div>
+                       </article>
                     )})}
                  </div>
               </div>
@@ -267,13 +271,13 @@ export default function TransactionsPage() {
       {/* Modal Overlay */}
       {/* Expense Modal */}
       {isExpenseModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95">
+        <Modal open ariaLabel="Record expense" onClose={() => { if (!isSubmitting) setIsExpenseModalOpen(false); }} closeOnBackdrop={!isSubmitting} panelClassName="goal-modal-panel">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-foreground">Record Expense</h2>
               <button 
                 onClick={() => { if (!isSubmitting) setIsExpenseModalOpen(false); }}
                 disabled={isSubmitting}
+                aria-label="Close expense dialog"
                 className="text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
@@ -326,8 +330,9 @@ export default function TransactionsPage() {
               }
             }} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Account</label>
+                <label htmlFor="expense-account" className="block text-sm font-semibold text-foreground mb-1.5">Account</label>
                 <select 
+                  id="expense-account"
                   value={accountId}
                   onChange={(e) => setAccountId(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all appearance-none"
@@ -340,8 +345,9 @@ export default function TransactionsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
+                <label htmlFor="expense-amount" className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
                 <input 
+                  id="expense-amount"
                   type="number"
                   step="0.01"
                   min="0.01"
@@ -355,8 +361,9 @@ export default function TransactionsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-foreground mb-1.5">Description (Optional)</label>
+                <label htmlFor="expense-description" className="block text-sm font-semibold text-foreground mb-1.5">Description (Optional)</label>
                 <input 
+                  id="expense-description"
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -378,8 +385,7 @@ export default function TransactionsPage() {
                 )}
               </button>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
       
       <FundAccountModal 

@@ -94,8 +94,8 @@ export default function CreateGoalPage() {
     <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20 px-4 pt-4">
       <header className="flex items-center justify-between py-2 mb-2">
          <div className="flex items-center gap-3">
-            <button onClick={step === 1 ? () => router.push("/goals") : handleBack} className="p-2 -ml-2 rounded-full hover:bg-input transition-colors">
-               <ArrowLeft className="w-5 h-5 text-card-foreground" />
+            <button onClick={step === 1 ? () => router.push("/goals") : handleBack} aria-label={step === 1 ? "Back to goals" : "Previous step"} className="grid h-11 w-11 -ml-2 place-items-center rounded-xl hover:bg-input transition-colors">
+               <ArrowLeft className="w-5 h-5 text-card-foreground" aria-hidden="true" />
             </button>
             <h1 className="text-xl font-bold text-foreground">Create Goal</h1>
          </div>
@@ -120,8 +120,9 @@ export default function CreateGoalPage() {
                </div>
 
                <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">Goal Name</label>
+                  <label htmlFor="create-goal-name" className="block text-sm font-bold text-foreground mb-2">Goal Name</label>
                   <input
+                     id="create-goal-name"
                      type="text"
                      value={name}
                      onChange={(e) => setName(e.target.value)}
@@ -166,10 +167,11 @@ export default function CreateGoalPage() {
                </div>
 
                <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">Target Amount</label>
+                     <label htmlFor="create-goal-target" className="block text-sm font-bold text-foreground mb-2">Target Amount</label>
                   <div className="relative">
                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-lg">GH₵</span>
                      <input
+                        id="create-goal-target"
                         type="number"
                         step="0.01"
                         min="0.01"
@@ -195,13 +197,14 @@ export default function CreateGoalPage() {
          {step === 3 && (
             <div className="space-y-6 animate-in slide-in-from-right-4">
                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">When can you release it?</h2>
-                  <p className="text-muted-foreground text-sm">Choose the condition that unlocks these funds.</p>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Set the unlock condition</h2>
+                  <p className="text-muted-foreground text-sm">Choose what must happen before this money becomes available.</p>
                </div>
 
                <div className="space-y-3">
                   <button
                      onClick={() => setLockType("TARGET_REACHED")}
+                     aria-pressed={lockType === "TARGET_REACHED"}
                      className={cn(
                         "w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-4",
                         lockType === "TARGET_REACHED" ? "border-brand bg-brand/5" : "border-slate-100 bg-card hover:border-border"
@@ -212,12 +215,13 @@ export default function CreateGoalPage() {
                      </div>
                      <div>
                         <div className="font-bold text-foreground">When target is reached</div>
-                        <div className="text-sm text-muted-foreground mt-1">Funds unlock automatically as soon as you hit your target amount.</div>
+                        <div className="text-sm text-muted-foreground mt-1">Money unlocks automatically when you reach the target.</div>
                      </div>
                   </button>
 
                   <button
                      onClick={() => setLockType("DATE_REACHED")}
+                     aria-pressed={lockType === "DATE_REACHED"}
                      className={cn(
                         "w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-4",
                         lockType === "DATE_REACHED" ? "border-brand bg-brand/5" : "border-slate-100 bg-card hover:border-border"
@@ -228,12 +232,13 @@ export default function CreateGoalPage() {
                      </div>
                      <div>
                         <div className="font-bold text-foreground">On a specific date</div>
-                        <div className="text-sm text-muted-foreground mt-1">Funds unlock when the date arrives, even if the target isn&apos;t reached.</div>
+                        <div className="text-sm text-muted-foreground mt-1">Money unlocks on the date you choose, even if you have not reached the target.</div>
                      </div>
                   </button>
 
                   <button
                      onClick={() => setLockType("TARGET_AND_DATE")}
+                     aria-pressed={lockType === "TARGET_AND_DATE"}
                      className={cn(
                         "w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-4",
                         lockType === "TARGET_AND_DATE" ? "border-brand bg-brand/5" : "border-slate-100 bg-card hover:border-border"
@@ -243,16 +248,17 @@ export default function CreateGoalPage() {
                         {lockType === "TARGET_AND_DATE" && <div className="w-2.5 h-2.5 rounded-full bg-brand" />}
                      </div>
                      <div>
-                        <div className="font-bold text-foreground">Target reached AND date</div>
-                        <div className="text-sm text-muted-foreground mt-1">Both conditions must be met. The safest lock.</div>
+                        <div className="font-bold text-foreground">Target and date</div>
+                        <div className="text-sm text-muted-foreground mt-1">Both conditions must be met before this money becomes available.</div>
                      </div>
                   </button>
                </div>
 
                {(lockType === "DATE_REACHED" || lockType === "TARGET_AND_DATE") && (
                   <div className="pt-4 border-t border-slate-100 animate-in fade-in slide-in-from-top-2">
-                     <label className="block text-sm font-bold text-foreground mb-2">Unlock Date</label>
+                     <label htmlFor="create-goal-unlock-date" className="block text-sm font-bold text-foreground mb-2">Unlock Date</label>
                      <input
+                        id="create-goal-unlock-date"
                         type="date"
                         value={unlockDate}
                         onChange={(e) => setUnlockDate(e.target.value)}
@@ -276,7 +282,7 @@ export default function CreateGoalPage() {
             <div className="space-y-6 animate-in slide-in-from-right-4">
                <div>
                   <h2 className="text-2xl font-bold text-foreground mb-2">Review your goal</h2>
-                  <p className="text-muted-foreground text-sm">Everything look correct?</p>
+                  <p className="text-muted-foreground text-sm">Does everything look right?</p>
                </div>
 
                <div className="bg-muted border border-slate-100 rounded-2xl p-5 space-y-4">

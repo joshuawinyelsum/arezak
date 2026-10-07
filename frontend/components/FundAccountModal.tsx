@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { Modal } from "@/components/ui/Modal";
 
 type FundAccountModalProps = {
   isOpen: boolean;
@@ -62,11 +63,10 @@ export function FundAccountModal({ isOpen, onClose, accountId, onSuccess }: Fund
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-card rounded-2xl w-full max-w-md overflow-hidden shadow-xl">
+    <Modal open={isOpen} ariaLabel="Fund account" onClose={() => { if (!isSubmitting) onClose(); }} closeOnBackdrop={!isSubmitting} panelClassName="fund-account-modal">
         <div className="flex justify-between items-center p-4 border-b border-slate-100">
           <h2 className="text-lg font-semibold">Fund Account</h2>
-          <button onClick={onClose} className="p-2 hover:bg-input rounded-full text-muted-foreground">
+          <button onClick={onClose} disabled={isSubmitting} aria-label="Close fund account dialog" className="p-2 hover:bg-input rounded-full text-muted-foreground disabled:opacity-50">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -74,27 +74,27 @@ export function FundAccountModal({ isOpen, onClose, accountId, onSuccess }: Fund
           {error && <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>}
           
           <div>
-            <label className="block text-sm font-medium text-card-foreground mb-1">Amount (GH₵)</label>
-            <input type="number" step="0.01" min="0.01" required value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50" placeholder="0.00" />
+            <label htmlFor="fund-account-amount" className="block text-sm font-medium text-card-foreground mb-1">Amount (GH₵)</label>
+            <input id="fund-account-amount" type="number" step="0.01" min="0.01" required value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50" placeholder="0.00" />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-card-foreground mb-1">Funding source</label>
-            <select value={source} onChange={e => setSource(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50 bg-card">
+            <label htmlFor="fund-account-source" className="block text-sm font-medium text-card-foreground mb-1">Funding source</label>
+            <select id="fund-account-source" value={source} onChange={e => setSource(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50 bg-card">
               {FUNDING_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           
           {source === "Other" && (
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-1">Custom source</label>
-              <input type="text" required value={customSource} onChange={e => setCustomSource(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50" placeholder="e.g. Freelance" />
+              <label htmlFor="fund-account-custom-source" className="block text-sm font-medium text-card-foreground mb-1">Custom source</label>
+              <input id="fund-account-custom-source" type="text" required value={customSource} onChange={e => setCustomSource(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50" placeholder="e.g. Freelance" />
             </div>
           )}
           
           <div>
-            <label className="block text-sm font-medium text-card-foreground mb-1">Note (Optional)</label>
-            <input type="text" value={note} onChange={e => setNote(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50" placeholder="e.g. September allowance" />
+            <label htmlFor="fund-account-note" className="block text-sm font-medium text-card-foreground mb-1">Note (Optional)</label>
+            <input id="fund-account-note" type="text" value={note} onChange={e => setNote(e.target.value)} className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/50" placeholder="e.g. September allowance" />
           </div>
           
           <div className="pt-4 flex gap-3">
@@ -104,8 +104,7 @@ export function FundAccountModal({ isOpen, onClose, accountId, onSuccess }: Fund
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

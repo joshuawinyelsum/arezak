@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, X, AlertCircle, Target } from "lucide-react";
+import { Loader2, X, AlertCircle } from "lucide-react";
 import { Icon } from "./Icon";
 import { apiFetch } from "@/lib/api";
 import { IconPicker } from "./IconPicker";
-import { cn } from "@/lib/utils";
+import { Modal } from "@/components/ui/Modal";
 
 export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
   const [name, setName] = useState("");
@@ -54,11 +54,11 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-        <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl relative animate-in zoom-in-95">
+      <Modal open={isOpen} ariaLabel="Edit goal" onClose={onClose} panelClassName="goal-modal-panel">
           <button 
             onClick={onClose} 
             disabled={isLoading}
+            aria-label="Close edit goal"
             className="absolute right-6 top-6 text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5" />
@@ -79,6 +79,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
               <button
                 type="button"
                 onClick={() => setIsIconPickerOpen(true)}
+                aria-label="Change goal icon"
                 className="w-20 h-20 bg-brand/10 text-brand rounded-[20px] flex items-center justify-center hover:bg-brand/20 hover:scale-105 transition-all group"
               >
                 <Icon name={icon || "Target"} className="w-10 h-10 group-hover:scale-110 transition-transform" />
@@ -87,8 +88,9 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1.5">Goal Name</label>
+              <label htmlFor="edit-goal-name" className="block text-sm font-semibold text-foreground mb-1.5">Goal Name</label>
               <input 
+                id="edit-goal-name"
                 type="text" 
                 value={name} 
                 onChange={e => setName(e.target.value)} 
@@ -99,11 +101,12 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-foreground mb-1.5 flex items-center justify-between">
-                <span>Target Amount (GHS)</span>
+              <label htmlFor="edit-goal-target" className="block text-sm font-semibold text-foreground mb-1.5 flex items-center justify-between">
+                <span>Target amount (GH₵)</span>
                 <span className="text-[10px] uppercase tracking-wider bg-input text-muted-foreground px-2 py-0.5 rounded-md font-bold">Fixed</span>
               </label>
               <input 
+                id="edit-goal-target"
                 type="number" 
                 value={goal ? (goal.target_amount / 100).toString() : ""} 
                 disabled={true}
@@ -122,8 +125,7 @@ export function GoalEditModal({ isOpen, onClose, goal, onSuccess }: any) {
               {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : "Save Changes"}
             </button>
           </form>
-        </div>
-      </div>
+      </Modal>
       
       <IconPicker 
         isOpen={isIconPickerOpen}

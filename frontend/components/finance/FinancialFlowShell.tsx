@@ -30,7 +30,10 @@ export function FinancialFlowShell({
     const body = document.body;
     const previousOverflow = body.style.overflow;
     const previousFocus = document.activeElement;
+    const app = document.querySelector<HTMLElement>(".app-shell");
+    const previousAppInert = app?.inert;
     body.style.overflow = "hidden";
+    if (app) app.inert = true;
     setPortalReady(true);
 
     const updateViewport = () => {
@@ -53,6 +56,7 @@ export function FinancialFlowShell({
     window.addEventListener("resize", updateViewport);
     return () => {
       body.style.overflow = previousOverflow;
+      if (app && previousAppInert !== undefined) app.inert = previousAppInert;
       if (previousFocus instanceof HTMLElement) previousFocus.focus();
       window.visualViewport?.removeEventListener("resize", updateViewport);
       window.visualViewport?.removeEventListener("scroll", updateViewport);
@@ -101,7 +105,7 @@ export function FinancialFlowShell({
 
   const shell = (
     <div
-      className="fixed inset-x-0 z-[70] flex items-end justify-center bg-black/50 backdrop-blur-[2px] md:items-center md:p-6"
+      className="fixed inset-x-0 z-[1000] flex items-end justify-center bg-black/50 md:items-center md:p-6"
       style={{
         top: viewport.top,
         height: viewport.height

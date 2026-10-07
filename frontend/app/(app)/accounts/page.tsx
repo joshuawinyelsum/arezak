@@ -117,14 +117,14 @@ export default function AccountsPage() {
 
       {!isLoading && !error && accounts.length > 0 && <>
         <section className="money-summary module">
-          <div><span className="section-kicker">ACROSS {accounts.length} {accounts.length === 1 ? "ACCOUNT" : "ACCOUNTS"}</span><div className="money-total">{formatMoney(totalMoney)}</div><span className="money-caption">Total money in Arezak</span></div>
+          <div><span className="section-kicker">ACROSS {accounts.length} {accounts.length === 1 ? "ACCOUNT" : "ACCOUNTS"}</span><div className="money-total">{formatMoney(totalMoney)}</div><span className="money-caption">Total Balance</span></div>
           <div className="money-pools"><div><span>Available</span><b>{formatMoney(totalAvailable)}</b></div><div><span>Protected</span><b>{formatMoney(totalProtected)}</b></div></div>
         </section>
         <div className="account-list-heading"><div><span className="section-kicker">YOUR ACCOUNTS</span><h2>Money, organized</h2></div><span className="account-count">{accounts.length} {accounts.length === 1 ? "account" : "accounts"}</span></div>
-        <div className="account-collection">{accounts.map((account, index) => <article key={account.id} className="account-module">
-          <div className="account-top"><span className={`account-glyph tone-${index % 3}`}><Wallet size={19} /></span><div className="account-ident"><h3>{account.name}</h3><span>Arezak account</span></div><span className="account-status"><i /> {account.status || "Active"}</span></div>
+        <div className="account-collection">{accounts.map((account) => <article key={account.id} className="account-module">
+          <div className="account-top"><span className="account-glyph"><Wallet size={19} /></span><div className="account-ident"><h3>{account.name}</h3><span>{account.total_balance.currency} account</span></div><span className="account-status"><i /> {account.status}</span></div>
           <div className="account-balance-label">TOTAL BALANCE</div><div className="account-balance">{formatMoney(account.total_balance.amount_pesewas)}</div>
-          <div className="account-breakdown"><div><span><Wallet size={14} /> Available</span><b>{formatMoney(account.available_balance.amount_pesewas)}</b></div><div><span><ShieldCheck size={14} /> Reserved</span><b>{formatMoney(account.reserved_balance.amount_pesewas)}</b></div><div><span><Target size={14} /> Goal locked</span><b>{formatMoney(account.locked_balance.amount_pesewas)}</b></div></div>
+          <div className="account-breakdown"><div><span><Wallet size={14} /> Available</span><b>{formatMoney(account.available_balance.amount_pesewas)}</b></div><div><span><ShieldCheck size={14} /> Reserved</span><b>{formatMoney(account.reserved_balance.amount_pesewas)}</b></div><div><span><Target size={14} /> Locked for goals</span><b>{formatMoney(account.locked_balance.amount_pesewas)}</b></div></div>
           <Link href="/transactions" className="account-activity">View activity <ArrowUpRight size={14} /></Link>
         </article>)}</div>
       </>}
@@ -135,9 +135,9 @@ export default function AccountsPage() {
               <Lock className="w-4 h-4 text-muted-foreground" />
           </div>
           <div>
-              <h4 className="font-semibold text-foreground text-sm mb-1">Strict financial invariants</h4>
+              <h4 className="font-semibold text-foreground text-sm mb-1">Protected money stays protected</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Your financial state is rigorously divided. You cannot spend protected funds. The system will enforce this automatically at the transaction level.
+                Money assigned to goals or obligations stays separate from everyday spending. Arezak enforces that boundary when transactions are recorded.
               </p>
           </div>
         </div>

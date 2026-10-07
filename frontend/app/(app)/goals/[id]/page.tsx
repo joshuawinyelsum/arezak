@@ -8,6 +8,7 @@ import { Icon as DynamicIcon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { GoalEditModal } from "@/components/GoalEditModal";
+import { Modal } from "@/components/ui/Modal";
 
 type Money = {
   amount_pesewas: number;
@@ -88,8 +89,8 @@ export default function GoalDetailPage() {
     setModalError(null);
   };
 
-  const closeModal = () => {
-    if (isSubmitting) return;
+  const closeModal = (force = false) => {
+    if (isSubmitting && !force) return;
     setModalMode(null);
   };
 
@@ -123,7 +124,7 @@ export default function GoalDetailPage() {
       }
 
       await loadData();
-      closeModal();
+      closeModal(true);
     } catch (err: any) {
       setModalError(err.message || "An unexpected error occurred.");
     } finally {
@@ -154,7 +155,7 @@ export default function GoalDetailPage() {
          router.push("/goals");
       } else {
          await loadData();
-         closeModal();
+         closeModal(true);
       }
     } catch (err: any) {
       setModalError(err.message || "Action failed.");
@@ -246,7 +247,7 @@ export default function GoalDetailPage() {
 
          <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-               <span className="font-semibold text-foreground">{percentage}% Protected</span>
+               <span className="font-semibold text-foreground">{percentage}% complete</span>
                <span className="text-muted-foreground font-medium">GH₵{formatPesewas(goal.target_amount - goal.current_amount)} remaining</span>
             </div>
             <div className="w-full bg-input rounded-full h-3 overflow-hidden">
@@ -266,7 +267,7 @@ export default function GoalDetailPage() {
                </div>
                <div>
                   <h3 className="font-bold text-foreground">Add money</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Move money from your available balance to protect it for this goal.</p>
+                  <p className="text-sm text-muted-foreground mt-1">Choose money from Available to protect it for this goal.</p>
                </div>
                <button 
                   onClick={() => openModal("contribute")}
@@ -288,7 +289,7 @@ export default function GoalDetailPage() {
                </div>
                <button 
                   onClick={() => openModal("withdraw")}
-                  className="w-full bg-success-foreground text-white font-semibold rounded-xl py-3 mt-2 transition-all hover:bg-green-600 shadow-sm"
+                   className="w-full bg-brand text-white font-semibold rounded-xl py-3 mt-2 transition-all hover:bg-brand-hover shadow-sm"
                >
                   Withdraw
                </button>
@@ -306,6 +307,7 @@ export default function GoalDetailPage() {
                   <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 mt-1.5 shrink-0"></div>
                   <span>Target amount is strictly fixed and cannot be changed.</span>
                </li>
+               {goal.unlock_date && <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 mt-1.5 shrink-0" /><span>Unlock date: {new Date(goal.unlock_date).toLocaleDateString("en-GH", { day: "numeric", month: "long", year: "numeric" })}</span></li>}
             </ul>
 
             {goal.status === "ACTIVE" && goal.current_amount === 0 && (
@@ -320,8 +322,7 @@ export default function GoalDetailPage() {
 
       {/* Modal Overlay */}
       {modalMode && modalMode !== "edit" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-card rounded-[24px] w-full max-w-sm p-6 shadow-xl animate-in zoom-in-95 relative">
+        <Modal open ariaLabel={modalMode === "delete" ? "Delete goal" : modalMode === "withdraw" ? "Withdraw from Goal" : "Add money to goal"} onClose={closeModal} closeOnBackdrop={!isSubmitting} panelClassName="goal-modal-panel">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-foreground">
                    {modalMode === "contribute" && "Add money"}
@@ -329,8 +330,9 @@ export default function GoalDetailPage() {
                    {modalMode === "delete" && "Delete goal"}
                 </h2>
               <button 
-                onClick={closeModal}
+                onClick={() => closeModal()}
                 disabled={isSubmitting}
+                aria-label="Close goal dialog"
                 className="text-muted-foreground hover:text-card-foreground transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
@@ -352,8 +354,9 @@ export default function GoalDetailPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-foreground mb-1.5">From Account</label>
+                     <label htmlFor="goal-contribute-account" className="block text-sm font-semibold text-foreground mb-1.5">From Account</label>
                      <select 
+                        id="goal-contribute-account"
                         value={accountId}
                         onChange={(e) => setAccountId(e.target.value)}
                         disabled={isSubmitting || accounts.length === 0}
@@ -367,8 +370,9 @@ export default function GoalDetailPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
+                     <label htmlFor="goal-contribute-amount" className="block text-sm font-semibold text-foreground mb-1.5">Amount (GH₵)</label>
                      <input 
+                        id="goal-contribute-amount"
                         type="number"
                         step="0.01"
                         min="0.01"
@@ -422,7 +426,7 @@ export default function GoalDetailPage() {
                       throw new Error(err.detail?.message || err.detail || "Withdrawal failed.");
                     }
                     await loadData();
-                    closeModal();
+                    closeModal(true);
                   } catch (err: any) {
                     setModalError(err.message || "An unexpected error occurred.");
                   } finally {
@@ -432,13 +436,13 @@ export default function GoalDetailPage() {
 
                   {/* Context — what this operation means */}
                   <div className="bg-green-50 border border-green-100 rounded-xl p-3 text-xs text-green-800">
-                     <strong>Withdraw from Goal</strong> moves protected money back to your
-                     Available balance. Your <strong>Total Balance stays the same</strong>.
+                     <strong>Withdraw from Goal</strong> returns protected money to Available.
+                     Your <strong>Total Balance stays the same</strong>.
                   </div>
 
                   <div>
                      <div className="flex justify-between items-center mb-1.5">
-                        <label className="text-sm font-semibold text-foreground">Amount to withdraw</label>
+                        <label htmlFor="goal-withdraw-amount" className="text-sm font-semibold text-foreground">Amount to withdraw</label>
                         <button type="button" onClick={() => setAmountStr((goal.current_amount / 100).toFixed(2))} className="text-xs text-brand font-medium hover:underline">
                            Withdraw all
                         </button>
@@ -446,6 +450,7 @@ export default function GoalDetailPage() {
                      <div className="relative">
                         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">GH₵</span>
                         <input
+                           id="goal-withdraw-amount"
                            type="number"
                            inputMode="decimal"
                            step="0.01"
@@ -463,8 +468,9 @@ export default function GoalDetailPage() {
                   </div>
 
                   <div>
-                     <label className="block text-sm font-semibold text-foreground mb-1.5">Return to account</label>
+                     <label htmlFor="goal-withdraw-account" className="block text-sm font-semibold text-foreground mb-1.5">Return to account</label>
                      <select
+                        id="goal-withdraw-account"
                         value={accountId}
                         onChange={(e) => setAccountId(e.target.value)}
                         disabled={isSubmitting || accounts.length === 0}
@@ -479,11 +485,11 @@ export default function GoalDetailPage() {
                   <button
                      type="submit"
                      disabled={isSubmitting}
-                     className="w-full bg-green-600 text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-green-700"
+                      className="w-full bg-brand text-white font-semibold rounded-xl py-3.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hover:bg-brand-hover"
                   >
                      {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Withdrawing...</> : "Withdraw from Goal"}
                   </button>
-                  <button type="button" onClick={closeModal} disabled={isSubmitting} className="w-full bg-card border border-border text-card-foreground font-semibold rounded-xl py-3 transition-all hover:bg-muted">
+                  <button type="button" onClick={() => closeModal()} disabled={isSubmitting} className="w-full bg-card border border-border text-card-foreground font-semibold rounded-xl py-3 transition-all hover:bg-muted">
                      Keep protected
                   </button>
                </form>
@@ -503,8 +509,7 @@ export default function GoalDetailPage() {
                   </button>
                </div>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
 
       {modalMode === "edit" && (
