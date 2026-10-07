@@ -18,6 +18,12 @@ Repair auth/session and data reliability, then verify the premium mobile-first U
 - Browser/device/theme and deployed verification: not yet run.
 - Prior user changes remain in `backend/app/main.py` and diagnostic scripts; do not overwrite them.
 
+## Deployment follow-up (2026-10-07)
+- GitHub `main` and Railway's production source branch `staging` were fast-forwarded to the repair commit. Railway production deployment `b267d5a` succeeded; startup completed Alembic migration execution and `/health/ready` returned 200.
+- `https://arezak-staging.vercel.app/` returned 200. The public frontend bundle contains the committed 20-second API timeout; `/api/v1/auth/me` and `/api/v1/accounts` reached the backend and returned the expected unauthenticated 401.
+- This repository has no Supabase project configuration or Supabase CLI. Runtime database is Railway Postgres; migrations run through `backend/start.sh`.
+- Authenticated E2E, photo storage, light/dark visual review, and desktop/mobile browser checks remain unverified. Vercel CLI has no local credentials; public frontend behavior was checked without signing in.
+
 ## Current iteration
 - Goal: guarantee stalled API calls exit loading state and audit critical secondary data screens.
 - Changes: shared API requests now abort after 20 seconds while preserving caller cancellation; receive and security views show explicit recoverable errors; goal detail clears stale errors, hides raw load failures, and supports retry; receive distinguishes zero receiving accounts.
