@@ -14,6 +14,9 @@ const config: Config = {
         elevated: "var(--elevated)",
         surface: {
           muted: "var(--surface-muted)",
+          DEFAULT: "var(--surface)",
+          elevated: "var(--surface-elevated)",
+          soft: "var(--surface-soft)",
         },
         card: {
           DEFAULT: "var(--card)",
@@ -55,10 +58,13 @@ const config: Config = {
         warning: {
           DEFAULT: "var(--warning)",
           foreground: "var(--warning-foreground)",
-        }
+        },
+        danger: "var(--danger)",
+        info: "var(--info)",
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        display: ["Space Grotesk", "Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       }
     },

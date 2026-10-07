@@ -175,23 +175,16 @@ export default function GoalsPage() {
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between md:mt-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-             <Link href="/" className="md:hidden text-muted-foreground hover:text-muted-foreground transition-colors">
-               <ArrowLeft className="w-5 h-5" />
-             </Link>
-             <h1 className="text-[22px] md:text-2xl font-bold text-foreground tracking-tight">Your goals</h1>
-          </div>
-        </div>
+    <div className="page-frame goals-page space-y-6 md:space-y-8 pb-12">
+      <header className="page-heading goals-heading">
+        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / PLANNING</p><h1>Your goals</h1><p>Protect money for what you have in mind.</p></div>
         <Link 
            href="/goals/create" 
-           className="flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-brand-hover shadow-sm transition-colors w-full md:w-auto justify-center"
+           className="action-button goals-create"
         >
            + Create Goal
         </Link>
-      </div>
+      </header>
 
       {/* Tabs */}
       <div className="flex items-center gap-6 border-b border-border overflow-x-auto no-scrollbar">

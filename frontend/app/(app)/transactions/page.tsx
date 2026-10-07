@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { Plus, Minus, ArrowLeftRight, X, AlertCircle, Loader2, PieChart, ArrowLeft, ArrowDownLeft, ArrowUpRight, ShoppingBag, ArrowRightLeft, Target, ShieldCheck, RefreshCw, CreditCard } from "lucide-react";
+import { Plus, Minus, ArrowLeftRight, X, AlertCircle, Loader2, PieChart, ArrowDownLeft, ArrowUpRight, ShoppingBag, ArrowRightLeft, Target, ShieldCheck, RefreshCw, CreditCard, Search, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 import { FundAccountModal } from "@/components/FundAccountModal";
@@ -32,6 +31,7 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [accountId, setAccountId] = useState<string>("");
+  const [search, setSearch] = useState("");
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,25 +108,20 @@ export default function TransactionsPage() {
 
   const filteredGroups = Object.entries(groupedTransactions).map(([date, txs]) => {
     const filteredTxs = txs.filter(tx => {
-      if (activeTab === "all") return true;
-      if (activeTab === "income") return isCredit(tx.type);
-      if (activeTab === "expenses") return isDebit(tx.type);
-      return true;
+      const matchesTab = activeTab === "all" || (activeTab === "income" && isCredit(tx.type)) || (activeTab === "expenses" && isDebit(tx.type));
+      const query = search.trim().toLowerCase();
+      const matchesSearch = !query || `${tx.description ?? ""} ${tx.note ?? ""} ${mapTransaction(tx.type).label} ${tx.type}`.toLowerCase().includes(query);
+      return matchesTab && matchesSearch;
     });
     return { date, txs: filteredTxs };
   }).filter(group => group.txs.length > 0);
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-5 animate-in fade-in duration-500 pb-12">
+    <div className="page-frame activity-page pb-12">
       
       {/* Header */}
-      <header className="flex justify-between items-center py-2">
-        <div className="flex items-center gap-3">
-           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-input transition-colors">
-             <ArrowLeft className="w-5 h-5 text-card-foreground" />
-           </Link>
-           <h1 className="text-xl md:text-2xl font-bold text-foreground">Transactions</h1>
-        </div>
+      <header className="page-heading">
+        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / ACTIVITY</p><h1>Activity</h1><p>Every movement, in one clear timeline.</p></div>
           <div className="flex gap-2">
              <button 
                onClick={() => {
@@ -135,7 +130,7 @@ export default function TransactionsPage() {
                  setModalError(null);
                  setIsExpenseModalOpen(true);
                }}
-               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-input text-card-foreground hover:bg-muted-foreground/10 transition-colors shadow-sm"
+               className="action-button secondary-action"
                aria-label="Add Expense"
              >
                <Minus className="w-4 h-4 md:mr-1.5" />
@@ -143,7 +138,7 @@ export default function TransactionsPage() {
              </button>
              <button 
                onClick={() => setShowFundModal(true)}
-               className="flex items-center justify-center w-8 h-8 md:w-auto md:px-3 rounded-full bg-brand text-brand-foreground hover:bg-brand/90 transition-colors shadow-sm"
+               className="action-button"
                aria-label="Fund Account"
              >
                <Plus className="w-4 h-4 md:mr-1.5" />
@@ -152,8 +147,11 @@ export default function TransactionsPage() {
           </div>
       </header>
 
+      <label className="activity-search"><Search size={17} aria-hidden="true" /><span className="sr-only">Search activity</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search transactions" /></label>
+
       {/* Tabs */}
-      <div className="flex bg-input p-1 rounded-xl">
+      <div className="activity-filters" aria-label="Filter activity">
+         <span className="filter-symbol"><SlidersHorizontal size={14} /></span>
          {[
            { id: "all", label: "All" },
            { id: "income", label: "Income" },

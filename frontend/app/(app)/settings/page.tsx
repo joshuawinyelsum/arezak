@@ -41,9 +41,9 @@ export default function SettingsPage() {
   const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-500 pb-12">
-      <header className="py-2 px-1">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">More</h1>
+    <div className="page-frame you-page space-y-6 pb-12">
+      <header className="page-heading">
+        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / YOU</p><h1>Your space.</h1><p>Identity, security, and preferences.</p></div>
       </header>
 
       {/* Edit Profile Row */}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Eye, EyeOff, ShieldCheck, Wallet } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, Wallet, ArrowUpRight } from "lucide-react";
 
 interface VaultProps {
   totalSum: number;
@@ -23,58 +23,26 @@ export function Vault({
   const fmt = (n: number) => formatPesewas(n);
 
   return (
-    <section aria-label="Account balances" className="rounded-2xl bg-card p-6 text-foreground ring-1 ring-border/60 md:p-8">
-      <div className="relative z-10 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Total Balance
-          </span>
-          <button
-            onClick={onToggleBalance}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={showBalance ? "Hide balance" : "Show balance"}
-          >
-            {showBalance ? (
-              <EyeOff className="w-4 h-4" />
-            ) : (
-              <Eye className="w-4 h-4" />
-            )}
-          </button>
+    <section aria-label="Account balances" className="vault-hero">
+      <div className="vault-topline">
+        <div><span className="vault-mark" aria-hidden="true" /><span className="vault-label">FINANCIAL POSITION</span></div>
+        <button onClick={onToggleBalance} className="vault-visibility" aria-label={showBalance ? "Hide balance" : "Show balance"}>
+          {showBalance ? <EyeOff size={17} /> : <Eye size={17} />}
+        </button>
+      </div>
+      <div className="vault-total-label">Total money</div>
+      <div className="vault-total" aria-live="polite">{fmt(totalSum)}</div>
+      <div className="vault-caption"><span className="vault-status-dot" />Across your Arezak accounts <ArrowUpRight size={14} /></div>
+      <div className="vault-breakdown">
+        <div className="vault-pool">
+          <div className="vault-pool-label"><Wallet size={14} /> AVAILABLE</div>
+          <div className="vault-pool-value">{fmt(totalAvailable)}</div>
+          <div className="vault-pool-hint">Ready to use</div>
         </div>
-
-        <div className="text-[40px] font-bold leading-none tracking-tight tabular-nums md:text-[48px]">
-          {fmt(totalSum)}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 border-t border-divider pt-5">
-          <div>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Wallet className="w-3 h-3 text-muted-foreground" />
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                Available
-              </span>
-            </div>
-            <div className="text-lg md:text-xl font-semibold">
-              {fmt(totalAvailable)}
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-1">
-              Ready to use
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <ShieldCheck className="w-3 h-3 text-muted-foreground" />
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                Protected
-              </span>
-            </div>
-            <div className="text-lg md:text-xl font-semibold">
-              {fmt(totalProtected)}
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-1">
-              Set aside
-            </div>
-          </div>
+        <div className="vault-pool protected">
+          <div className="vault-pool-label"><ShieldCheck size={14} /> PROTECTED</div>
+          <div className="vault-pool-value">{fmt(totalProtected)}</div>
+          <div className="vault-pool-hint">Reserved + goal locked</div>
         </div>
       </div>
     </section>

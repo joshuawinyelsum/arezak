@@ -21,7 +21,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 
@@ -132,9 +133,9 @@ export default function Home() {
   // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="w-full h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
-        <Loader2 className="w-8 h-8 animate-spin mb-4" />
-        <p className="text-sm font-medium">Loading your dashboard...</p>
+      <div className="page-frame home-loading" role="status" aria-live="polite">
+        <div className="page-eyebrow">FINANCIAL CONTROL / HOME</div><div className="skeleton-line wide" /><div className="skeleton-hero" /><div className="skeleton-row"><span /><span /><span /><span /></div>
+        <span className="sr-only"><Loader2 className="animate-spin" />Loading your financial overview</span>
       </div>
     );
   }
@@ -142,13 +143,13 @@ export default function Home() {
   // ── Error ────────────────────────────────────────────────────────────────
   if (error || !data) {
     return (
-      <div className="w-full h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
-        <AlertCircle className="w-10 h-10 text-destructive mb-4" />
-        <p className="text-base font-semibold text-foreground">Unable to load dashboard</p>
-        <p className="text-sm mt-1">{error || "Your financial overview isn’t available right now."}</p>
+      <div className="page-frame state-panel">
+        <div className="state-symbol"><AlertCircle size={22} /></div>
+        <p className="section-kicker">HOME / DATA STATUS</p><p className="text-base font-semibold text-foreground">Unable to load dashboard</p>
+        <p className="text-sm mt-1 text-muted-foreground">{error || "Your financial overview isn’t available right now."}</p>
         <button
           onClick={() => setRetryCount((count) => count + 1)}
-          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="action-button mt-5"
         >
           Retry
         </button>
@@ -174,24 +175,21 @@ export default function Home() {
   const firstName = user?.first_name?.split(" ")[0] ?? "there";
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-500 pb-4 space-y-5">
+    <div className="page-frame home-page pb-4">
       {/* ── Greeting ── */}
-      <header className="pt-1">
-        <h1 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
-          Good morning, {firstName}
-        </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Here&apos;s your money summary.
-        </p>
+      <header className="page-heading home-heading">
+        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / HOME</p><h1>Good to see you, {firstName}.</h1>
+        <p>Your money, organized around what matters.</p></div>
+        <Link href="/accounts" className="text-link home-money-link">Money details <ArrowRight size={15} /></Link>
       </header>
 
       {/* ── Responsive layout ── */}
       {/*   Mobile: single column, items stack in priority order            */}
       {/*   Desktop (lg): two columns — left primary, right ecosystem       */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="home-layout">
 
         {/* Primary balance, actions, quick payment access, and goals. */}
-        <div className="lg:col-span-7 flex flex-col gap-5">
+        <div className="home-primary">
 
           {/* 1. VAULT — Total Balance → Available + Protected */}
           <Vault
@@ -215,25 +213,15 @@ export default function Home() {
           <QuickPay onSelect={(service) => { setPayService(service); setActiveFlow("pay"); }} />
 
           {/* 3. GOALS — visible on mobile here (moves to right col on desktop) */}
-          <div className="lg:hidden">
-            <GoalsPreview goals={data.goals} formatPesewas={fmt} />
-          </div>
+          <div className="home-goals"><GoalsPreview goals={data.goals} formatPesewas={fmt} /></div>
 
         </div>
 
         {/* Goals and transaction history provide real account context. */}
-        <div className="lg:col-span-5 flex flex-col gap-5">
-
-          {/* Goals — desktop only (mobile version above) */}
-          <div className="hidden lg:block">
-            <GoalsPreview goals={data.goals} formatPesewas={fmt} />
-          </div>
+        <div className="home-secondary">
 
           {/* Recent meaningful activity from the transaction API. */}
-          <RecentTransactions
-            transactions={data.txs}
-            showBalance={showBalance}
-          />
+          <div className="home-recent"><RecentTransactions transactions={data.txs} showBalance={showBalance} /></div>
 
         </div>
       </div>

@@ -1,245 +1,68 @@
 "use client";
 
-/**
- * AppShell — Layout shell for all authenticated Arezak pages.
- *
- * Navigation decisions (locked):
- *   Desktop sidebar: Home · Goals · Rules · Transactions · [Settings at bottom]
- *   Mobile bottom nav: Home · Goals · Rules · Transactions · More
- *
- * "Home" is always leftmost/topmost.
- * "More" leads to Settings/account management — NOT to money actions.
- * No "Activity", "Insights", or "Accounts" in primary nav.
- * No "+" action button in navigation.
- */
-
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import {
-  House,
-  Target,
-  ReceiptText,
-  WalletCards,
-  Ellipsis,
-  ChevronDown,
-  Settings,
-  LogOut,
-} from "lucide-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { House, WalletCards, ArrowLeftRight, ListFilter, UserRound, ChevronDown, LogOut, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-// Desktop sidebar navigation — primary destinations only
-const desktopNavItems = [
+const destinations = [
   { name: "Home", href: "/", icon: House },
-  { name: "Transactions", href: "/transactions", icon: ReceiptText },
-  { name: "Goals", href: "/goals", icon: Target },
-  { name: "Accounts", href: "/accounts", icon: WalletCards },
-];
-
-// Mobile bottom navigation — exactly five, Home leftmost
-const mobileNavItems = [
-  { name: "Home", href: "/", icon: House },
-  { name: "Transactions", href: "/transactions", icon: ReceiptText },
-  { name: "Goals", href: "/goals", icon: Target },
-  { name: "Accounts", href: "/accounts", icon: WalletCards },
-  { name: "More", href: "/settings", icon: Ellipsis },
+  { name: "Money", href: "/accounts", icon: WalletCards },
+  { name: "Activity", href: "/transactions", icon: ArrowLeftRight },
+  { name: "Rules", href: "/rules", icon: ListFilter },
+  { name: "You", href: "/settings", icon: UserRound },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, logout } = useAuth();
-
-  const isActiveRoute = (href: string) =>
-    href === "/"
-      ? pathname === "/"
-      : pathname === href || pathname.startsWith(href + "/");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isActive = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  const initials = `${user?.first_name?.[0] ?? "A"}${user?.last_name?.[0] ?? ""}`;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background font-sans text-foreground">
-      {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex flex-col w-[240px] bg-card border-r border-border h-full flex-shrink-0">
-        {/* Logo */}
-        <div className="px-6 py-5 flex items-center gap-2.5 border-b border-border/50">
-          <Image
-            src="/brand/logo.png"
-            alt="Arezak"
-            width={30}
-            height={30}
-            className="rounded-lg object-contain"
-          />
-          <span className="text-lg font-bold tracking-tight text-foreground">
-            AREZAK
-          </span>
-        </div>
-
-        {/* Primary nav */}
-        <nav aria-label="Primary navigation" className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-          {desktopNavItems.map((item) => {
-            const active = isActiveRoute(item.href);
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-                  active
-                    ? "bg-brand/8 text-brand font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}
-              >
-                <item.icon
-                  className={cn(
-                    "h-[18px] w-[18px]",
-                    active ? "text-brand" : "text-muted-foreground"
-                  )}
-                  strokeWidth={1.9}
-                  aria-hidden="true"
-                />
-                {item.name}
-              </Link>
-            );
+    <div className="app-shell">
+      <aside className="desktop-rail" aria-label="Arezak workspace">
+        <Link href="/" className="brand-lockup" aria-label="Arezak home">
+          <span className="brand-mark"><Image src="/brand/logo.png" alt="" width={30} height={30} /></span>
+          <span><b>AREZAK</b><small>FINANCIAL CONTROL</small></span>
+        </Link>
+        <div className="rail-caption">WORKSPACE</div>
+        <nav className="rail-nav" aria-label="Primary navigation">
+          {destinations.map(({ name, href, icon: Icon }) => {
+            const active = isActive(href);
+            return <Link key={name} href={href} className={`rail-link ${active ? "is-active" : ""}`} aria-current={active ? "page" : undefined}>
+              <span className="rail-icon"><Icon size={19} strokeWidth={1.8} aria-hidden="true" /></span><span>{name}</span>
+            </Link>;
           })}
         </nav>
-
-        {/* Settings link at bottom of sidebar */}
-        <div className="px-3 pb-4 border-t border-border/50 pt-3">
-          <Link
-            href="/settings"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all text-sm",
-              isActiveRoute("/settings")
-                ? "bg-brand/8 text-brand font-semibold"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-          >
-            <Settings
-              className={cn(
-                "w-[18px] h-[18px]",
-                isActiveRoute("/settings") ? "text-brand" : "text-muted-foreground"
-              )}
-              strokeWidth={2}
-            />
-            Settings
-          </Link>
+        <div className="rail-bottom">
+          <Link href="/goals" className={`rail-link ${isActive("/goals") ? "is-active" : ""}`} aria-current={isActive("/goals") ? "page" : undefined}><span className="rail-icon"><Target size={18} /></span><span>Goals & planning</span></Link>
+          <div className="rail-user">
+            <span className="user-avatar">{initials.toUpperCase()}</span>
+            <span className="user-meta"><b>{`${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "Your account"}</b><small>{user?.email ?? ""}</small></span>
+            <button className="icon-button rail-menu-trigger" aria-label="Account menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><ChevronDown size={16} /></button>
+            {menuOpen && <div className="account-menu"><Link href="/settings/profile" onClick={() => setMenuOpen(false)}>Profile</Link><button onClick={() => logout()}><LogOut size={15} /> Sign out</button></div>}
+          </div>
         </div>
-
       </aside>
-
-      {/* ── Main Content Area ── */}
-      <div className="flex-1 flex flex-col h-full min-w-0">
-        {/* Desktop Header */}
-        <header className="hidden md:flex h-16 px-8 items-center justify-end border-b border-border bg-card flex-shrink-0">
-          <div className="flex items-center gap-4">
-            {/* User menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsUserMenuOpen((v) => !v)}
-                className="flex items-center gap-2.5 hover:bg-muted p-1.5 rounded-xl pr-3 transition-colors focus:outline-none"
-              >
-                <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0 text-brand font-bold text-sm">
-                  {(user?.first_name || 'U').charAt(0) ?? "U"}
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-sm font-semibold leading-none text-foreground">
-                    {`${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-0.5 leading-none">
-                    {user?.email ?? ""}
-                  </span>
-                </div>
-                <ChevronDown
-                  className={cn(
-                    "w-4 h-4 text-muted-foreground ml-1 transition-transform",
-                    isUserMenuOpen && "rotate-180"
-                  )}
-                />
-              </button>
-
-              {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-card rounded-xl shadow-lg border border-border py-2 z-50 animate-in fade-in slide-in-from-top-2">
-                  <Link
-                    href="/settings"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-card-foreground hover:bg-muted"
-                  >
-                    <Settings className="w-4 h-4 text-muted-foreground" />
-                    Settings
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      logout();
-                    }}
-                    className="flex items-center gap-2.5 w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+      <section className="app-main">
+        <header className="mobile-topbar">
+          <Link href="/" className="brand-lockup" aria-label="Arezak home"><span className="brand-mark"><Image src="/brand/logo.png" alt="" width={27} height={27} /></span><span><b>AREZAK</b><small>FINANCIAL CONTROL</small></span></Link>
+          <Link className="mobile-avatar" href="/settings" aria-label="Your profile">{initials.toUpperCase()}</Link>
         </header>
-
-        {/* Mobile Header */}
-        <header className="md:hidden flex h-14 items-center justify-between px-5 bg-card border-b border-border flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/brand/logo.png"
-              alt="Arezak"
-              width={26}
-              height={26}
-              className="rounded-md"
-            />
-            <span className="font-bold text-base tracking-tight">AREZAK</span>
-          </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="relative flex-1 overflow-y-auto overflow-x-hidden p-5 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:px-8 md:py-6 md:pb-8">
-          {children}
-        </main>
-
-        {/* ── Mobile Bottom Navigation ── */}
-        {/* Exactly 5 destinations. Home is leftmost. No action buttons. */}
-        <nav aria-label="Primary navigation" className="fixed bottom-0 left-0 right-0 z-50 flex h-[calc(72px+env(safe-area-inset-bottom,0px))] items-center justify-around border-t border-border bg-card px-1 pb-[env(safe-area-inset-bottom,0px)] md:hidden">
-          {mobileNavItems.map((item) => {
-            const active = isActiveRoute(item.href);
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className="flex h-14 w-14 flex-col items-center justify-center gap-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-              >
-                <item.icon
-                  className={cn("h-5 w-5 transition-colors", active ? "text-brand" : "text-muted-foreground")}
-                  strokeWidth={1.9}
-                  aria-hidden="true"
-                />
-                <span
-                  className={cn(
-                    "text-[10px] font-medium leading-none",
-                    active ? "text-brand" : "text-muted-foreground"
-                  )}
-                >
-                  {item.name}
-                </span>
-              </Link>
-            );
+        <main className="page-canvas">{children}</main>
+        <nav className="mobile-dock" aria-label="Primary navigation">
+          {destinations.map(({ name, href, icon: Icon }) => {
+            const active = isActive(href);
+            return <Link key={name} href={href} className={`dock-link ${active ? "is-active" : ""}`} aria-current={active ? "page" : undefined}>
+              <span className="dock-icon"><Icon size={20} strokeWidth={active ? 2.1 : 1.8} aria-hidden="true" /></span><span>{name}</span>
+            </Link>;
           })}
         </nav>
-      </div>
+      </section>
     </div>
   );
 }
-

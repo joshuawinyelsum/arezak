@@ -221,17 +221,8 @@ export default function ProfilePage() {
   const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 animate-in fade-in duration-300 pb-12">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.back()}
-          aria-label="Back"
-          className="p-2 hover:bg-accent rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ChevronLeft className="w-5 h-5 text-foreground" />
-        </button>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Edit Profile</h1>
-      </div>
+    <div className="page-frame profile-page space-y-6 pb-12">
+      <header className="page-heading"><div><p className="page-eyebrow">YOUR SPACE / IDENTITY</p><h1>Edit profile</h1><p>Keep your Arezak details up to date.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
 
       {error && (
         <div role="alert" className="bg-destructive text-destructive-foreground p-4 rounded-xl text-sm font-medium">

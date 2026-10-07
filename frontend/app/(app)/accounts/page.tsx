@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Wallet, ShieldCheck, Target, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Wallet, ShieldCheck, Target, Lock, Eye, EyeOff, Loader2, AlertCircle, Plus, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
@@ -56,19 +56,17 @@ export default function AccountsPage() {
   };
 
   const formatMoney = (pesewas: number) => showBalance ? `GH₵ ${formatPesewas(pesewas)}` : "GH₵ ••••••••";
+  const totalAvailable = accounts.reduce((sum, account) => sum + account.available_balance.amount_pesewas, 0);
+  const totalProtected = accounts.reduce((sum, account) => sum + account.reserved_balance.amount_pesewas + account.locked_balance.amount_pesewas, 0);
+  const totalMoney = accounts.reduce((sum, account) => sum + account.total_balance.amount_pesewas, 0);
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-6 animate-in fade-in duration-500 pb-12">
+    <div className="page-frame money-page pb-12">
       
       {/* Header */}
-      <header className="flex justify-between items-center py-2">
-        <div className="flex items-center gap-3">
-           <Link href="/" className="md:hidden p-1.5 -ml-1.5 rounded-full hover:bg-input transition-colors">
-             <ArrowLeft className="w-5 h-5 text-card-foreground" />
-           </Link>
-           <h1 className="text-xl md:text-2xl font-bold text-foreground">Accounts</h1>
-        </div>
-        <button onClick={() => setShowBalance(!showBalance)} className="text-muted-foreground hover:text-foreground transition-colors bg-card border border-border p-2 rounded-full shadow-sm focus:outline-none">
+      <header className="page-heading">
+        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / MONEY</p><h1>Money</h1><p>See what is available, reserved, and protected.</p></div>
+        <button onClick={() => setShowBalance(!showBalance)} aria-label={showBalance ? "Hide balances" : "Show balances"} className="balance-toggle">
            {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
       </header>
@@ -81,22 +79,22 @@ export default function AccountsPage() {
               setSelectedAccountId(accounts[0].id);
               setShowFundModal(true);
             }}
-            className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-brand-hover shadow-sm"
+            className="action-button"
           >
-            + Fund Account
+            <Plus size={16} /> Fund account
           </button>
         </div>
       )}
 
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+        <div className="state-panel" role="status">
           <Loader2 className="w-8 h-8 animate-spin mb-4" />
           <p className="text-sm font-medium">Loading your accounts...</p>
         </div>
       )}
 
       {!isLoading && error && (
-        <div className="bg-red-50 text-red-600 p-6 rounded-2xl flex flex-col items-center text-center">
+        <div className="state-panel state-error">
           <AlertCircle className="w-8 h-8 mb-2" />
           <p className="font-medium">Failed to load accounts</p>
           <p className="text-sm mt-1 opacity-80">{error}</p>
@@ -110,67 +108,29 @@ export default function AccountsPage() {
       )}
 
       {!isLoading && !error && accounts.length === 0 && (
-        <div className="bg-muted border border-border p-10 rounded-2xl flex flex-col items-center text-center">
+        <div className="state-panel">
           <Wallet className="w-12 h-12 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-semibold text-foreground">No accounts yet</h3>
           <p className="text-muted-foreground text-sm mt-1 mb-6">You don&apos;t have any accounts set up.</p>
         </div>
       )}
 
-      {!isLoading && !error && accounts.length > 0 && (
-        <div className="space-y-10">
-          {accounts.map(account => (
-            <div key={account.id} className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground px-1">{account.name}</h2>
-              
-              {/* Available */}
-              <div className="bg-brand text-white p-6 rounded-2xl flex items-center justify-between shadow-lg shadow-brand/20">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-card/20 flex items-center justify-center shrink-0">
-                        <Wallet className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                        <div className="text-sm text-white/80 font-medium mb-0.5">Available Balance</div>
-                        <div className="text-sm text-white/60">Free to spend</div>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold">{formatMoney(account.available_balance.amount_pesewas)}</div>
-              </div>
-
-              {/* Protected */}
-              <div className="bg-[#E6F8F0] border border-[#BDE8D6] text-[#0A5436] p-6 rounded-2xl flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-[#CCEFDF] flex items-center justify-center shrink-0">
-                        <ShieldCheck className="w-6 h-6 text-[#127951]" />
-                    </div>
-                    <div>
-                        <div className="text-sm font-medium mb-0.5 opacity-90">Protected</div>
-                        <div className="text-sm opacity-70">Money set aside</div>
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold text-[#0D6A45]">{formatMoney(account.reserved_balance.amount_pesewas)}</div>
-              </div>
-
-              {/* Goals */}
-              <div className="bg-[#FFF4ED] border border-[#FFD9C2] text-[#80380A] p-6 rounded-2xl flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-[#FFE1CD] flex items-center justify-center shrink-0">
-                        <Target className="w-6 h-6 text-[#B35212]" />
-                    </div>
-                    <div>
-                        <div className="text-sm font-medium mb-0.5 opacity-90">Goals</div>
-                        <div className="text-sm opacity-70">Set aside in goals</div>
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold text-[#A64A0F]">{formatMoney(account.locked_balance.amount_pesewas)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {!isLoading && !error && accounts.length > 0 && <>
+        <section className="money-summary module">
+          <div><span className="section-kicker">ACROSS {accounts.length} {accounts.length === 1 ? "ACCOUNT" : "ACCOUNTS"}</span><div className="money-total">{formatMoney(totalMoney)}</div><span className="money-caption">Total money in Arezak</span></div>
+          <div className="money-pools"><div><span>Available</span><b>{formatMoney(totalAvailable)}</b></div><div><span>Protected</span><b>{formatMoney(totalProtected)}</b></div></div>
+        </section>
+        <div className="account-list-heading"><div><span className="section-kicker">YOUR ACCOUNTS</span><h2>Money, organized</h2></div><span className="account-count">{accounts.length} {accounts.length === 1 ? "account" : "accounts"}</span></div>
+        <div className="account-collection">{accounts.map((account, index) => <article key={account.id} className="account-module">
+          <div className="account-top"><span className={`account-glyph tone-${index % 3}`}><Wallet size={19} /></span><div className="account-ident"><h3>{account.name}</h3><span>Arezak account</span></div><span className="account-status"><i /> {account.status || "Active"}</span></div>
+          <div className="account-balance-label">TOTAL BALANCE</div><div className="account-balance">{formatMoney(account.total_balance.amount_pesewas)}</div>
+          <div className="account-breakdown"><div><span><Wallet size={14} /> Available</span><b>{formatMoney(account.available_balance.amount_pesewas)}</b></div><div><span><ShieldCheck size={14} /> Reserved</span><b>{formatMoney(account.reserved_balance.amount_pesewas)}</b></div><div><span><Target size={14} /> Goal locked</span><b>{formatMoney(account.locked_balance.amount_pesewas)}</b></div></div>
+          <Link href="/transactions" className="account-activity">View activity <ArrowUpRight size={14} /></Link>
+        </article>)}</div>
+      </>}
 
       {!isLoading && !error && accounts.length > 0 && (
-        <div className="bg-card border border-border p-5 rounded-2xl flex gap-4 mt-6 items-start shadow-sm">
+        <div className="money-principle module">
           <div className="w-8 h-8 rounded-full bg-input flex items-center justify-center shrink-0 mt-0.5">
               <Lock className="w-4 h-4 text-muted-foreground" />
           </div>
