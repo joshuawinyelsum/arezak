@@ -81,66 +81,43 @@ export default function ReceivePage() {
     }
   };
 
-  return (
-    <div className="mx-auto w-full max-w-xl space-y-6 pb-12 animate-in fade-in duration-300">
-      <header className="flex items-center gap-3">
+    return (
+    <div className="page-frame receive-page pb-12">
+      <header className="page-heading receive-heading">
         <button type="button" onClick={handleBack} aria-label="Back" className="rounded-full p-2 text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Receive money</h1>
+        <h1>Receive money</h1>
       </header>
 
-      {isLoading && <div role="status" className="py-12 flex justify-center"><span className="sr-only">Loading receiving details</span><div className="w-8 h-8 rounded-full border-2 border-brand border-t-transparent animate-spin" /></div>}
-      {error && <div role="alert" className="space-y-3 rounded-xl bg-muted p-4 text-sm"><p>{error}</p><button type="button" onClick={() => void loadIdentity()} className="font-semibold text-brand underline underline-offset-4">Try again</button></div>}
+      {isLoading && <div className="state-panel" role="status"><span className="sr-only">Loading receiving details</span><div className="w-7 h-7 rounded-full border-2 border-brand border-t-transparent animate-spin" /></div>}
+      {error && <div className="receive-error" role="alert"><p>{error}</p><button type="button" onClick={() => void loadIdentity()}>Try again</button></div>}
       
       {identity && (
-        <div className="space-y-6">
-          <p className="text-sm text-muted-foreground px-1">Share your Arezak details to receive money.</p>
-          {identity.accounts.length === 0 && <div role="status" className="rounded-xl bg-muted p-5 text-sm text-muted-foreground">No receiving account is available yet. Try again in a moment or contact support if this continues.</div>}
+        <div className="receive-account-list">
+          {identity.accounts.length === 0 && <div role="status" className="state-panel">No receiving account is available yet.</div>}
           {identity.accounts.map((account) => (
-            <section key={account.account_id} className="rounded-[32px] border border-border bg-card p-6 sm:p-8 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
-              <div className="w-full mb-8">
-                <div className="flex flex-col gap-4 text-left">
-                  
-                  <div className="border-b border-border pb-4">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Name</p>
-                    <p className="text-lg font-medium text-card-foreground">{identity.display_name}</p>
-                  </div>
-                  
-                  {identity.handle && (
-                    <div className="border-b border-border pb-4">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Handle</p>
-                      <p className="text-lg font-medium text-card-foreground">{getNormalizedHandle(identity.handle)}</p>
-                    </div>
-                  )}
-                  
-                  <div className="pb-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Arezak account number</p>
-                    <p className="font-mono text-3xl font-semibold tracking-wider text-foreground">{account.account_number}</p>
-                  </div>
-
-                </div>
+            <section key={account.account_id} className="receive-account" aria-label={`${account.account_name} receiving details`}>
+              <div className="receive-owner">
+                <strong>{identity.display_name}</strong>
+                {identity.handle && <span>{getNormalizedHandle(identity.handle)}</span>}
               </div>
-
-              <div className="w-full flex flex-col gap-3">
-                <button type="button" onClick={() => handleCopy(account)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand text-brand-foreground px-4 py-4 font-semibold hover:bg-brand/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-card shadow-lg shadow-brand/20">
-                  {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-                  {copied ? "Copied" : "Copy payment details"}
+              <div className="receive-number">
+                <span>Arezak account number</span>
+                <strong>{account.account_number}</strong>
+              </div>
+              <div className="receive-qr">
+                <p>Scan to pay</p>
+                <div><QRCodeSVG value={account.qr_payload} size={144} level="Q" marginSize={0} aria-label="Arezak receive QR code" /></div>
+              </div>
+              <div className="receive-actions">
+                <button type="button" onClick={() => void handleCopy(account)}>
+                  {copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
+                  {copied ? "Copied" : "Copy details"}
                 </button>
-                
-                <button type="button" onClick={() => handleShare(account)} className="w-full flex items-center justify-center gap-2 rounded-xl bg-muted text-card-foreground border border-border px-4 py-4 font-semibold hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
-                  <Share2 className="h-5 w-5 text-muted-foreground" />
-                  Share
-                </button>
+                <button type="button" onClick={() => void handleShare(account)}><Share2 size={17} aria-hidden="true" />Share</button>
               </div>
-
-              <div className="mt-10 pt-10 border-t border-border w-full flex flex-col items-center">
-                <p className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wider">Or scan to pay</p>
-                <div className="p-4 bg-white rounded-2xl shadow-sm border border-border">
-                  <QRCodeSVG value={account.qr_payload} size={160} level="Q" marginSize={0} />
-                </div>
-              </div>
-
+              {error && <p className="receive-inline-error" role="alert">{error}</p>}
             </section>
           ))}
         </div>

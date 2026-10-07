@@ -22,9 +22,9 @@ type ResolvedRecipient = {
   masked_phone_number: string | null;
 };
 
-export function SendFlow({ accounts, onClose }: { accounts: MoneyAccount[]; onClose: () => void }) {
-  const [step, setStep] = useState<SendStep>("recipient");
-  const [recipientType, setRecipientType] = useState<RecipientType | null>(null);
+export function SendFlow({ accounts, onClose, scanRequested = false }: { accounts: MoneyAccount[]; onClose: () => void; scanRequested?: boolean }) {
+  const [step, setStep] = useState<SendStep>(scanRequested ? "details" : "recipient");
+  const [recipientType, setRecipientType] = useState<RecipientType | null>(scanRequested ? "arezak" : null);
   const [rail, setRail] = useState<GhanaRail | null>(null);
   const [recipient, setRecipient] = useState("");
   const [resolvedRecipient, setResolvedRecipient] = useState<ResolvedRecipient | null>(null);
@@ -223,7 +223,7 @@ export function SendFlow({ accounts, onClose }: { accounts: MoneyAccount[]; onCl
           )}
           {step === "details" && (
             <section className="space-y-5">
-              <div><h3 className="text-xl font-bold text-foreground">{recipientType === "arezak" ? "Find an Arezak user" : "Recipient details"}</h3><p className="mt-1 text-sm text-muted-foreground">{recipientType === "arezak" ? "The recipient is verified before you enter an amount." : `Receiving on ${ghanaRailLabel(rail)}.`}</p></div>
+              <div><h3 className="text-xl font-bold text-foreground">{recipientType === "arezak" ? "Arezak recipient" : "Recipient details"}</h3><p className="mt-1 text-sm text-muted-foreground">{recipientType === "arezak" ? "Scan a code or enter an account number or handle." : `Receiving on ${ghanaRailLabel(rail)}.`}</p></div>
               {recipientType === "mobile" ? <GhanaPhoneField value={recipient} onChange={setRecipient} label="Recipient mobile number" /> : <>
                 <FlowField label="Account number, @handle, verified phone, or QR value" value={recipient} onChange={setRecipient} placeholder="e.g. 123456789012 or @handle" autoComplete="off" />
                 <QrScanner onDetected={setRecipient} />

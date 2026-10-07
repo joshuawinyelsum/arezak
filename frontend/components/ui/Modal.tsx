@@ -10,6 +10,7 @@ type ModalProps = {
   children: React.ReactNode;
   closeOnBackdrop?: boolean;
   panelClassName?: string;
+  backdropClassName?: string;
 };
 
 let originalBodyOverflow: string | undefined;
@@ -31,7 +32,7 @@ function syncModalLayers() {
   }
 }
 
-export function Modal({ open, onClose, ariaLabel, children, closeOnBackdrop = false, panelClassName = "" }: ModalProps) {
+export function Modal({ open, onClose, ariaLabel, children, closeOnBackdrop = false, panelClassName = "", backdropClassName = "" }: ModalProps) {
   const [host, setHost] = useState<HTMLElement | null>(null);
   const closeRef = useRef(onClose);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
@@ -89,7 +90,7 @@ export function Modal({ open, onClose, ariaLabel, children, closeOnBackdrop = fa
   if (!open || !host) return null;
   return createPortal(
     <div
-      className="modal-backdrop"
+      className={`modal-backdrop ${backdropClassName}`}
       data-modal-backdrop="true"
       onMouseDown={(event) => {
         if (closeOnBackdrop && event.target === event.currentTarget) closeRef.current();

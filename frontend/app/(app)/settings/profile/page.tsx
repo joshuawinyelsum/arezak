@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch, ApiError } from "@/lib/api";
-import { ChevronLeft, Camera, UploadCloud, Trash2, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ChevronLeft, Camera, UploadCloud, Trash2, Loader2, CheckCircle2, AlertCircle, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -227,11 +227,10 @@ export default function ProfilePage() {
   };
 
   const name = `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "User";
-  const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   return (
     <div className="page-frame profile-page space-y-6 pb-12">
-      <header className="page-heading"><div><p className="page-eyebrow">YOUR SPACE / IDENTITY</p><h1>Edit profile</h1><p>Keep your Arezak details up to date.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
+      <header className="page-heading"><div><h1>Edit profile</h1></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
 
       {error && (
         <div role="alert" className="bg-destructive text-destructive-foreground p-4 rounded-xl text-sm font-medium">
@@ -247,13 +246,13 @@ export default function ProfilePage() {
       {/* Photo section */}
       <div className="profile-photo-module bg-card border border-border rounded-[24px] p-8 shadow-sm flex flex-col items-center gap-5">
         <div className="relative group">
-          <div className="w-24 h-24 rounded-full bg-brand/10 flex items-center justify-center overflow-hidden border-4 border-card shadow-sm relative">
+          <div className="w-24 h-24 rounded-full bg-muted text-muted-foreground flex items-center justify-center overflow-hidden border-4 border-card shadow-sm relative">
             {photoLoading ? (
               <Loader2 className="w-8 h-8 text-brand animate-spin" />
             ) : profilePhotoUrl ? (
               <Image src={profilePhotoUrl} alt="Profile" fill className="object-cover" unoptimized onError={() => { setPhotoOverride(null); setError("The saved photo could not be loaded. Check that avatar objects are publicly readable."); }} />
             ) : (
-              <span className="text-3xl font-bold text-brand">{initials}</span>
+              <UserRound size={30} aria-hidden="true" />
             )}
             {!photoLoading && (
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">

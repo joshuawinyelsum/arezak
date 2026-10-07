@@ -35,7 +35,7 @@ export default function SecurityPage() {
 
   return (
     <div className="page-frame security-page space-y-6 pb-12">
-      <header className="page-heading"><div><p className="page-eyebrow">YOUR SPACE / TRUST</p><h1>Account & security</h1><p>Keep access to your money protected.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
+      <header className="page-heading"><div><h1>Account & security</h1><p>Sign-in methods and connected accounts.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
 
       <div className="space-y-6">
         {statusError && <div role="alert" className="rounded-xl bg-muted p-4 text-sm"><p>Security settings couldn’t be loaded.</p><button type="button" onClick={() => void fetchStatus()} className="mt-2 font-semibold text-brand underline underline-offset-4">Try again</button></div>}

@@ -15,6 +15,7 @@
 import React from "react";
 import Link from "next/link";
 import { Target, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/Icon";
 
 interface Goal {
   id: string;
@@ -23,6 +24,7 @@ interface Goal {
   current_amount: number;
   locked_amount: number;
   status: string;
+  icon?: string;
 }
 
 interface GoalsPreviewProps {
@@ -38,7 +40,7 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
   return (
     <section className="goals-preview" aria-labelledby="goals-preview-title">
       <div className="goals-preview-heading">
-        <div><span className="section-kicker">PURPOSE / PROGRESS</span><h2 id="goals-preview-title">Your goals</h2></div>
+        <div><h2 id="goals-preview-title">Goals</h2></div>
         <Link
           href="/goals"
           className="text-link"
@@ -52,9 +54,7 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
           <Target className="w-5 h-5" aria-hidden="true" />
           <div>
             <p className="text-sm font-medium text-foreground">No goals yet</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Protect money for things that matter.
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">No money is protected for goals yet.</p>
           </div>
           <Link
             href="/goals/create"
@@ -81,33 +81,23 @@ export function GoalsPreview({ goals, formatPesewas }: GoalsPreviewProps) {
                 href={`/goals/${goal.id}`}
                 className="goal-line group"
               >
-                <div className="goal-line-top">
-                  <span className="goal-name">
-                    {goal.name}
+                <span className="goal-symbol" aria-hidden="true"><Icon name={goal.icon || "Target"} width={25} height={25} strokeWidth={2} /></span>
+                <span className="goal-line-content">
+                  <span className="goal-line-top">
+                    <span className="goal-name">{goal.name}</span>
+                    {isAchieved && <span className="goal-completed">Completed</span>}
+                    <ChevronRight className="goal-chevron" size={17} aria-hidden="true" />
                   </span>
-                  <div className="flex items-center gap-2">
-                    {isAchieved && (
-                      <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                        Completed
-                      </span>
-                    )}
-                    <span className="goal-percent">
-                      {progress}%
+                  <span className="goal-line-amount">
+                    {formatPesewas(goal.current_amount).replace(/\.00$/, "")} <span>/ {formatPesewas(goal.target_amount).replace(/\.00$/, "")}</span>
+                  </span>
+                  <span className="goal-progress-row">
+                    <span className="goal-track" role="progressbar" aria-label={`${goal.name} progress`} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                      <span className={`goal-fill ${isAchieved ? "is-achieved" : ""}`} style={{ width: `${progress}%` }} />
                     </span>
-                  </div>
-                </div>
-                <div className="goal-track" role="progressbar" aria-label={`${goal.name} progress`} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
-                  <div
-                    className={`goal-fill transition-all duration-700 ${
-                      isAchieved ? "bg-success-foreground" : "bg-brand"
-                    }`}
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <div className="goal-line-amount">
-                  {formatPesewas(goal.current_amount)} of{" "}
-                  {formatPesewas(goal.target_amount)}
-                </div>
+                    <span className="goal-percent">{progress}%</span>
+                  </span>
+                </span>
               </Link>
             );
           })}

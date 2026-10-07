@@ -28,11 +28,11 @@ export default function AppearancePage() {
 
   return (
     <div className="page-frame appearance-page pb-12">
-      <header className="page-heading"><div><p className="page-eyebrow">YOUR SPACE / PREFERENCES</p><h1>Appearance</h1><p>Choose how Arezak looks on this device.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
+      <header className="page-heading"><div><h1>Appearance</h1><p>Choose how Arezak looks on this device.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
       <section aria-label="Color theme" className="theme-options">
         {([
           { id: "light" as const, label: "Light", note: "Clear surfaces", Icon: Sun },
-          { id: "dark" as const, label: "Dark", note: "Deep Arezak blue", Icon: Moon },
+          { id: "dark" as const, label: "Dark", note: "Deep green surfaces", Icon: Moon },
           { id: "system" as const, label: "System", note: "Follow your device", Icon: Monitor },
         ]).map(({ id, label, note, Icon }) => <button key={id} type="button" aria-pressed={theme === id} onClick={() => handleThemeChange(id)} className={`theme-option ${theme === id ? "is-selected" : ""}`}>
           <span className={`theme-preview theme-preview-${id}`}><span /><i /></span>

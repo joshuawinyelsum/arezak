@@ -64,7 +64,7 @@ export function RecentTransactions({
   return (
     <section className="home-recent-list" aria-labelledby="home-recent-title">
       <div className="home-recent-heading">
-        <h2 id="home-recent-title">Recent activity</h2>
+        <h2 id="home-recent-title">Recent Activity</h2>
         <Link
           href="/transactions"
           className="flex items-center gap-0.5 text-xs text-brand font-medium hover:underline"
@@ -98,10 +98,16 @@ export function RecentTransactions({
                 ? tx.description
                 : pres.label;
 
-            const dateStr = new Date(tx.created_at).toLocaleDateString(
-              "en-GH",
-              { day: "numeric", month: "short" }
-            );
+            const date = new Date(tx.created_at);
+            const dayKey = (value: Date) => new Intl.DateTimeFormat("en-CA", {
+              timeZone: "Africa/Accra", year: "numeric", month: "2-digit", day: "2-digit",
+            }).format(value);
+            const dayDifference = Math.round((Date.parse(`${dayKey(new Date())}T00:00:00Z`) - Date.parse(`${dayKey(date)}T00:00:00Z`)) / 86400000);
+            const dateStr = dayDifference === 0
+              ? `Today · ${date.toLocaleTimeString("en-GH", { timeZone: "Africa/Accra", hour: "numeric", minute: "2-digit" })}`
+              : dayDifference === 1
+                ? "Yesterday"
+                : date.toLocaleDateString("en-GH", { timeZone: "Africa/Accra", day: "numeric", month: "short" });
 
             return (
               <div
@@ -129,8 +135,7 @@ export function RecentTransactions({
                     isCredit ? "text-success-foreground" : "text-foreground"
                   }`}
                 >
-                  {isCredit ? "+" : "−"}{" "}
-                  {formatPesewas(tx.amount.amount_pesewas, !showBalance)}
+                  {isCredit ? "+" : "-"}{formatPesewas(tx.amount.amount_pesewas, !showBalance).replace(/^GH₵ /, "GH₵")}
                 </div>
               </div>
             );

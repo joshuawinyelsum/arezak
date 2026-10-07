@@ -90,7 +90,7 @@ export default function PasswordPage() {
 
   return (
     <div className="page-frame security-password-page space-y-6 pb-12">
-      <header className="page-heading"><div><p className="page-eyebrow">YOUR SPACE / SECURITY</p><h1>{isSettingPassword ? "Set password" : "Change password"}</h1><p>Keep your Arezak account protected.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
+      <header className="page-heading"><div><h1>{isSettingPassword ? "Set password" : "Change password"}</h1><p>Choose a strong password for your Arezak account.</p></div><button onClick={() => router.back()} aria-label="Back" className="balance-toggle"><ChevronLeft className="w-5 h-5" /></button></header>
 
       <form onSubmit={handlePasswordChange} className="security-password-form">
         {passError && <div className="bg-destructive text-destructive-foreground p-4 rounded-xl text-sm font-medium">{passError}</div>}

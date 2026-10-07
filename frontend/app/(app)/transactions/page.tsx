@@ -125,7 +125,7 @@ export default function TransactionsPage() {
       
       {/* Header */}
       <header className="page-heading">
-        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / ACTIVITY</p><h1>Activity</h1><p>Money in and out, organized by day.</p></div>
+        <div><h1>Activity</h1></div>
           <div className="flex gap-2">
              <button 
                onClick={() => {

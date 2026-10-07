@@ -197,8 +197,8 @@ export default function CreateGoalPage() {
          {step === 3 && (
             <div className="space-y-6 animate-in slide-in-from-right-4">
                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">Set the unlock condition</h2>
-                  <p className="text-muted-foreground text-sm">Choose what must happen before this money becomes available.</p>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">Choose when money becomes available</h2>
+                  <p className="text-muted-foreground text-sm">Set the conditions for withdrawing protected money.</p>
                </div>
 
                <div className="space-y-3">
@@ -215,7 +215,7 @@ export default function CreateGoalPage() {
                      </div>
                      <div>
                         <div className="font-bold text-foreground">When target is reached</div>
-                        <div className="text-sm text-muted-foreground mt-1">Money unlocks automatically when you reach the target.</div>
+                        <div className="text-sm text-muted-foreground mt-1">Protected money becomes available when the target is reached.</div>
                      </div>
                   </button>
 
@@ -232,7 +232,7 @@ export default function CreateGoalPage() {
                      </div>
                      <div>
                         <div className="font-bold text-foreground">On a specific date</div>
-                        <div className="text-sm text-muted-foreground mt-1">Money unlocks on the date you choose, even if you have not reached the target.</div>
+                        <div className="text-sm text-muted-foreground mt-1">Protected money becomes available on this date, even if the target is not reached.</div>
                      </div>
                   </button>
 
@@ -256,7 +256,7 @@ export default function CreateGoalPage() {
 
                {(lockType === "DATE_REACHED" || lockType === "TARGET_AND_DATE") && (
                   <div className="pt-4 border-t border-slate-100 animate-in fade-in slide-in-from-top-2">
-                     <label htmlFor="create-goal-unlock-date" className="block text-sm font-bold text-foreground mb-2">Unlock Date</label>
+                     <label htmlFor="create-goal-unlock-date" className="block text-sm font-bold text-foreground mb-2">Available on</label>
                      <input
                         id="create-goal-unlock-date"
                         type="date"
@@ -302,7 +302,7 @@ export default function CreateGoalPage() {
                   </div>
                   <div className="w-full h-px bg-muted-foreground/20" />
                   <div>
-                     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Unlock condition</div>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Availability condition</div>
                      <div className="text-base font-bold text-card-foreground">
                         {lockType === "TARGET_REACHED" ? "When target is reached" : 
                          lockType === "TARGET_AND_DATE" ? `Target reached AND ${new Date(unlockDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` :
@@ -315,7 +315,7 @@ export default function CreateGoalPage() {
                   <AlertCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                   <p className="text-sm text-blue-800 font-medium leading-relaxed">
                      Creating this Goal does not move any money. <br/>
-                     Money becomes locked only when you contribute to this Goal.
+                     Money is protected only when you contribute to this goal.
                   </p>
                </div>
 

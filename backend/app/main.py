@@ -14,12 +14,9 @@ app = FastAPI(
 
 @app.middleware("http")
 async def csrf_protect(request: Request, call_next):
-    # Only protect state-changing methods
     if request.method in ("POST", "PUT", "PATCH", "DELETE"):
         if request.url.path.startswith(f"{settings.API_V1_STR}/webhooks/"):
             return await call_next(request)
-        # We require a custom header to ensure the request was made via fetch/XHR (which triggers CORS preflight)
-        # This prevents simple form submissions from malicious sites (which bypass preflight)
         if not request.headers.get("x-requested-with"):
             return JSONResponse(status_code=403, content={"detail": "CSRF protection: missing x-requested-with header"})
     return await call_next(request)
@@ -44,7 +41,7 @@ app.include_router(identity.router, prefix=settings.API_V1_STR)
 @app.get("/version")
 def version_check():
 
-    return {"version": "debug-catchall-v1", "commit": "cffacbe"}
+    return {"version": "account-autoprovision-v1", "commit": "defensive-fix"}
 
 @app.get("/health")
 def health_check():

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Lock, Bell, HelpCircle, Info, ChevronRight, LogOut, User, Palette, WalletCards } from "lucide-react";
+import { Lock, Bell, HelpCircle, Info, ChevronRight, LogOut, UserRound, Palette, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
@@ -46,22 +46,21 @@ export default function SettingsPage() {
   };
 
   const name = `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "User";
-  const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   return (
     <div className="page-frame you-page space-y-6 pb-12">
       <header className="page-heading">
-        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / YOU</p><h1>Your space.</h1><p>Identity, security, and preferences.</p></div>
+        <div><h1>Settings</h1></div>
       </header>
 
       {/* Edit Profile Row */}
       <Link href="/settings/profile" className="identity-link">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center shrink-0 overflow-hidden relative">
+          <div className="w-14 h-14 rounded-full bg-muted text-muted-foreground flex items-center justify-center shrink-0 overflow-hidden relative">
             {user?.profile_photo_url ? (
               <Image src={user.profile_photo_url} alt="Profile" fill className="object-cover" unoptimized />
             ) : (
-              <span className="text-xl font-bold text-brand">{initials}</span>
+              <UserRound size={22} aria-hidden="true" />
             )}
           </div>
           <div className="min-w-0 flex-1">

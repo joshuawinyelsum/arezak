@@ -1,10 +1,10 @@
 /**
  * Money formatting utilities for Arezak.
  *
- * All amounts in the system are stored as integer pesewas (1 GH₵ = 100 pesewas).
+ * All amounts in the system are stored as integer pesewas (1 GH₵= 100 pesewas).
  * These utilities translate raw pesewa integers into user-facing strings.
  *
- * Never format money as "GH₵ ..." using floating-point arithmetic without
+ * Never format money as "GH₵..." using floating-point arithmetic without
  * going through this module — rounding errors will accumulate.
  */
 
@@ -14,13 +14,13 @@ export type Money = {
 };
 
 /**
- * Format a pesewa integer as a user-facing GH₵ string.
+ * Format a pesewa integer as a user-facing GH₵string.
  * If `hidden` is true, the amount is replaced with bullet dots.
  */
 export function formatPesewas(pesewas: number, hidden = false): string {
-  if (hidden) return "GH₵ ••••••";
+  if (hidden) return "GH₵••••••";
   const amount = pesewas / 100;
-  return `GH₵ ${amount.toLocaleString("en-US", {
+  return `GH₵${amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Wallet, ShieldCheck, Target, Lock, Eye, EyeOff, Loader2, AlertCircle, Plus, ArrowUpRight } from "lucide-react";
+import { Wallet, Lock, Eye, EyeOff, Loader2, AlertCircle, Plus, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
 
@@ -65,7 +65,7 @@ export default function AccountsPage() {
       
       {/* Header */}
       <header className="page-heading">
-        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / MONEY</p><h1>Money</h1><p>See what is available, reserved, and protected.</p></div>
+        <div><p className="page-eyebrow">MONEY</p><h1>Accounts</h1></div>
         <button onClick={() => setShowBalance(!showBalance)} aria-label={showBalance ? "Hide balances" : "Show balances"} className="balance-toggle">
            {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
@@ -124,7 +124,7 @@ export default function AccountsPage() {
         <div className="account-collection">{accounts.map((account) => <article key={account.id} className="account-module">
           <div className="account-top"><span className="account-glyph"><Wallet size={19} /></span><div className="account-ident"><h3>{account.name}</h3><span>{account.total_balance.currency} account</span></div><span className="account-status"><i /> {account.status}</span></div>
           <div className="account-balance-label">TOTAL BALANCE</div><div className="account-balance">{formatMoney(account.total_balance.amount_pesewas)}</div>
-          <div className="account-breakdown"><div><span><Wallet size={14} /> Available</span><b>{formatMoney(account.available_balance.amount_pesewas)}</b></div><div><span><ShieldCheck size={14} /> Reserved</span><b>{formatMoney(account.reserved_balance.amount_pesewas)}</b></div><div><span><Target size={14} /> Locked for goals</span><b>{formatMoney(account.locked_balance.amount_pesewas)}</b></div></div>
+          <div className="account-breakdown"><div><span><Wallet size={14} /> Available</span><b>{formatMoney(account.available_balance.amount_pesewas)}</b></div><div><span><Lock size={14} /> Protected</span><b>{formatMoney(account.reserved_balance.amount_pesewas + account.locked_balance.amount_pesewas)}</b></div></div>
           <Link href="/transactions" className="account-activity">View activity <ArrowUpRight size={14} /></Link>
         </article>)}</div>
       </>}

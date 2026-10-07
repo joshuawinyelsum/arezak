@@ -1,0 +1,207 @@
+"use client";
+
+/**
+ * Arezak Home — Financial Command Center
+ *
+ * This is a COMPOSITION LAYER only.
+ * No business logic, no financial calculations, no inline service definitions.
+ *
+ * Information hierarchy:
+ *   1. Balance        — Total Balance, Available and Protected
+ *   2. Goals          — Actual protected goal balances and progress
+ *   3. RecentActivity — Human-readable transaction ledger
+ *
+ * Financial invariant preserved: Total = Available + Protected
+ * Available = available_balance
+ * Protected = locked_balance + reserved_balance
+ *
+ * This file does NOT modify backend, ledger, accounting, or constraint engine.
+ */
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { Loader2, AlertCircle, Send, Plus, UserRound } from "lucide-react";
+import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/lib/api";
+
+// Home section components
+import { Vault } from "@/components/home/Vault";
+import { GoalsPreview } from "@/components/home/GoalsPreview";
+import { RecentTransactions } from "@/components/home/RecentTransactions";
+
+// Shared utilities
+import { formatPesewas } from "@/lib/money/format";
+
+// ─── Domain types (mirrors backend API responses) ─────────────────────────────
+
+type Money = {
+  amount_pesewas: number;
+  currency: string;
+};
+
+type Account = {
+  id: string;
+  name: string;
+  total_balance: Money;
+  available_balance: Money;
+  locked_balance: Money;
+  reserved_balance: Money;
+};
+
+type Transaction = {
+  id: string;
+  type: string;
+  amount: Money;
+  status: string;
+  description?: string;
+  direction?: "INCOMING" | "OUTGOING";
+  created_at: string;
+};
+
+type Goal = {
+  id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  locked_amount: number;
+  status: string;
+  icon?: string;
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function Home() {
+  const { user } = useAuth();
+  const [showBalance, setShowBalance] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const [data, setData] = useState<{
+    accounts: Account[];
+    txs: Transaction[];
+    goals: Goal[];
+  } | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setError(null);
+      setIsLoading(true);
+      try {
+        const [accRes, txRes, goalRes] = await Promise.all([
+          apiFetch("/accounts"),
+          apiFetch("/transactions"),
+          apiFetch("/goals"),
+        ]);
+
+        if (!accRes.ok || !txRes.ok || !goalRes.ok) {
+          throw new Error("Failed to load dashboard data");
+        }
+
+        const [accounts, txs, goals] = await Promise.all([
+          accRes.json(),
+          txRes.json(),
+          goalRes.json(),
+        ]);
+
+        if (mounted) setData({ accounts, txs, goals });
+      } catch (err: unknown) {
+        if (process.env.NODE_ENV === "development") console.error("Dashboard data load failed", err);
+        if (mounted)
+          setError("Your financial overview couldn’t be loaded.");
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, [user, retryCount]);
+
+  useEffect(() => {
+    const refreshOverview = () => setRetryCount((count) => count + 1);
+    window.addEventListener("arezak:money-updated", refreshOverview);
+    return () => window.removeEventListener("arezak:money-updated", refreshOverview);
+  }, []);
+
+  // ── Loading ──────────────────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="page-frame home-loading" role="status" aria-live="polite">
+        <h1 className="sr-only">Home</h1><div className="skeleton-hero" /><div className="skeleton-row"><span /><span /></div>
+        <span className="sr-only"><Loader2 className="animate-spin" />Loading your financial overview</span>
+      </div>
+    );
+  }
+
+  // ── Error ────────────────────────────────────────────────────────────────
+  if (error || !data) {
+    return (
+      <div className="page-frame state-panel">
+        <div className="state-symbol"><AlertCircle size={22} /></div>
+        <p className="section-kicker">HOME / DATA STATUS</p><p className="text-base font-semibold text-foreground">Unable to load dashboard</p>
+        <p className="text-sm mt-1 text-muted-foreground">{error || "Your financial overview isn’t available right now."}</p>
+        <button
+          onClick={() => setRetryCount((count) => count + 1)}
+          className="action-button mt-5"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // ── Balance aggregation ───────────────────────────────────────────────────
+  // INVARIANT: totalSum = totalAvailable + totalProtected (verified in backend)
+  // Available = available_balance  |  Protected = locked + reserved
+  let totalAvailable = 0;
+  let totalProtected = 0;
+  let totalSum = 0;
+
+  data.accounts.forEach((acc) => {
+    totalAvailable += acc.available_balance.amount_pesewas;
+    totalProtected += acc.locked_balance.amount_pesewas + acc.reserved_balance.amount_pesewas;
+    totalSum += acc.total_balance.amount_pesewas;
+  });
+
+  const fmt = (pesewas: number) => formatPesewas(pesewas, !showBalance).replace(/^GH₵ /, "GH₵");
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div className="page-frame home-page">
+      <section className="home-financial-zone" aria-label="Financial overview">
+        <header className="home-heading">
+          <div className="home-brand-lockup">
+            <span className="home-brand-mark"><Image src="/brand/arezak-reference-mark.png" alt="" width={34} height={34} /></span>
+            <span><b>AREZAK</b><small>Financial Control</small></span>
+          </div>
+          <Link className="home-profile" href="/settings/profile" aria-label="Profile">
+            {user?.profile_photo_url ? <Image src={user.profile_photo_url} alt="" fill sizes="46px" unoptimized /> : <UserRound size={21} aria-hidden="true" />}
+          </Link>
+        </header>
+        <Vault
+            totalSum={totalSum}
+            totalAvailable={totalAvailable}
+            totalProtected={totalProtected}
+            showBalance={showBalance}
+            onToggleBalance={() => setShowBalance((v) => !v)}
+            formatPesewas={fmt}
+          />
+        <div className="home-shortcuts" aria-label="Quick actions">
+          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("arezak:quick-money-action", { detail: "send" }))}>
+            <Send size={18} aria-hidden="true" /> Send
+          </button>
+          <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("arezak:quick-money-action", { detail: "fund" }))}>
+            <Plus size={18} aria-hidden="true" /> Fund
+          </button>
+        </div>
+      </section>
+      <div className="home-layout">
+        <section className="home-goals"><GoalsPreview goals={data.goals} formatPesewas={fmt} /></section>
+        <section className="home-recent"><RecentTransactions transactions={data.txs} showBalance={showBalance} /></section>
+      </div>
+    </div>
+  );
+}
+

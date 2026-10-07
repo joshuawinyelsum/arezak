@@ -15,12 +15,21 @@ const APPLE_SDK =
 /** Load a third-party SDK once, resolving when it is ready. */
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error("Provider sign-in timed out")), 8_000);
+    const loaded = () => {
+      window.clearTimeout(timeout);
+      resolve();
+    };
+    const failed = () => {
+      window.clearTimeout(timeout);
+      reject(new Error("Provider sign-in could not be loaded"));
+    };
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
     if (existing) {
-      if (existing.dataset.loaded === "true") resolve();
+      if (existing.dataset.loaded === "true") loaded();
       else {
-        existing.addEventListener("load", () => resolve(), { once: true });
-        existing.addEventListener("error", () => reject(new Error(src)), { once: true });
+        existing.addEventListener("load", loaded, { once: true });
+        existing.addEventListener("error", failed, { once: true });
       }
       return;
     }
@@ -30,9 +39,9 @@ function loadScript(src: string): Promise<void> {
     script.defer = true;
     script.addEventListener("load", () => {
       script.dataset.loaded = "true";
-      resolve();
+      loaded();
     });
-    script.addEventListener("error", () => reject(new Error(src)));
+    script.addEventListener("error", failed);
     document.head.appendChild(script);
   });
 }
@@ -86,9 +95,6 @@ function ProviderButton({
         {busy ? <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" /> : mark}
         {label}
       </button>
-      {unavailable && (
-        <p className="text-xs text-muted-foreground mt-1.5 text-center">Unavailable in this environment</p>
-      )}
     </div>
   );
 }
@@ -96,6 +102,8 @@ function ProviderButton({
 export function SocialAuth() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<"google" | "apple" | null>(null);
+  const [googleReady, setGoogleReady] = useState(false);
+  const [googleUnavailable, setGoogleUnavailable] = useState(false);
   const { socialLogin } = useAuth();
 
   const isGoogleConfigured = !!GOOGLE_CLIENT_ID;
@@ -137,7 +145,10 @@ export function SocialAuth() {
       .then(() => {
         if (cancelled) return;
         const google = (window as any).google;
-        if (!google?.accounts?.id) return;
+        if (!google?.accounts?.id) {
+          setGoogleUnavailable(true);
+          return;
+        }
         google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: (res: any) => {
@@ -152,10 +163,13 @@ export function SocialAuth() {
             type: "standard",
             width: container.offsetWidth || 300,
           });
+          setGoogleReady(true);
         }
       })
       .catch(() => {
-        if (!cancelled) setError("Could not load Google sign-in. Please try again.");
+        if (!cancelled) {
+          setGoogleUnavailable(true);
+        }
       });
 
     return () => {
@@ -233,7 +247,18 @@ export function SocialAuth() {
 
       <div className="w-full space-y-3">
         {isGoogleConfigured ? (
-          <div id="google-signin-btn" className="w-full flex justify-center" />
+          <div className="relative min-h-11 w-full">
+            <div id="google-signin-btn" className={`w-full flex justify-center ${googleReady ? "" : "invisible"}`} />
+            {!googleReady && <div className="absolute inset-0">
+              <ProviderButton
+                label={googleUnavailable ? "Google sign-in unavailable" : "Continue with Google"}
+                mark={<GoogleMark />}
+                onClick={handleUnconfiguredGoogle}
+                busy={false}
+                unavailable={!googleReady || googleUnavailable}
+              />
+            </div>}
+          </div>
         ) : (
           <ProviderButton
             label="Continue with Google"

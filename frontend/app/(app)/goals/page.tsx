@@ -178,12 +178,12 @@ export default function GoalsPage() {
   return (
     <div className="page-frame goals-page space-y-6 md:space-y-8 pb-12">
       <header className="page-heading goals-heading">
-        <div><p className="page-eyebrow">YOUR FINANCIAL CONTROL / PLANNING</p><h1>Your goals</h1><p>Protect money for what you have in mind.</p></div>
+        <div><h1>Goals</h1></div>
         <Link 
            href="/goals/create" 
            className="action-button goals-create"
         >
-           + Create Goal
+           Create goal
         </Link>
       </header>
 
@@ -271,7 +271,7 @@ export default function GoalsPage() {
                                 style={{ width: `${Math.min(percentage, 100)}%` }}
                              ></div>
                           </div>
-                          <div className="text-xs text-muted-foreground font-medium">{percentage}% complete{goal.unlock_date ? ` · Unlocks ${new Date(goal.unlock_date).toLocaleDateString("en-GH", { day: "numeric", month: "short", year: "numeric" })}` : ""}</div>
+                          <div className="text-xs text-muted-foreground font-medium">{percentage}% complete{goal.unlock_date ? ` · Available ${new Date(goal.unlock_date).toLocaleDateString("en-GH", { day: "numeric", month: "short", year: "numeric" })}` : ""}</div>
                      </div>
                      
                      <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2">
@@ -399,7 +399,7 @@ export default function GoalsPage() {
             {modalMode === "release" && (
                <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                     Withdraw <strong>GH₵{formatPesewas(selectedGoal.locked_amount)}</strong> from <strong>{selectedGoal.name}</strong> to Available. This will mark the goal complete.
+                     Withdraw <strong>GH₵{formatPesewas(selectedGoal.locked_amount)}</strong> from <strong>{selectedGoal.name}</strong>? The money returns to Available and this goal will be marked complete.
                   </p>
 
                   <div className="flex flex-col gap-2 mt-4">

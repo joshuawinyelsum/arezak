@@ -101,7 +101,7 @@ export function TransactionActionModal({ isOpen, onClose, transaction, mode, onS
               </div>
             </>
           )}
-          <button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 text-white py-3.5 rounded-xl font-semibold mt-2">
+          <button type="submit" disabled={isLoading} className="w-full bg-brand hover:bg-brand/90 text-white py-3.5 rounded-xl font-semibold mt-2">
             {isLoading ? "Saving..." : (mode === "correct" ? "Confirm Correction" : "Save Metadata")}
           </button>
         </form>
